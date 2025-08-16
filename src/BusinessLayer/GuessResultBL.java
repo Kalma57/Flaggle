@@ -18,7 +18,7 @@ public class GuessResultBL {
 
         this.correct = guessedCountry.equals(targetCountry);
 
-        this.flagDifferences = calculateFlagDifferences(guessedCountry, targetCountry);
+        this.flagDifferences = CalculateFlagDifferences(guessedCountry, targetCountry);
     }
 
     /**
@@ -30,7 +30,7 @@ public class GuessResultBL {
      * @param target the target country's flag
      * @return a map with pixel positions and a boolean indicating pixel overlap
      */
-    private Map<String, Boolean> calculateFlagDifferences(CountryBL guessed, CountryBL target) {
+    private Map<String, Boolean> CalculateFlagDifferences(CountryBL guessed, CountryBL target) {
         Map<String, Boolean> differencesMap = new HashMap<>();
 
         BufferedImage guessedFlag = guessed.getFlagImage();
