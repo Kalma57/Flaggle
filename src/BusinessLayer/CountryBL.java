@@ -1,22 +1,32 @@
 package BusinessLayer;
 
+import DataAccessLayer.CountryDAL;
+
 import java.awt.image.BufferedImage;
+import java.io.File;
 import java.io.IOException;
-import java.net.URL;
 import javax.imageio.ImageIO;
+
 
 public class CountryBL {
     private String name;
-    private String code;
-    private String flagUrl;
-    private BufferedImage flagImage;
+    private int ID;
+    private String flagPath;
 
-    public CountryBL(String name, String code, String flagUrl) {
+    public CountryBL(String name, int ID, String flagPath) {
         this.name = name;
-        this.code = code;
-        this.flagUrl = flagUrl;
+        this.ID = ID;
+        this.flagPath = flagPath;
     }
+
     public CountryBL() {}
+
+    public CountryBL(CountryDAL cd) {
+        this.name = cd.getCountryName();
+        this.ID = cd.getID();
+        this.flagPath = cd.getFlagPath();
+    }
+
     /**
      * Returns the name of the country.
      *
@@ -31,8 +41,8 @@ public class CountryBL {
      *
      * @return The country's code.
      */
-    public String getCode() {
-        return code;
+    public int getCode() {
+        return ID;
     }
 
     /**
@@ -40,8 +50,8 @@ public class CountryBL {
      *
      * @return The flag image URL.
      */
-    public String getFlagUrl() {
-        return flagUrl;
+    public String getFlagPath() {
+        return flagPath;
     }
 
     /**
@@ -51,12 +61,13 @@ public class CountryBL {
      * @return The flag image as a BufferedImage, or {@code null} if loading fails.
      */
     public BufferedImage getFlagImage() {
+        BufferedImage flagImage = null;
         if (flagImage == null) {
             try {
-                URL url = new URL(flagUrl);
-                flagImage = ImageIO.read(url);
+                flagImage = ImageIO.read(new File(flagPath));
             } catch (IOException e) {
                 e.printStackTrace();
+                flagImage = null;
             }
         }
         return flagImage;
@@ -75,7 +86,7 @@ public class CountryBL {
         if (!(o instanceof CountryBL))
             return false;
         CountryBL other = (CountryBL) o;
-        return code != null && code.equals(other.code);
+        return ID == other.getCode();
     }
 
     /**
@@ -83,8 +94,9 @@ public class CountryBL {
      *
      * @return The hash code value.
      */
-    @Override
+
+    /*@Override
     public int hashCode() {
         return code != null ? code.hashCode() : 0;
-    }
+    }*/
 }

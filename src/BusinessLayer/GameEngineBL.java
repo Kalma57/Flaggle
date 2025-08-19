@@ -1,13 +1,17 @@
 package BusinessLayer;
 
+import DataAccessLayer.CountryController;
+
 public class GameEngineBL {
         private CountryBL targetCountry;
         private int attempts;
         private boolean gameOver;
+        private CountryController cc;
 
         public GameEngineBL() {
             this.attempts = 0;
             this.gameOver = false;
+            this.cc = new CountryController();
         }
 
     /**
@@ -35,8 +39,8 @@ public class GameEngineBL {
         }
         this.attempts++;
 
-        CountryBL guessedCountry = findCountryByName(countryName);
-
+        //CountryBL guessedCountry = cc.findCountryByName(countryName);
+        CountryBL guessedCountry = new CountryBL();
         GuessResultBL result = new GuessResultBL(guessedCountry, targetCountry);
 
         if (result.isCorrect()) {
@@ -71,15 +75,7 @@ public class GameEngineBL {
      */
     private CountryBL selectRandomCountry() {
         // Implementation needed: select a random country from the available list
+        return new CountryBL();
     }
 
-    /**
-     * Finds a country by its name in the available countries list.
-     *
-     * @param name the name of the country to find
-     * @return the matching CountryBL object, or null if not found
-     */
-    private CountryBL findCountryByName(String name) {
-        // Implementation needed: find country by name from the available list
-    }
 }

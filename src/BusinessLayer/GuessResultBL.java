@@ -2,15 +2,14 @@ package BusinessLayer;
 
 import java.awt.image.BufferedImage;
 import java.awt.Color;
-import java.util.HashMap;
-import java.util.Map;
-
 
 public class GuessResultBL {
+    private static final int TOLERANCE = 30; // ← קבוע
+
     private boolean correct;
     private CountryBL guessedCountry;
     private CountryBL targetCountry;
-    private Map<String, Boolean> flagDifferences;
+    private BufferedImage flagDifferences;
 
     public GuessResultBL(CountryBL guessedCountry, CountryBL targetCountry) {
         this.guessedCountry = guessedCountry;
@@ -18,73 +17,69 @@ public class GuessResultBL {
 
         this.correct = guessedCountry.equals(targetCountry);
 
-        this.flagDifferences = calculateFlagDifferences(guessedCountry, targetCountry);
+        this.flagDifferences = calculateFlagDifferences(
+                guessedCountry.getFlagImage(),
+                targetCountry.getFlagImage()
+        );
     }
 
     /**
-     * Calculates a map of differences between the flags of two countries.
-     * The map contains pixel positions as keys ("x,y") and a boolean value indicating
-     * whether the pixels overlap (are identical).
-     *
-     * @param guessed the guessed country's flag
-     * @param target the target country's flag
-     * @return a map with pixel positions and a boolean indicating pixel overlap
+     * Calculates differences between two flags pixel by pixel.
+     * Green = similar pixel, Black = different.
      */
-    private Map<String, Boolean> calculateFlagDifferences(CountryBL guessed, CountryBL target) {
-        Map<String, Boolean> differencesMap = new HashMap<>();
+    public static BufferedImage calculateFlagDifferences(BufferedImage guessed, BufferedImage target) {
+        int width = Math.min(guessed.getWidth(), target.getWidth());
+        int height = Math.min(guessed.getHeight(), target.getHeight());
 
-        BufferedImage guessedFlag = guessed.getFlagImage();
-        BufferedImage targetFlag = target.getFlagImage();
-
-        int width = Math.min(guessedFlag.getWidth(), targetFlag.getWidth());
-        int height = Math.min(guessedFlag.getHeight(), targetFlag.getHeight());
+        BufferedImage result = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
 
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
-                int guessedRGB = guessedFlag.getRGB(x, y);
-                int targetRGB = targetFlag.getRGB(x, y);
+                int guessedRGB = guessed.getRGB(x, y);
+                int targetRGB = target.getRGB(x, y);
 
-                boolean isOverlap = (guessedRGB == targetRGB);
-                differencesMap.put(x + "," + y, isOverlap);
+                if (areColorsSimilar(guessedRGB, targetRGB)) {
+                    result.setRGB(x, y, Color.GREEN.getRGB());
+                } else {
+                    result.setRGB(x, y, Color.BLACK.getRGB());
+                }
             }
         }
 
-        return differencesMap;
+        return result;
     }
 
-    /**
-     * Checks whether the guess is correct.
-     *
-     * @return true if the guess matches the target country, false otherwise
-     */
+    private static boolean areColorsSimilar(int rgb1, int rgb2) {
+        Color c1 = new Color(rgb1);
+        Color c2 = new Color(rgb2);
+
+        int redDiff   = Math.abs(c1.getRed()   - c2.getRed());
+        int greenDiff = Math.abs(c1.getGreen() - c2.getGreen());
+        int blueDiff  = Math.abs(c1.getBlue()  - c2.getBlue());
+
+        return (redDiff <= TOLERANCE &&
+                greenDiff <= TOLERANCE &&
+                blueDiff <= TOLERANCE);
+    }
+
+    // ---- Getters ----
+
     public boolean isCorrect() {
         return correct;
     }
 
-    /**
-     * Returns the guessed country.
-     *
-     * @return the guessed CountryBL object
-     */
     public CountryBL getGuessedCountry() {
         return guessedCountry;
     }
 
-    /**
-     * Returns the target country.
-     *
-     * @return the target CountryBL object
-     */
     public CountryBL getTargetCountry() {
         return targetCountry;
     }
 
-    /**
-     * Returns a string representation of the guess result,
-     * including correctness and the involved countries.
-     *
-     * @return a descriptive string of the guess result
-     */
+    public BufferedImage getFlagDifferences() {
+        return flagDifferences;
+    }
+
     @Override
     public String toString() {
         return "GuessResult{" +
