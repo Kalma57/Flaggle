@@ -5,6 +5,7 @@ import DataAccessLayer.CountryDAL;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import javax.imageio.ImageIO;
 
 
@@ -61,18 +62,20 @@ public class CountryBL {
      * @return The flag image as a BufferedImage, or {@code null} if loading fails.
      */
     public BufferedImage getFlagImage() {
-        BufferedImage flagImage = null;
-        if (flagImage == null) {
-            try {
-                flagImage = ImageIO.read(new File(flagPath));
-            } catch (IOException e) {
-                e.printStackTrace();
-                flagImage = null;
-            }
-        }
-        return flagImage;
-    }
+        File file = new File("DB/" + flagPath); // עכשיו "DB/FlagsImages/fr.png"
 
+        if (!file.exists()) {
+            System.err.println("Flag file not found: " + file.getAbsolutePath());
+            return null;
+        }
+
+        try {
+            return ImageIO.read(file);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
     /**
      * Compares this country to another object based on the country code.
      *
@@ -81,12 +84,12 @@ public class CountryBL {
      */
     @Override
     public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (!(o instanceof CountryBL))
-            return false;
-        CountryBL other = (CountryBL) o;
-        return ID == other.getCode();
+        if (o instanceof CountryBL){
+            if (this.ID == ((CountryBL) o).ID) {
+                return true;
+            }
+    }
+        return false;
     }
 
     /**

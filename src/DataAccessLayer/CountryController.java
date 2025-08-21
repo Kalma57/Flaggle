@@ -12,7 +12,6 @@ public class CountryController {
 
     private CountryRepository cr;
 
-    public CountryController(){}
 
     public CountryController(CountryRepository cr){
         this.cr = cr;
@@ -87,6 +86,4 @@ public class CountryController {
             return rs.next();
         }
     }
-
-
 }

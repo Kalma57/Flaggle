@@ -1,7 +1,12 @@
 package BusinessLayer;
 
+import org.mozilla.javascript.json.JsonParser;
+
+import javax.swing.plaf.synth.SynthOptionPaneUI;
 import java.awt.image.BufferedImage;
 import java.awt.Color;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.classfile.Attributes;
 
 public class GuessResultBL {
     private static final int TOLERANCE = 30; // ← קבוע

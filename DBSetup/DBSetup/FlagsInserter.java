@@ -1,11 +1,16 @@
 package DBSetup;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.Statement;
 import java.util.Locale;
+
+import org.apache.batik.transcoder.TranscoderInput;
+import org.apache.batik.transcoder.TranscoderOutput;
+import org.apache.batik.transcoder.image.PNGTranscoder;
 
 public class FlagsInserter {
 
@@ -27,7 +32,7 @@ public class FlagsInserter {
 
             Statement stmt = conn.createStatement();
 
-            // יצירת הטבלה אם לא קיימת, עכשיו ללא AUTOINCREMENT
+            // יצירת הטבלה אם לא קיימת
             String createTableSQL = """
                     CREATE TABLE IF NOT EXISTS Countries (
                         ID INTEGER PRIMARY KEY,
@@ -50,7 +55,7 @@ public class FlagsInserter {
             String insertSQL = "INSERT INTO Countries (ID, Code, CountryName, FlagPath) VALUES (?, ?, ?, ?)";
             PreparedStatement pstmt = conn.prepareStatement(insertSQL);
 
-            int rowId = 1; // מספר שורה מתחיל מ-1
+            int rowId = 1;
             int insertedCount = 0;
 
             for (File file : files) {
@@ -58,26 +63,16 @@ public class FlagsInserter {
                 String code = filename.split("\\.")[0].toUpperCase();
                 String countryName;
 
-                // בדיקה ידנית למדינות UK החלקיות
                 switch (code.toLowerCase()) {
                     case "eng":
-                        code = "ENG";
-                        countryName = "England";
-                        break;
+                        code = "ENG"; countryName = "England"; break;
                     case "nir":
-                        code = "NIR";
-                        countryName = "Northern Ireland";
-                        break;
+                        code = "NIR"; countryName = "Northern Ireland"; break;
                     case "sct":
-                        code = "SCT";
-                        countryName = "Scotland";
-                        break;
+                        code = "SCT"; countryName = "Scotland"; break;
                     case "wls":
-                        code = "WLS";
-                        countryName = "Wales";
-                        break;
+                        code = "WLS"; countryName = "Wales"; break;
                     default:
-                        // רק קודים דו-אותיים חוקיים
                         if (!code.matches("^[A-Z]{2}$")) {
                             System.out.println("דלגתי על קובץ עם קוד לא חוקי: " + filename);
                             continue;
@@ -86,13 +81,27 @@ public class FlagsInserter {
                         countryName = locale.getDisplayCountry();
                         if (countryName.isEmpty()) {
                             System.out.println("לא נמצא שם למדינה עבור קוד: " + code);
-                            continue; // דלג אם אין שם
+                            continue;
                         }
                 }
 
-                String path = "FlagsImages/" + filename;
+                // המרה מ-SVG ל-PNG באמצעות Batik
+                String pngFilename = filename.replace(".svg", ".png");
+                File pngFile = new File(flagsFolder, pngFilename);
+                try (FileOutputStream fos = new FileOutputStream(pngFile)) {
+                    PNGTranscoder transcoder = new PNGTranscoder();
+                    TranscoderInput input = new TranscoderInput(file.toURI().toString());
+                    TranscoderOutput output = new TranscoderOutput(fos);
+                    transcoder.transcode(input, output);
+                } catch (Exception e) {
+                    System.out.println("שגיאה בהמרת קובץ: " + filename);
+                    e.printStackTrace();
+                    continue;
+                }
 
-                pstmt.setInt(1, rowId++);  // נותן ID לפי מספר השורה
+                String path = "FlagsImages/" + pngFilename;
+
+                pstmt.setInt(1, rowId++);
                 pstmt.setString(2, code.toLowerCase());
                 pstmt.setString(3, countryName);
                 pstmt.setString(4, path);
