@@ -19,8 +19,7 @@ public class CountryRepository {
     private void loadCountries() {
         try (Connection conn = DriverManager.getConnection("jdbc:sqlite:" + DB_PATH)) {
             Statement stmt = conn.createStatement();
-            ResultSet rs = stmt.executeQuery("SELECT Code, CountryName, FlagPath FROM Countries");
-
+            ResultSet rs = stmt.executeQuery("SELECT ID, Code, CountryName, FlagPath FROM Countries");
             while (rs.next()) {
                 int ID = rs.getInt("ID");
                 String name = rs.getString("CountryName");
@@ -33,8 +32,6 @@ public class CountryRepository {
                 codeToName.put(code, name);
                 nameToCode.put(name.toLowerCase(), code);
             }
-
-            System.out.println("Loaded " + allCountries.size() + " countries into memory.");
 
         } catch (Exception e) {
             e.printStackTrace();

@@ -1,6 +1,10 @@
 package BusinessLayer;
 
 import DataAccessLayer.CountryController;
+import DataAccessLayer.CountryRepository;
+
+import java.sql.SQLException;
+import java.util.Random;
 
 public class GameEngineBL {
         private CountryBL targetCountry;
@@ -11,14 +15,14 @@ public class GameEngineBL {
         public GameEngineBL() {
             this.attempts = 0;
             this.gameOver = false;
-            this.cc = new CountryController();
+            this.cc = new CountryController(new CountryRepository());
         }
 
     /**
      * Starts a new game by selecting a random target country,
      * resetting the number of attempts and the gameOver flag.
      */
-    public void StartNewGame() {
+    public void StartNewGame() throws SQLException {
         this.targetCountry = selectRandomCountry();
         this.attempts = 0;
         this.gameOver = false;
@@ -33,14 +37,10 @@ public class GameEngineBL {
      * @return a GuessResultBL object representing the guess result,
      *         or null if the game is already over
      */
-    public GuessResultBL Guess(String countryName) {
-        if (gameOver) {
-            return null;
-        }
+    public GuessResultBL Guess(String countryName) throws SQLException {
         this.attempts++;
 
-        //CountryBL guessedCountry = cc.findCountryByName(countryName);
-        CountryBL guessedCountry = new CountryBL();
+        CountryBL guessedCountry = cc.getCountryByName(countryName);
         GuessResultBL result = new GuessResultBL(guessedCountry, targetCountry);
 
         if (result.isCorrect()) {
@@ -68,14 +68,24 @@ public class GameEngineBL {
         return attempts;
     }
 
+    public CountryController getCountryController(){
+        return cc;
+    }
     /**
      * Selects a random country from the available countries list.
      *
      * @return a randomly selected CountryBL object
      */
-    private CountryBL selectRandomCountry() {
-        // Implementation needed: select a random country from the available list
-        return new CountryBL();
+    private CountryBL selectRandomCountry() throws SQLException {
+        int numOfCountries = cc.getNumberOfAllCountries();
+        Random rand = new Random();
+        int randomID = rand.nextInt(numOfCountries) + 1;
+        CountryBL randomCountry = cc.getCountryById(randomID);
+        return randomCountry;
+    }
+
+    public void setTargetCountry(CountryBL cb){
+        this.targetCountry = cb;
     }
 
 }
