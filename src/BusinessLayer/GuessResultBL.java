@@ -6,12 +6,11 @@ import javax.swing.plaf.synth.SynthOptionPaneUI;
 import java.awt.image.BufferedImage;
 import java.awt.Color;
 import java.lang.annotation.RetentionPolicy;
-import java.lang.classfile.Attributes;
 
 public class GuessResultBL {
     private static final int TOLERANCE = 30; // ← קבוע
 
-    private boolean correct;
+    private boolean isCorrect;
     private CountryBL guessedCountry;
     private CountryBL targetCountry;
     private BufferedImage flagDifferences;
@@ -20,7 +19,7 @@ public class GuessResultBL {
         this.guessedCountry = guessedCountry;
         this.targetCountry = targetCountry;
 
-        this.correct = guessedCountry.equals(targetCountry);
+        this.isCorrect = guessedCountry.equals(targetCountry);
 
         this.flagDifferences = calculateFlagDifferences(
                 guessedCountry.getFlagImage(),
@@ -70,7 +69,7 @@ public class GuessResultBL {
     // ---- Getters ----
 
     public boolean isCorrect() {
-        return correct;
+        return isCorrect;
     }
 
     public CountryBL getGuessedCountry() {
@@ -88,7 +87,7 @@ public class GuessResultBL {
     @Override
     public String toString() {
         return "GuessResult{" +
-                "correct=" + correct +
+                "correct=" + isCorrect +
                 ", guessedCountry=" + guessedCountry.getName() +
                 ", targetCountry=" + targetCountry.getName() +
                 '}';
