@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/Flaggle.iml" filepath="$PROJECT_DIR$/Flaggle.iml" />
+      <module fileurl="file://$PROJECT_DIR$/flagdemo/flagdemo.iml" filepath="$PROJECT_DIR$/flagdemo/flagdemo.iml" />
     </modules>
   </component>
 </project>

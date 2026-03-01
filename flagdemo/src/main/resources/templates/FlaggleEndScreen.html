@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Flaggle - Game Over</title>
+  <style>
+    body {
+        background-color: #f9f9f9;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        margin: 0;
+        font-family: Arial, sans-serif;
+        color: #4CAF50;
+    }
+
+    .container {
+        background-color: white;
+        padding: 40px 60px;
+        border-radius: 16px;
+        text-align: center;
+        box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        max-width: 500px;
+    }
+
+    h1 {
+        font-size: 42px;
+        margin-bottom: 25px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+    }
+
+    .emoji {
+        font-size: 42px;
+    }
+
+    p {
+        font-size: 20px;
+        margin: 10px 0;
+    }
+
+    img {
+        width: 250px;
+        height: 125px;
+        border: 3px solid #4CAF50;
+        border-radius: 10px;
+        object-fit: cover;
+    }
+
+    button {
+        margin-top: 20px;
+        background-color: #4CAF50;
+        color: white;
+        border: none;
+        padding: 12px 30px;
+        font-size: 18px;
+        border-radius: 8px;
+        cursor: pointer;
+    }
+
+    button:hover {
+        background-color: #45a049;
+    }
+
+    .buttons-container {
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .home-btn {
+        background-color: white;
+        color: #4CAF50;
+        border: 2px solid #4CAF50;
+    }
+
+    .home-btn:hover {
+        background-color: #f1f1f1;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>
+    <span th:text="${success} ? 'Congratulations!' : 'Game Over'">Game Over</span>
+    <span class="emoji" th:text="${success} ? '🎉🎉🎉' : '😔😔😔'">🎉🎉🎉</span>
+  </h1>
+
+  <p>Attempts: <span th:text="${attempts}">0</span></p>
+  <p>The country was: <strong th:text="${countryName}">Country Name</strong></p>
+
+  <img th:src="'data:image/png;base64,' + ${countryImage}" alt="Country Flag">
+
+  <div class="buttons-container">
+    <form th:action="@{/Flaggle/start}" method="get">
+      <button type="submit">Play Again</button>
+    </form>
+
+    <button type="button"
+            class="home-btn"
+            onclick="window.location.href='/Flaggle'">
+      Return to home page
+    </button>
+  </div>
+</div>
+</body>
+</html>
