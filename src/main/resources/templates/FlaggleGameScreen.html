@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Flaggle - Game</title>
+    <style>
+        body {
+            background-color: #f9f9f9;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            color: #4CAF50;
+            padding: 5vh 0;
+        }
+
+        h1 {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+
+        .guess-form {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        input[type="text"] {
+            padding: 10px;
+            font-size: 18px;
+            width: 250px;
+            text-align: center;
+            border-radius: 8px;
+            border: 2px solid #4CAF50;
+        }
+
+        button {
+            padding: 10px 25px;
+            font-size: 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            border: none;
+        }
+
+        .guess-btn {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .guess-btn:hover {
+            background-color: #45a049;
+        }
+
+        .giveup-btn {
+            background-color: white;
+            color: #4CAF50;
+            border: 2px solid #4CAF50;
+            margin-top: 10px;
+        }
+
+        .giveup-btn:hover {
+            background-color: #f1f1f1;
+        }
+
+        /* כפתור RULES */
+.rules-btn {
+    position: fixed;
+    top: 80px;
+    right: 460px;
+    background-color: #f9f9f9;
+    color: #4CAF50;
+    border: 2px solid #4CAF50;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    z-index: 101;
+}
+
+.rules-btn:hover {
+    background-color: #f1f1f1;
+}
+
+        .guesses {
+            display: flex;
+            flex-direction: column-reverse;
+            gap: 20px;
+            width: 100%;
+            max-width: 800px;
+            margin-top: 30px;
+            align-items: center;
+        }
+
+        .guess-row {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            align-items: center;
+            width: 100%;
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            padding: 15px 0;
+        }
+
+        .flag img {
+            width: 300px;
+            height: 225px;
+            border: 3px solid #4CAF50;
+            border-radius: 10px;
+            object-fit: cover;
+        }
+
+        .guess-label {
+            text-align: center;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #388e3c;
+        }
+
+        .flag {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Side panel for Rules */
+        .rules-panel {
+            height: 100%;
+            width: 0;
+            position: fixed;
+            z-index: 100;
+            top: 0;
+            right: 0;
+            background-color: #ffffff;
+            overflow-x: hidden;
+            transition: 0.4s;
+            padding: 20px;
+            box-shadow: -4px 0 8px rgba(0,0,0,0.2);
+        }
+
+        .rules-panel h2 {
+            margin-top: 0;
+            color: #4CAF50;
+        }
+
+        .rules-panel p {
+            margin: 10px 0;
+            color: #333;
+        }
+
+        .close-rules {
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            font-size: 30px;
+            cursor: pointer;
+            color: #4CAF50;
+        }
+    </style>
+</head>
+<body>
+<h1>Flaggle - Game</h1>
+
+<form action="/Flaggle/guess" method="post" class="guess-form">
+    <input type="text" name="countryName" placeholder="Enter country name" required list="countries">
+    <datalist id="countries">
+        <option th:each="c : ${viewModel.allCountries}" th:value="${c.name}"/>
+    </datalist>
+    <button type="submit" class="guess-btn">GUESS</button>
+</form>
+
+<form action="/Flaggle/giveup" method="post">
+    <button type="submit" class="giveup-btn">GIVE UP</button>
+</form>
+
+<!-- כפתור RULES -->
+<button class="rules-btn" onclick="openRules()">RULES</button>
+
+<!-- רשימת הניחושים -->
+<div class="guesses" th:if="${guesses}">
+    <div th:each="guess, iterStat : ${guesses}" class="guess-row">
+        <div class="flag guessed-flag">
+            <div class="guess-label">
+                guess [[${iterStat.index + 1}]]: [[${guess.guessedName}]]
+            </div>
+            <img th:src="'data:image/png;base64,' + ${guess.guessedImage}" alt="Guessed Flag">
+        </div>
+        <div class="flag result-flag">
+            <div class="guess-label">result</div>
+            <img th:src="'data:image/png;base64,' + ${guess.resultImage}" alt="Result Flag">
+        </div>
+    </div>
+</div>
+
+<!-- Rules Side Panel -->
+<div id="rulesPanel" class="rules-panel">
+    <span class="close-rules" onclick="closeRules()">&times;</span>
+    <h2>Flaggle Rules</h2>
+    <p>Can you identify the country by its flag?</p>
+    <p>Enter a country name and press <strong>GUESS</strong>. After each attempt, you'll see visual feedback comparing your guess to the correct flag. Use the hints to get closer to the answer.</p>
+    <p>Guess correctly to win — or press <strong>GIVE UP</strong> to reveal the solution.</p>
+    <p>Challenge yourself to solve it in the fewest attempts possible!</p>
+</div>
+
+<script>
+    function openRules() {
+        document.getElementById("rulesPanel").style.width = "400px";
+    }
+
+    function closeRules() {
+        document.getElementById("rulesPanel").style.width = "0";
+    }
+</script>
+
+</body>
+</html>

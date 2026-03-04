@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>StartScreen</title>
+    <style>
+        body {
+            background-color: #f9f9f9;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start; /* דוחף הכל למעלה */
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            padding-top: 15vh; /* קצת מרווח למעלה */
+        }
+
+        h1 {
+            color: #3fc1aa;
+            font-size: 64px;
+            text-align: center;
+            text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.2);
+            margin-bottom: 50px;
+        }
+
+        .start-button {
+            background-color: #3fc1aa;
+            border: none;
+            color: white;
+            padding: 15px 45px;
+            font-size: 24px;
+            border-radius: 12px;
+            cursor: pointer;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .start-button:hover {
+            background-color: #36a08f;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+<h1>Flaggle</h1>
+<button class="start-button" onclick="window.location.href='/Flaggle/start'">
+    Start new game
+</button>
+</body>
+</html>
