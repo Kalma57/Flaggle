@@ -12,11 +12,19 @@ public class CountryBL {
     private String name;
     private int ID;
     private String flagPath;
+    private double latitude;
+    private double longitude;
+    private String neighbors;
+    private int iso3;
 
-    public CountryBL(String name, int ID, String flagPath) {
+    public CountryBL(String name, int ID, String flagPath, double lat, double longi, String neighbors, int iso3) {
         this.name = name;
         this.ID = ID;
         this.flagPath = flagPath;
+        this.latitude = lat;
+        this.longitude = longi;
+        this.neighbors = neighbors;
+        this.iso3 = iso3;
     }
 
     public CountryBL() {}
@@ -75,6 +83,14 @@ public class CountryBL {
             return null;
         }
     }
+
+    public double getLatitude() { return latitude; }
+    public double getLongitude() { return longitude; }
+    public String getNeighborsList() { return neighbors; }
+    public int getIso3() { return iso3; }
+
+
+
     /**
      * Compares this country to another object based on the country code.
      *

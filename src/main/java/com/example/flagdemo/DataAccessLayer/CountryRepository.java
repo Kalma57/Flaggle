@@ -48,17 +48,18 @@ public class CountryRepository {
      * @throws Exception if the database file cannot be found or opened
      */
     private Connection getConnection() throws Exception {
-        URL dbUrl = getClass().getResource("/DB/Flaggle.db");
+        // נתיב יחסי לפרויקט שלך: מחפש את הקובץ DB/Flaggle.db בתיקיית הפרויקט
+        String dbPath = Paths.get("DB/Flaggle.db").toAbsolutePath().toString();
 
-        // Ensure the database file exists inside resources
-        if (dbUrl == null) {
-            throw new Exception("Database file not found in resources");
+        System.out.println("USING DATABASE AT:");
+        System.out.println(dbPath);
+
+        // בדיקה שהקובץ באמת קיים
+        if (!Paths.get(dbPath).toFile().exists()) {
+            throw new Exception("Database file not found at: " + dbPath);
         }
 
-        // Convert resource URL into a filesystem path
-        String dbPath = Paths.get(dbUrl.toURI()).toString();
-
-        // Establish connection to SQLite database
+        // יצירת חיבור ל-SQLite
         return DriverManager.getConnection("jdbc:sqlite:" + dbPath);
     }
 
@@ -73,7 +74,7 @@ public class CountryRepository {
 
             // Create SQL statement to retrieve all countries
             Statement stmt = conn.createStatement();
-            ResultSet rs = stmt.executeQuery("SELECT ID, Code, CountryName, FlagPath FROM Countries");
+            ResultSet rs = stmt.executeQuery("SELECT ID, Code, CountryName, FlagPath, Latitude, Longitude, neighborList FROM Countries");
 
             // Iterate through the result set and create CountryDAL objects
             while (rs.next()) {
@@ -82,9 +83,13 @@ public class CountryRepository {
                 String name = rs.getString("CountryName");
                 String code = rs.getString("Code");
                 String flagPath = rs.getString("FlagPath");
+                double Latitude = rs.getDouble("Latitude");
+                double longitude = rs.getDouble("Longitude");
+                String neighborList = rs.getString("neighborList");
+
 
                 // Create DAL object representing the country
-                CountryDAL country = new CountryDAL(ID, name, code, flagPath);
+                CountryDAL country = new CountryDAL(ID, name, code, flagPath, Latitude, longitude, neighborList);
 
                 // Store country in the in-memory list
                 allCountries.add(country);

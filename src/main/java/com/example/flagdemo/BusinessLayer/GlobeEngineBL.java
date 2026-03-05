@@ -119,4 +119,9 @@ public class GlobeEngineBL {
     public void setTargetCountry(CountryBL targetCountry) {
         this.targetCountry = targetCountry;
     }
+
+    public CountryController getCountryController(){
+        return cc;
+    }
+
 }

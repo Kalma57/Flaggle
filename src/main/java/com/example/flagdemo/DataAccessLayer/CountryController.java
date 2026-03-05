@@ -58,7 +58,7 @@ public class CountryController {
      * @throws SQLException if a database error occurs
      */
     public CountryBL getCountryById(int id) throws SQLException {
-        String query = "SELECT ID, CountryName, Code, FlagPath FROM Countries WHERE ID = ?";
+        String query = "SELECT ID, CountryName, Code, FlagPath, Latitude, Longitude, neighborList, ISO3 FROM Countries WHERE ID = ?";
 
         try (Connection conn = getConnection();
              PreparedStatement pstmt = conn.prepareStatement(query)) {
@@ -66,16 +66,22 @@ public class CountryController {
             // Set the ID parameter in the query
             pstmt.setInt(1, id);
 
-            ResultSet rs = pstmt.executeQuery();
+            try (ResultSet rs = pstmt.executeQuery()) {
 
-            // If a matching country is found, create and return a CountryBL object
-            if (rs.next()) {
-                return new CountryBL(
-                        rs.getString("CountryName"),
-                        rs.getInt("ID"),
-                        rs.getString("FlagPath")
-                );
+                // If a matching country is found, create and return a CountryBL object
+                if (rs.next()) {
+                    return new CountryBL(
+                            rs.getString("CountryName"),
+                            rs.getInt("ID"),
+                            rs.getString("FlagPath"),
+                            rs.getDouble("Latitude"),
+                            rs.getDouble("Longitude"),
+                            rs.getString("neighborList"),
+                            rs.getInt("ISO3")
+                    );
+                }
             }
+
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -97,7 +103,7 @@ public class CountryController {
         // Get the country code associated with the given country name
         String countryCode = cr.getCodeByName(countryName);
 
-        String query = "SELECT ID, CountryName, Code, FlagPath FROM Countries WHERE Code = ?";
+        String query = "SELECT ID, CountryName, Code, FlagPath, Latitude, Longitude, neighborList, ISO3 FROM Countries WHERE Code = ?";
 
         try (Connection conn = getConnection();
              PreparedStatement pstmt = conn.prepareStatement(query)) {
@@ -112,7 +118,11 @@ public class CountryController {
                 return new CountryBL(
                         rs.getString("CountryName"),
                         rs.getInt("ID"),
-                        rs.getString("FlagPath")
+                        rs.getString("FlagPath"),
+                        rs.getDouble("Latitude"),
+                        rs.getDouble("Longitude"),
+                        rs.getString("neighborList"),
+                        rs.getInt("ISO3")
                 );
             }
         } catch (Exception e) {

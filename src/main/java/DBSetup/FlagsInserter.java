@@ -182,6 +182,26 @@ public class FlagsInserter {
 
             System.out.println("Neighbors update complete!");
 
+            // --- COPY DATABASE TO TARGET ---
+            String targetPath = "target\\\\classes\\\\DB\\\\Flaggle.db";
+            File originalDb = new File(dbPath);
+            File targetDb = new File(targetPath);
+
+            try (InputStream is = new FileInputStream(originalDb);
+                 OutputStream os = new FileOutputStream(targetDb)) {
+
+                byte[] buffer = new byte[1024];
+                int length;
+                while ((length = is.read(buffer)) > 0) {
+                    os.write(buffer, 0, length);
+                }
+
+                System.out.println("Database successfully copied to target: " + targetPath);
+
+            } catch (IOException e) {
+                System.out.println("Failed to copy database to target: " + e.getMessage());
+            }
+
         } catch (Exception e) {
             e.printStackTrace();
         }
