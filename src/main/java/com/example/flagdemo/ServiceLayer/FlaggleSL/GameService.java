@@ -12,15 +12,32 @@ public class GameService {
         this.geb = new GameEngineBL();
     }
 
+    /**
+     * Starts a new globe game.
+     *
+     * @throws SQLException if database access fails
+     */
     public void StartNewGame() throws SQLException {
         geb.StartNewGame();
     }
 
+    /**
+     * Processes a guess and returns the result.
+     *
+     * @param countryName the name of the guessed country
+     * @return GuessResultBL containing the result of the guess
+     * @throws SQLException if database access fails
+     */
     public GuessResultBL Guess(String countryName) throws SQLException {
         GuessResultBL res = geb.Guess(countryName);
         return res;
     }
 
+    /**
+     * Returns the underlying GlobeEngineBL instance.
+     *
+     * @return the game engine
+     */
     public GameEngineBL getEngine(){
         return this.geb;
     }

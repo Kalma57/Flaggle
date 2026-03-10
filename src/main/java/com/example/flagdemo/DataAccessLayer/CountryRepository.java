@@ -24,7 +24,6 @@ public class CountryRepository {
     }
 
     private Connection getConnection() throws Exception {
-        // וידוא שהנתיב מצביע לקובץ ה-db המדויק
         String dbPath = Paths.get("src/main/resources/static/DB/Flaggle.db").toAbsolutePath().toString();
 
         if (!Paths.get(dbPath).toFile().exists()) {

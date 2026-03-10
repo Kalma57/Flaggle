@@ -7,6 +7,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.nio.file.Paths;
 import java.sql.SQLException;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -34,7 +35,6 @@ public class GlobeController {
     @ResponseBody
     public GuessResultGlobeBL guessAjax(@RequestParam("countryName") String countryName) {
         try {
-            // Return the result directly from the ViewModel
             return viewModel.Guess(countryName);
         } catch (Exception e) {
             e.printStackTrace();
@@ -50,10 +50,16 @@ public class GlobeController {
         int attempts = viewModel.getGm().getAttempts();
         CountryBL targetCountry = viewModel.getTargetCountry();
 
+        String flagPath = targetCountry.getFlagPath();
+        String flagFileName = Paths.get(flagPath).getFileName().toString();
+
         Map<String,Object> data = new HashMap<>();
         data.put("success", false);
         data.put("attempts", attempts);
         data.put("countryName", targetCountry.getName());
+        data.put("flagFileName", flagFileName);
+        data.put("latitude", targetCountry.getLatitude());
+        data.put("longitude", targetCountry.getLongitude());
 
         return data;
     }
@@ -62,8 +68,6 @@ public class GlobeController {
     @GetMapping("/countries")
     @ResponseBody
     public List<String> getCountries() throws SQLException {
-
-        // FILTERING: We only return countries that have valid Latitude and Longitude.
         return viewModel.getGm().getAllCountries().stream()
                 .filter(this::isValidForGlobe)
                 .map(CountryBL::getName)
@@ -75,14 +79,9 @@ public class GlobeController {
      * Excludes countries with missing coordinates (0.0).
      */
     private boolean isValidForGlobe(CountryBL country) {
-        // If both Lat and Lon are exactly 0.0, it means data is missing.
         if (country.getLatitude() == 0.0 && country.getLongitude() == 0.0) {
             return false;
         }
-
-        // You can also exclude specific problematic country names manually if needed:
-        // if (country.getName().equals("Some Problematic Country")) return false;
-
         return true;
     }
 }

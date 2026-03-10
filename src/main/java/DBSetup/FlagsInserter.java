@@ -44,7 +44,7 @@ public class FlagsInserter {
     }
 
     public static void main(String[] args) {
-        // נתיבים יחסיים לחלוטין - מבוססים על תיקיית הבסיס של הפרויקט
+        // Absolute relative paths - based on the project root folder
         String baseDir = "src/main/resources/static/DB";
         String dbPath = baseDir + "/Flaggle.db";
         String flagsFolder = baseDir + "/FlagsImages";

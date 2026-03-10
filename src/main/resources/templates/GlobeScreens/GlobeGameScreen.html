@@ -16,13 +16,12 @@
     body { margin: 0; font-family: Arial, sans-serif; background: #ffffff; display: flex; flex-direction: column; align-items: center; }
     h1 { margin-top: 20px; color: #4CAF50; font-size: 48px; }
 
-    /* --- Guess Section --- */
     #guessSection {
         width: 800px;
         margin: 20px 0;
         display: flex;
         justify-content: center;
-        align-items: center;
+        align-items: flex-end; /* align guess-controls to bottom so Give Up lines up */
         position: relative;
     }
 
@@ -36,16 +35,24 @@
     #guessBtn { padding: 8px 16px; font-size: 16px; cursor: pointer; background-color: #4CAF50; color: white; border: none; border-radius: 4px; transition: background-color 0.2s;}
     #guessBtn:hover { background-color: #45a049; }
 
-    /* Style for disabled buttons and inputs (at the end of the game) */
     #guessBtn:disabled, #btn-give-up:disabled, #countryInput:disabled {
         background-color: #cccccc;
         cursor: not-allowed;
         opacity: 0.7;
     }
 
-    #btn-give-up {
+    /* RULES above Give Up, both anchored to bottom-right so Give Up aligns with Guess */
+    .right-buttons {
         position: absolute;
         right: 0;
+        bottom: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        align-items: stretch;
+    }
+
+    #btn-give-up {
         padding: 8px 16px;
         font-size: 16px;
         cursor: pointer;
@@ -56,6 +63,75 @@
         transition: background-color 0.2s;
     }
     #btn-give-up:hover:not(:disabled) { background-color: #45a049; }
+
+    .rules-btn {
+        padding: 8px 16px;
+        font-size: 16px;
+        cursor: pointer;
+        background-color: white;
+        color: #4CAF50;
+        border: 2px solid #4CAF50;
+        border-radius: 4px;
+        font-weight: bold;
+        transition: background-color 0.2s;
+    }
+    .rules-btn:hover { background-color: #f1f1f1; }
+
+    /* Rules side panel - slides in from the right */
+    .rules-panel {
+        height: 100%;
+        width: 0;
+        position: fixed;
+        z-index: 100;
+        top: 0;
+        right: 0;
+        background-color: #ffffff;
+        overflow-x: hidden;
+        transition: 0.4s;
+        padding: 20px;
+        box-shadow: -4px 0 8px rgba(0,0,0,0.2);
+    }
+
+    .rules-panel h2 {
+        margin-top: 0;
+        color: #4CAF50;
+    }
+
+    .rules-panel p {
+        margin: 10px 0;
+        color: #333;
+    }
+
+    .close-rules {
+        position: absolute;
+        top: 10px;
+        right: 20px;
+        font-size: 30px;
+        cursor: pointer;
+        color: #4CAF50;
+    }
+
+    .proximity-legend {
+        margin-top: 15px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .proximity-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 14px;
+        color: #333;
+    }
+
+    .proximity-dot {
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        flex-shrink: 0;
+    }
 
     #globeContainer {
         width: 800px;
@@ -68,6 +144,7 @@
         overflow: hidden;
     }
 
+    /* Fixed white bar above the globe - shows neighbor notification when triggered */
     #notificationArea {
         height: 70px;
         display: flex;
@@ -103,7 +180,6 @@
         visibility: visible;
     }
 
-    /* --- Guesses List Section --- */
     .guesses-title {
         color: #4CAF50;
         font-size: 24px;
@@ -131,9 +207,7 @@
         transition: transform 0.2s ease;
     }
 
-    .guess-row:hover {
-        transform: translateY(-2px);
-    }
+    .guess-row:hover { transform: translateY(-2px); }
 
     .guess-flag {
         width: 45px;
@@ -157,7 +231,6 @@
         font-weight: bold;
     }
 
-    /* --- End Screen CSS --- */
     #end-screen-overlay {
         display: none;
         position: fixed;
@@ -221,16 +294,20 @@
 
 <h1>Globe Game</h1>
 
+<!-- Guess input + RULES (above) and Give Up (same row as Guess) on the right -->
 <div id="guessSection">
   <div class="guess-controls">
     <input list="countriesList" id="countryInput" placeholder="Guess a country...">
     <datalist id="countriesList"></datalist>
     <button id="guessBtn">Guess</button>
   </div>
-
-  <button id="btn-give-up">Give Up</button>
+  <div class="right-buttons">
+    <button class="rules-btn" onclick="openRules()">RULES</button>
+    <button id="btn-give-up">Give Up</button>
+  </div>
 </div>
 
+<!-- Globe container: fixed white notification bar on top, globe canvas below -->
 <div id="globeContainer">
   <div id="notificationArea">
     <div id="neighbor-toast" class="neighbor-toast">
@@ -243,10 +320,16 @@
 <h2 class="guesses-title">Guesses List</h2>
 <div id="guessesContainer"></div>
 
+<!-- End screen modal (shown on win or give up) -->
 <div id="end-screen-overlay">
   <div class="end-screen-modal" id="end-screen-modal-box">
     <h2 id="end-screen-title">Game Over</h2>
     <p id="end-screen-guesses">Guesses: <span id="guess-count">0</span></p>
+    <div id="end-screen-country" style="display:none; margin-bottom: 15px;">
+      <img id="end-screen-flag" src="" alt="flag"
+           style="width:120px; border:2px solid #4CAF50; border-radius:6px; display:block; margin: 0 auto 8px auto;">
+      <p id="end-screen-country-name" style="margin:0; font-size:1.1em; color:#333; font-weight:bold;"></p>
+    </div>
     <div class="end-screen-buttons">
       <button id="btn-play-again" class="modal-btn">Play Again</button>
       <button id="btn-home" class="modal-btn">Home</button>
@@ -254,23 +337,44 @@
   </div>
 </div>
 
+<!-- Rules side panel -->
+<div id="rulesPanel" class="rules-panel">
+  <span class="close-rules" onclick="closeRules()">&times;</span>
+  <h2>Globe Rules</h2>
+  <p>A random country is chosen — can you guess which one it is?</p>
+  <p>Type a country name and press <strong>Guess</strong>. After each guess, the country will be colored on the globe based on how close it is to the target.</p>
+  <p>You also get the distance in km between your guess and the target country.</p>
+  <p>If your guess shares a border with the target, you'll get a special notification.</p>
+  <p>Press <strong>Give Up</strong> to reveal the answer.</p>
+  <p><strong>Color guide:</strong></p>
+  <div class="proximity-legend">
+    <div class="proximity-row"><div class="proximity-dot" style="background:#25C267"></div> Correct!</div>
+    <div class="proximity-row"><div class="proximity-dot" style="background:#8B0000"></div> Neighboring country</div>
+    <div class="proximity-row"><div class="proximity-dot" style="background:#B22222"></div> Less than 500 km</div>
+    <div class="proximity-row"><div class="proximity-dot" style="background:#FF4C4C"></div> Less than 1,500 km</div>
+    <div class="proximity-row"><div class="proximity-dot" style="background:#FF8C00"></div> Less than 3,000 km</div>
+    <div class="proximity-row"><div class="proximity-dot" style="background:#FFA733"></div> Less than 6,000 km</div>
+    <div class="proximity-row"><div class="proximity-dot" style="background:#FFD23F"></div> Less than 9,000 km</div>
+    <div class="proximity-row"><div class="proximity-dot" style="background:#FFF4A3"></div> More than 9,000 km</div>
+  </div>
+</div>
+
 <script src="https://unpkg.com/topojson-client@3.1.0/dist/topojson-client.min.js"></script>
 
 <script type="module">
-  import { initGlobe, colorCountry, focusOnCountry } from '/js/globe.js?v=2032';
+  import { initGlobe, colorCountry, focusOnCountry } from '/js/globe.js?v=2036';
 
   let guessesArray = [];
-  let validCountries = []; // Array to store valid countries from server
+  let validCountries = [];
 
   initGlobe();
 
+  // Load country list from server and populate the datalist
   async function loadCountries() {
       try {
           const response = await fetch("/Globe/countries");
           const countries = await response.json();
-
-          validCountries = countries; // Save valid countries
-
+          validCountries = countries;
           const list = document.getElementById("countriesList");
           countries.forEach(country => {
               const option = document.createElement("option");
@@ -282,23 +386,19 @@
       }
   }
 
+  // Render all guesses sorted by distance (closest first)
   function renderGuesses() {
       const container = document.getElementById('guessesContainer');
       container.innerHTML = '';
-
       guessesArray.sort((a, b) => a.distance - b.distance);
-
       guessesArray.forEach(guess => {
           const row = document.createElement('div');
           row.className = 'guess-row';
-
           let fileName = guess.flagPath;
           if (fileName && (fileName.includes('/') || fileName.includes('\\'))) {
               fileName = fileName.split(/[/\\]/).pop();
           }
-
           const flagSrc = fileName ? `/DB/FlagsImages/${fileName}` : '';
-
           row.innerHTML = `
               <img src="${flagSrc}" class="guess-flag" alt="${guess.name} flag" onerror="this.style.display='none'">
               <div class="guess-info">
@@ -310,7 +410,8 @@
       });
   }
 
-  function showEndScreen(isWin, guessesCount) {
+  // Show the end screen modal (win or lose)
+  function showEndScreen(isWin, guessesCount, countryName = null, flagFileName = null) {
       const overlay = document.getElementById('end-screen-overlay');
       const title = document.getElementById('end-screen-title');
       const countSpan = document.getElementById('guess-count');
@@ -324,41 +425,42 @@
       }
 
       countSpan.textContent = guessesCount;
-      overlay.style.display = "block";
 
+      // Show target country name and flag when giving up
+      if (countryName && flagFileName) {
+          document.getElementById('end-screen-country-name').textContent = "The answer was: " + countryName;
+          document.getElementById('end-screen-flag').src = `/DB/FlagsImages/${flagFileName}`;
+          document.getElementById('end-screen-country').style.display = 'block';
+      }
+
+      overlay.style.display = "block";
       document.getElementById("countryInput").disabled = true;
       document.getElementById("guessBtn").disabled = true;
       document.getElementById("btn-give-up").disabled = true;
   }
 
+  // Submit a guess to the server
   window.sendGuess = async function() {
       const input = document.getElementById("countryInput");
       const country = input.value.trim();
-
       if (!country) {
           alert("Please choose a country.");
           return;
       }
-
-      // Validate that the typed country is in the server list
       const isValid = validCountries.some(c => c.toLowerCase() === country.toLowerCase());
-
       if (!isValid) {
           alert("Please select a valid country from the list.");
           input.value = "";
           return;
       }
-
       try {
           const response = await fetch("/Globe/guess/ajax", {
               method: "POST",
               headers: { "Content-Type": "application/x-www-form-urlencoded" },
               body: "countryName=" + encodeURIComponent(country)
           });
-
           const result = await response.json();
           console.log("Server Response:", result);
-
           if (result.colorHex && result.guessedCountry) {
               const alreadyGuessed = guessesArray.find(g => g.name === result.guessedCountry.name);
               if (!alreadyGuessed) {
@@ -369,14 +471,16 @@
                   });
                   renderGuesses();
               }
-
               colorCountry(result.guessedCountry.name, result.colorHex);
               focusOnCountry(result.guessedCountry.latitude, result.guessedCountry.longitude);
 
+              // Show neighbor toast for 3 seconds when guessed country borders the target
               if (result.proximityLevel === 'NEIGHBOR') {
                   const toast = document.getElementById('neighbor-toast');
                   toast.classList.add('show');
-                  setTimeout(() => { toast.classList.remove('show'); }, 3000);
+                  setTimeout(() => {
+                      toast.classList.remove('show');
+                  }, 3000);
               }
 
               if (result.isCorrect) {
@@ -391,10 +495,8 @@
       input.value = "";
   };
 
-  // Attach event listener for Guess button
   document.getElementById("guessBtn").onclick = window.sendGuess;
 
-  // Attach event listener for Enter key on the input field
   document.getElementById("countryInput").addEventListener("keypress", function(event) {
       if (event.key === "Enter") {
           event.preventDefault();
@@ -402,8 +504,23 @@
       }
   });
 
-  document.getElementById("btn-give-up").addEventListener('click', function() {
-      showEndScreen(false, guessesArray.length);
+  // Give up - reveal the target country on the globe and show end screen
+  document.getElementById("btn-give-up").addEventListener('click', async function() {
+      try {
+          const response = await fetch("/Globe/giveup/ajax", { method: "POST" });
+          const data = await response.json();
+
+          colorCountry(data.countryName, '#25C267');
+          focusOnCountry(data.latitude, data.longitude);
+
+          setTimeout(() => {
+              showEndScreen(false, guessesArray.length, data.countryName, data.flagFileName);
+          }, 800);
+
+      } catch (error) {
+          console.error("Give up error:", error);
+          showEndScreen(false, guessesArray.length);
+      }
   });
 
   document.getElementById("btn-play-again").addEventListener('click', function() {
@@ -411,10 +528,20 @@
   });
 
   document.getElementById("btn-home").addEventListener('click', function() {
-      window.location.href = '/Flaggle';
+          window.location.href = '/Flaggle';
   });
 
   loadCountries();
+</script>
+
+<!-- Rules panel open/close functions -->
+<script>
+  function openRules() {
+      document.getElementById("rulesPanel").style.width = "400px";
+  }
+  function closeRules() {
+      document.getElementById("rulesPanel").style.width = "0";
+  }
 </script>
 
 </body>

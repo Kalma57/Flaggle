@@ -64,23 +64,23 @@
             background-color: #f1f1f1;
         }
 
-        /* כפתור RULES */
-.rules-btn {
-    position: fixed;
-    top: 80px;
-    right: 460px;
-    background-color: #f9f9f9;
-    color: #4CAF50;
-    border: 2px solid #4CAF50;
-    padding: 10px 20px;
-    border-radius: 8px;
-    cursor: pointer;
-    z-index: 101;
-}
+        /* RULES button */
+        .rules-btn {
+            position: fixed;
+            top: 80px;
+            right: 460px;
+            background-color: #f9f9f9;
+            color: #4CAF50;
+            border: 2px solid #4CAF50;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            z-index: 101;
+        }
 
-.rules-btn:hover {
-    background-color: #f1f1f1;
-}
+        .rules-btn:hover {
+            background-color: #f1f1f1;
+        }
 
         .guesses {
             display: flex;
@@ -175,10 +175,8 @@
     <button type="submit" class="giveup-btn">GIVE UP</button>
 </form>
 
-<!-- כפתור RULES -->
 <button class="rules-btn" onclick="openRules()">RULES</button>
 
-<!-- רשימת הניחושים -->
 <div class="guesses" th:if="${guesses}">
     <div th:each="guess, iterStat : ${guesses}" class="guess-row">
         <div class="flag guessed-flag">
@@ -194,7 +192,6 @@
     </div>
 </div>
 
-<!-- Rules Side Panel -->
 <div id="rulesPanel" class="rules-panel">
     <span class="close-rules" onclick="closeRules()">&times;</span>
     <h2>Flaggle Rules</h2>

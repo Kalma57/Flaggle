@@ -1,27 +1,59 @@
 import * as THREE from 'three';
 import { OrbitControls } from '/controls/OrbitControls.js';
 
-// מילון שמות - קריטי להתאמה בין ה-DB למפה
+// Country name mapping - critical for matching between DB and map
 const countryNameMapping = {
     "Trinidad and Tobago": "Trinidad and Tobago",
+    "Trinidad & Tobago": "Trinidad and Tobago",
     "Saint Vincent and the Grenadines": "St. Vin. and Gren.",
-    "Antigua and Barbuda": "Antigua and Barb.",
+    "Saint Vincent & the Grenadines": "St. Vin. and Gren.",
+    "St. Vincent and the Grenadines": "St. Vin. and Gren.",
+    "St. Vincent & the Grenadines": "St. Vin. and Gren.",
+    "St Vincent and the Grenadines": "St. Vin. and Gren.",
+    "St Vincent & the Grenadines": "St. Vin. and Gren.",
+    "Saint Kitts and Nevis": "Saint Kitts and Nevis",
+    "Saint Kitts & Nevis": "Saint Kitts and Nevis",
+    "St Kitts and Nevis": "Saint Kitts and Nevis",
+    "St Kitts & Nevis": "Saint Kitts and Nevis",
+    "Antigua and Barbuda": "Antigua and Barbuda",
+    "Antigua & Barbuda": "Antigua and Barbuda",
     "USA": "United States of America",
     "UK": "United Kingdom",
     "South Korea": "Korea",
-    "North Korea": "Dem. Rep. Korea"
+    "North Korea": "Dem. Rep. Korea",
+    "Congo - Kinshasa": "Dem. Rep. Congo",
+    "Congo - Brazzaville": "Congo"
 };
 
-// מילון למדינות קטנות (VIP) - מיקומים מדויקים למעוינים
+// Small countries with precise coordinates - drawn as tiny polygons on the texture
 const tinyCountriesExtras = {
     "Trinidad and Tobago": { lat: 10.69, lon: -61.22 },
-    "St. Vin. and Gren.": { lat: 13.25, lon: -61.20 },
+    "St. Vin. and Gren.": { lat: 12.98, lon: -61.28 },
     "Grenada": { lat: 12.11, lon: -61.67 },
-    "Saint Lucia": { lat: 13.90, lon: -60.96 },
-    "Antigua and Barb.": { lat: 17.06, lon: -61.79 },
+    "Saint Lucia": { lat: 13.90, lon: -60.97 },
+    "Antigua and Barbuda": { lat: 17.06, lon: -61.79 },
     "Barbados": { lat: 13.19, lon: -59.54 },
     "Luxembourg": { lat: 49.81, lon: 6.12 },
-    "Monaco": { lat: 43.73, lon: 7.42 }
+    "Monaco": { lat: 43.75, lon: 7.41 },
+    "Saint Kitts and Nevis": { lat: 17.35, lon: -62.78 },
+    "Malta": { lat: 35.93, lon: 14.37 },
+    "Vatican City": { lat: 41.90, lon: 12.45 },
+    "Andorra": { lat: 42.54, lon: 1.60 },
+    "Anguilla": { lat: 18.22, lon: -63.06 },
+    "Aruba": { lat: 12.52, lon: -69.96 },
+    "Bermuda": { lat: 32.32, lon: -64.75 },
+    "British Virgin Islands": { lat: 18.42, lon: -64.63 },
+    "Cayman Islands": { lat: 19.51, lon: -80.56 },
+    "Gibraltar": { lat: 36.13, lon: -5.34 },
+    "Guernsey": { lat: 49.46, lon: -2.58 },
+    "Isle of Man": { lat: 54.23, lon: -4.54 },
+    "Jersey": { lat: 49.21, lon: -2.13 },
+    "Liechtenstein": { lat: 47.16, lon: 9.55 },
+    "Macau": { lat: 22.19, lon: 113.54 },
+    "Nauru": { lat: -0.52, lon: 166.93 },
+    "San Marino": { lat: 43.94, lon: 12.45 },
+    "Singapore": { lat: 1.35, lon: 103.81 },
+    "Tuvalu": { lat: -7.10, lon: 177.64 }
 };
 
 let scene, camera, renderer, globe, controls;
@@ -51,6 +83,7 @@ export async function initGlobe() {
 
     controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
+    controls.rotateSpeed = 0.3;
 
     try {
         const response = await fetch('https://unpkg.com/world-atlas@2.0.2/countries-50m.json');
@@ -64,6 +97,31 @@ export async function initGlobe() {
     animate();
 }
 
+// Draws a small irregular polygon centered at (cx, cy) with given size and color,
+// simulating the look of a tiny country shape on the map
+function drawTinyCountryPolygon(ctx, cx, cy, size, color) {
+    const offsets = [
+        { dx: 0,           dy: -size },
+        { dx:  size,       dy: -size * 0.3 },
+        { dx:  size * 0.7, dy:  size },
+        { dx: -size * 0.5, dy:  size },
+        { dx: -size,       dy:  size * 0.1 }
+    ];
+
+    ctx.beginPath();
+    ctx.moveTo(cx + offsets[0].dx, cy + offsets[0].dy);
+    for (let i = 1; i < offsets.length; i++) {
+        ctx.lineTo(cx + offsets[i].dx, cy + offsets[i].dy);
+    }
+    ctx.closePath();
+
+    ctx.fillStyle = color;
+    ctx.fill();
+    ctx.strokeStyle = '#333333';
+    ctx.lineWidth = 0.5;
+    ctx.stroke();
+}
+
 function updateGlobeTexture() {
     if (!countriesData) return;
 
@@ -72,11 +130,11 @@ function updateGlobeTexture() {
     canvas.height = 1024;
     const ctx = canvas.getContext('2d');
 
-    // רקע אוקיינוס
+    // Ocean background
     ctx.fillStyle = '#87CEEB';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // ציור כל המדינות
+    // Draw all countries from TopoJSON
     countriesData.features.forEach(country => {
         const name = country.properties.name;
         const color = guessedCountriesColors[name] || '#D3D3D3';
@@ -94,28 +152,17 @@ function updateGlobeTexture() {
         }
         ctx.fill('evenodd');
         ctx.stroke();
+    });
 
-        // ציור המעוין למדינות קטנות שניחשו
-        if (guessedCountriesColors[name] && tinyCountriesExtras[name]) {
-            const extra = tinyCountriesExtras[name];
-            const x = (extra.lon + 180) * (canvas.width / 360);
-            const y = (90 - extra.lat) * (canvas.height / 180);
+    // Draw tiny countries as small irregular polygons directly on the texture
+    Object.entries(tinyCountriesExtras).forEach(([name, extra]) => {
+        const color = guessedCountriesColors[name];
+        if (!color) return; // Not guessed yet
 
-            ctx.save();
-            ctx.shadowBlur = 10;
-            ctx.shadowColor = guessedCountriesColors[name];
-            ctx.fillStyle = guessedCountriesColors[name];
+        const cx = (extra.lon + 180) * (canvas.width / 360);
+        const cy = (90 - extra.lat) * (canvas.height / 180);
 
-            const size = 6;
-            ctx.beginPath();
-            ctx.moveTo(x, y - size);
-            ctx.lineTo(x + size, y);
-            ctx.lineTo(x, y + size);
-            ctx.lineTo(x - size, y);
-            ctx.closePath();
-            ctx.fill();
-            ctx.restore();
-        }
+        drawTinyCountryPolygon(ctx, cx, cy, 3, color);
     });
 
     const texture = new THREE.CanvasTexture(canvas);
