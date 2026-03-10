@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Globe Game</title>
+
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "/three/three.module.js"
+      }
+    }
+  </script>
+
+  <style>
+    body { margin: 0; font-family: Arial, sans-serif; background: #ffffff; display: flex; flex-direction: column; align-items: center; }
+    h1 { margin-top: 20px; color: #4CAF50; font-size: 48px; }
+
+    /* --- Guess Section --- */
+    #guessSection {
+        width: 800px;
+        margin: 20px 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        position: relative;
+    }
+
+    .guess-controls {
+        display: flex;
+        gap: 10px;
+    }
+
+    #countryInput { padding: 8px; font-size: 16px; width: 220px; border-radius: 4px; border: 1px solid #ccc; }
+
+    #guessBtn { padding: 8px 16px; font-size: 16px; cursor: pointer; background-color: #4CAF50; color: white; border: none; border-radius: 4px; transition: background-color 0.2s;}
+    #guessBtn:hover { background-color: #45a049; }
+
+    /* Style for disabled buttons and inputs (at the end of the game) */
+    #guessBtn:disabled, #btn-give-up:disabled, #countryInput:disabled {
+        background-color: #cccccc;
+        cursor: not-allowed;
+        opacity: 0.7;
+    }
+
+    #btn-give-up {
+        position: absolute;
+        right: 0;
+        padding: 8px 16px;
+        font-size: 16px;
+        cursor: pointer;
+        background-color: #4CAF50;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        transition: background-color 0.2s;
+    }
+    #btn-give-up:hover:not(:disabled) { background-color: #45a049; }
+
+    #globeContainer {
+        width: 800px;
+        height: 600px;
+        border: 2px solid #4CAF50;
+        border-radius: 12px;
+        background-color: #ffffff;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    #notificationArea {
+        height: 70px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: #ffffff;
+        z-index: 10;
+    }
+
+    #globeCanvas {
+        width: 100%;
+        flex: 1;
+        display: block;
+        outline: none;
+        background-color: #87CEEB;
+    }
+
+    .neighbor-toast {
+        background-color: #4CAF50;
+        color: white;
+        padding: 10px 24px;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: bold;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.3s ease, visibility 0.3s ease;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+    }
+
+    .neighbor-toast.show {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    /* --- Guesses List Section --- */
+    .guesses-title {
+        color: #4CAF50;
+        font-size: 24px;
+        margin-top: 30px;
+        margin-bottom: 5px;
+        text-align: center;
+    }
+
+    #guessesContainer {
+        width: 800px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        padding-bottom: 40px;
+    }
+
+    .guess-row {
+        display: flex;
+        align-items: center;
+        background: #f9f9f9;
+        padding: 10px 15px;
+        border-radius: 8px;
+        border: 1px solid #e0e0e0;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        transition: transform 0.2s ease;
+    }
+
+    .guess-row:hover {
+        transform: translateY(-2px);
+    }
+
+    .guess-flag {
+        width: 45px;
+        height: 30px;
+        object-fit: cover;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        margin-right: 15px;
+    }
+
+    .guess-info {
+        display: flex;
+        justify-content: space-between;
+        width: 100%;
+        font-size: 18px;
+        align-items: center;
+    }
+
+    .guess-distance {
+        color: #555;
+        font-weight: bold;
+    }
+
+    /* --- End Screen CSS --- */
+    #end-screen-overlay {
+        display: none;
+        position: fixed;
+        top: 100px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 1000;
+        pointer-events: none;
+    }
+
+    .end-screen-modal {
+        background-color: rgba(255, 255, 255, 0.95);
+        padding: 30px;
+        border-radius: 15px;
+        text-align: center;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+        width: 300px;
+        border: 3px solid #4CAF50;
+        pointer-events: auto;
+    }
+
+    #end-screen-title {
+        margin-top: 0;
+        font-size: 2em;
+        color: #333;
+        margin-bottom: 10px;
+    }
+
+    #end-screen-guesses {
+        font-size: 1.2em;
+        color: #555;
+        margin-bottom: 25px;
+    }
+
+    .end-screen-buttons {
+        display: flex;
+        justify-content: space-around;
+        gap: 10px;
+    }
+
+    .modal-btn {
+        padding: 10px 20px;
+        font-size: 1em;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: background-color 0.2s, transform 0.1s;
+    }
+
+    .modal-btn:active { transform: scale(0.95); }
+
+    #btn-play-again { background-color: #4CAF50; color: white; }
+    #btn-play-again:hover { background-color: #45a049; }
+
+    #btn-home { background-color: #4CAF50; color: white; }
+    #btn-home:hover { background-color: #45a049; }
+  </style>
+</head>
+<body>
+
+<h1>Globe Game</h1>
+
+<div id="guessSection">
+  <div class="guess-controls">
+    <input list="countriesList" id="countryInput" placeholder="Guess a country...">
+    <datalist id="countriesList"></datalist>
+    <button id="guessBtn">Guess</button>
+  </div>
+
+  <button id="btn-give-up">Give Up</button>
+</div>
+
+<div id="globeContainer">
+  <div id="notificationArea">
+    <div id="neighbor-toast" class="neighbor-toast">
+      The country that you chose is a neighbor of the target country
+    </div>
+  </div>
+  <canvas id="globeCanvas"></canvas>
+</div>
+
+<h2 class="guesses-title">Guesses List</h2>
+<div id="guessesContainer"></div>
+
+<div id="end-screen-overlay">
+  <div class="end-screen-modal" id="end-screen-modal-box">
+    <h2 id="end-screen-title">Game Over</h2>
+    <p id="end-screen-guesses">Guesses: <span id="guess-count">0</span></p>
+    <div class="end-screen-buttons">
+      <button id="btn-play-again" class="modal-btn">Play Again</button>
+      <button id="btn-home" class="modal-btn">Home</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://unpkg.com/topojson-client@3.1.0/dist/topojson-client.min.js"></script>
+
+<script type="module">
+  import { initGlobe, colorCountry, focusOnCountry } from '/js/globe.js?v=2032';
+
+  let guessesArray = [];
+  let validCountries = []; // Array to store valid countries from server
+
+  initGlobe();
+
+  async function loadCountries() {
+      try {
+          const response = await fetch("/Globe/countries");
+          const countries = await response.json();
+
+          validCountries = countries; // Save valid countries
+
+          const list = document.getElementById("countriesList");
+          countries.forEach(country => {
+              const option = document.createElement("option");
+              option.value = country;
+              list.appendChild(option);
+          });
+      } catch (error) {
+          console.error("Failed to load countries:", error);
+      }
+  }
+
+  function renderGuesses() {
+      const container = document.getElementById('guessesContainer');
+      container.innerHTML = '';
+
+      guessesArray.sort((a, b) => a.distance - b.distance);
+
+      guessesArray.forEach(guess => {
+          const row = document.createElement('div');
+          row.className = 'guess-row';
+
+          let fileName = guess.flagPath;
+          if (fileName && (fileName.includes('/') || fileName.includes('\\'))) {
+              fileName = fileName.split(/[/\\]/).pop();
+          }
+
+          const flagSrc = fileName ? `/DB/FlagsImages/${fileName}` : '';
+
+          row.innerHTML = `
+              <img src="${flagSrc}" class="guess-flag" alt="${guess.name} flag" onerror="this.style.display='none'">
+              <div class="guess-info">
+                  <strong>${guess.name}</strong>
+                  <span class="guess-distance">${Math.round(guess.distance).toLocaleString()} km</span>
+              </div>
+          `;
+          container.appendChild(row);
+      });
+  }
+
+  function showEndScreen(isWin, guessesCount) {
+      const overlay = document.getElementById('end-screen-overlay');
+      const title = document.getElementById('end-screen-title');
+      const countSpan = document.getElementById('guess-count');
+
+      if (isWin) {
+          title.textContent = "You Won! 🎉😎";
+          title.style.color = "#4CAF50";
+      } else {
+          title.textContent = "You Lost! 🤦‍♂️💀";
+          title.style.color = "#f44336";
+      }
+
+      countSpan.textContent = guessesCount;
+      overlay.style.display = "block";
+
+      document.getElementById("countryInput").disabled = true;
+      document.getElementById("guessBtn").disabled = true;
+      document.getElementById("btn-give-up").disabled = true;
+  }
+
+  window.sendGuess = async function() {
+      const input = document.getElementById("countryInput");
+      const country = input.value.trim();
+
+      if (!country) {
+          alert("Please choose a country.");
+          return;
+      }
+
+      // Validate that the typed country is in the server list
+      const isValid = validCountries.some(c => c.toLowerCase() === country.toLowerCase());
+
+      if (!isValid) {
+          alert("Please select a valid country from the list.");
+          input.value = "";
+          return;
+      }
+
+      try {
+          const response = await fetch("/Globe/guess/ajax", {
+              method: "POST",
+              headers: { "Content-Type": "application/x-www-form-urlencoded" },
+              body: "countryName=" + encodeURIComponent(country)
+          });
+
+          const result = await response.json();
+          console.log("Server Response:", result);
+
+          if (result.colorHex && result.guessedCountry) {
+              const alreadyGuessed = guessesArray.find(g => g.name === result.guessedCountry.name);
+              if (!alreadyGuessed) {
+                  guessesArray.push({
+                      name: result.guessedCountry.name,
+                      flagPath: result.guessedCountry.flagPath,
+                      distance: result.distance
+                  });
+                  renderGuesses();
+              }
+
+              colorCountry(result.guessedCountry.name, result.colorHex);
+              focusOnCountry(result.guessedCountry.latitude, result.guessedCountry.longitude);
+
+              if (result.proximityLevel === 'NEIGHBOR') {
+                  const toast = document.getElementById('neighbor-toast');
+                  toast.classList.add('show');
+                  setTimeout(() => { toast.classList.remove('show'); }, 3000);
+              }
+
+              if (result.isCorrect) {
+                  setTimeout(() => { showEndScreen(true, guessesArray.length); }, 1000);
+              }
+          } else {
+              console.error("Data missing in server response:", result);
+          }
+      } catch (error) {
+          console.error("Error submitting guess:", error);
+      }
+      input.value = "";
+  };
+
+  // Attach event listener for Guess button
+  document.getElementById("guessBtn").onclick = window.sendGuess;
+
+  // Attach event listener for Enter key on the input field
+  document.getElementById("countryInput").addEventListener("keypress", function(event) {
+      if (event.key === "Enter") {
+          event.preventDefault();
+          window.sendGuess();
+      }
+  });
+
+  document.getElementById("btn-give-up").addEventListener('click', function() {
+      showEndScreen(false, guessesArray.length);
+  });
+
+  document.getElementById("btn-play-again").addEventListener('click', function() {
+      window.location.reload();
+  });
+
+  document.getElementById("btn-home").addEventListener('click', function() {
+      window.location.href = '/Flaggle';
+  });
+
+  loadCountries();
+</script>
+
+</body>
+</html>

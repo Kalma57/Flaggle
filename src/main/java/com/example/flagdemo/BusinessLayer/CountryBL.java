@@ -1,12 +1,13 @@
 package com.example.flagdemo.BusinessLayer;
 
 import com.example.flagdemo.DataAccessLayer.CountryDAL;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-
+import java.nio.file.Paths;
 
 public class CountryBL {
     private String name;
@@ -15,9 +16,9 @@ public class CountryBL {
     private double latitude;
     private double longitude;
     private String neighbors;
-    private int iso3;
+    private String iso3;
 
-    public CountryBL(String name, int ID, String flagPath, double lat, double longi, String neighbors, int iso3) {
+    public CountryBL(String name, int ID, String flagPath, double lat, double longi, String neighbors, String iso3) {
         this.name = name;
         this.ID = ID;
         this.flagPath = flagPath;
@@ -29,10 +30,15 @@ public class CountryBL {
 
     public CountryBL() {}
 
+    // FIXED: Now copies all data fields from CountryDAL, not just a few!
     public CountryBL(CountryDAL cd) {
         this.name = cd.getCountryName();
         this.ID = cd.getID();
         this.flagPath = cd.getFlagPath();
+        this.latitude = cd.getLatitude();
+        this.longitude = cd.getLongitude();
+        this.neighbors = cd.getNeighborsList();
+        this.iso3 = cd.getIso3();
     }
 
     /**
@@ -45,9 +51,9 @@ public class CountryBL {
     }
 
     /**
-     * Returns the country's code.
+     * Returns the country's ID.
      *
-     * @return The country's code.
+     * @return The country's ID.
      */
     public int getCode() {
         return ID;
@@ -68,8 +74,13 @@ public class CountryBL {
      *
      * @return The flag image as a BufferedImage, or {@code null} if loading fails.
      */
+    @JsonIgnore
     public BufferedImage getFlagImage() {
-        File file = new File("DB/" + flagPath); // עכשיו "DB/FlagsImages/fr.png"
+        // FIXED: Extracts just the file name and generates an accurate absolute path to the new directory.
+        String fileName = Paths.get(flagPath).getFileName().toString();
+        String correctPath = Paths.get("src/main/resources/static/DB/FlagsImages", fileName).toAbsolutePath().toString();
+
+        File file = new File(correctPath);
 
         if (!file.exists()) {
             System.err.println("Flag file not found: " + file.getAbsolutePath());
@@ -87,15 +98,13 @@ public class CountryBL {
     public double getLatitude() { return latitude; }
     public double getLongitude() { return longitude; }
     public String getNeighborsList() { return neighbors; }
-    public int getIso3() { return iso3; }
-
-
+    public String getIso3() { return iso3; }
 
     /**
-     * Compares this country to another object based on the country code.
+     * Compares this country to another object based on the country ID.
      *
      * @param o The object to compare with.
-     * @return {@code true} if the other object is a CountryBL with the same code, otherwise {@code false}.
+     * @return {@code true} if the other object is a CountryBL with the same ID, otherwise {@code false}.
      */
     @Override
     public boolean equals(Object o) {
@@ -103,18 +112,7 @@ public class CountryBL {
             if (this.ID == ((CountryBL) o).ID) {
                 return true;
             }
-    }
+        }
         return false;
     }
-
-    /**
-     * Returns the hash code of this country, based on its code.
-     *
-     * @return The hash code value.
-     */
-
-    /*@Override
-    public int hashCode() {
-        return code != null ? code.hashCode() : 0;
-    }*/
 }

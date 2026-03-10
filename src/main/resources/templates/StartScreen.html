@@ -8,12 +8,12 @@
             background-color: #f9f9f9;
             display: flex;
             flex-direction: column;
-            justify-content: flex-start; /* דוחף הכל למעלה */
+            justify-content: flex-start;
             align-items: center;
             height: 100vh;
             margin: 0;
             font-family: Arial, sans-serif;
-            padding-top: 15vh; /* קצת מרווח למעלה */
+            padding-top: 15vh;
         }
 
         h1 {
@@ -22,6 +22,11 @@
             text-align: center;
             text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.2);
             margin-bottom: 50px;
+        }
+
+        .button-row {
+            display: flex;
+            gap: 40px; /* מרווח בין הכפתורים */
         }
 
         .start-button {
@@ -45,8 +50,15 @@
 </head>
 <body>
 <h1>Flaggle</h1>
-<button class="start-button" onclick="window.location.href='/Flaggle/start'">
-    Start new game
-</button>
+
+<div class="button-row">
+    <button class="start-button" onclick="window.location.href='/Flaggle/start'">
+        FLAGGLE
+    </button>
+
+    <button class="start-button" onclick="window.location.href='/Globe/start'">
+        GLOBE
+    </button>
+</div>
 </body>
 </html>

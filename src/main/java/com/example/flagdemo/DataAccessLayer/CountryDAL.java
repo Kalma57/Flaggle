@@ -8,16 +8,17 @@ public class CountryDAL {
     private double latitude;
     private double longitude;
     private String neighborsList;
+    private String iso3;
 
-    public CountryDAL(int ID, String countryName, String code, String flagPath, double lat, double longitude, String neigbors){
+    public CountryDAL(int ID, String countryName, String code, String flagPath, double lat, double longitude, String neighbors, String iso3) {
         this.ID = ID;
         this.countryName = countryName;
-        this. code = code;
+        this.code = code;
         this.flagPath = flagPath;
         this.latitude = lat;
         this.longitude = longitude;
-        this.neighborsList = neigbors;
-
+        this.neighborsList = neighbors;
+        this.iso3 = iso3;
     }
 
     public int getID() { return ID; }
@@ -27,6 +28,5 @@ public class CountryDAL {
     public double getLatitude() { return latitude; }
     public double getLongitude() { return longitude; }
     public String getNeighborsList() { return neighborsList; }
-
-
+    public String getIso3() { return iso3; }
 }

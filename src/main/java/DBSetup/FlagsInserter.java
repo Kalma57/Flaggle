@@ -15,8 +15,8 @@ public class FlagsInserter {
     private static final Map<String, CountryInfo> countryExtraInfo = new HashMap<>();
 
     private static class CountryInfo {
-        Double latitude;  // יכול להיות NULL
-        Double longitude; // יכול להיות NULL
+        Double latitude;  // Can be NULL
+        Double longitude; // Can be NULL
         CountryInfo(Double latitude, Double longitude) {
             this.latitude = latitude;
             this.longitude = longitude;
@@ -29,8 +29,9 @@ public class FlagsInserter {
 
         specialIso3.put("XK", "XKX"); specialNames.put("XK", "Kosovo");
         specialIso3.put("US", "USA"); specialNames.put("US", "United States");
+        specialNames.put("TR", "Turkey");
 
-        // Load ISO2→ISO3 from Java Locales
+        // Load ISO2 to ISO3 from Java Locales
         for (Locale locale : Locale.getAvailableLocales()) {
             if (!locale.getCountry().isEmpty()) {
                 try {
@@ -43,25 +44,28 @@ public class FlagsInserter {
     }
 
     public static void main(String[] args) {
-        String dbPath = "DB/Flaggle.db";
-        String flagsFolder = "DB/FlagsImages";
-        String longLatFilePath = "C:\\Users\\kalma\\IdeaProjects\\Flaggle\\DB\\countriesBorders\\CountriesLongLat.txt";
-        String neighborsFilePath = "C:\\Users\\kalma\\IdeaProjects\\Flaggle\\DB\\countriesBorders\\CountriesNeighbors.txt";
+        // נתיבים יחסיים לחלוטין - מבוססים על תיקיית הבסיס של הפרויקט
+        String baseDir = "src/main/resources/static/DB";
+        String dbPath = baseDir + "/Flaggle.db";
+        String flagsFolder = baseDir + "/FlagsImages";
+        String longLatFilePath = baseDir + "/countriesBorders/CountriesLongLat.txt";
+        String neighborsFilePath = baseDir + "/countriesBorders/CountriesNeighbors.txt";
 
         loadCountryLongLat(longLatFilePath);
 
         File folder = new File(flagsFolder);
         if (!folder.exists() || !folder.isDirectory()) {
-            System.out.println("Flags folder not found: " + flagsFolder);
+            System.err.println("❌ Error: Flags folder not found at relative path: " + folder.getAbsolutePath());
             return;
         }
 
         try (Connection conn = DriverManager.getConnection("jdbc:sqlite:" + dbPath)) {
 
             Statement stmt = conn.createStatement();
+            stmt.execute("DROP TABLE IF EXISTS Countries;");
 
             String createTableSQL = """
-                    CREATE TABLE IF NOT EXISTS Countries (
+                    CREATE TABLE Countries (
                         ID INTEGER PRIMARY KEY,
                         Code TEXT,
                         ISO3 TEXT,
@@ -72,9 +76,7 @@ public class FlagsInserter {
                     );
                     """;
             stmt.execute(createTableSQL);
-            stmt.execute("DELETE FROM Countries;");
 
-            // --- הכנסת דגלים / נתונים גיאוגרפיים ---
             File[] files = folder.listFiles((dir, name) -> name.toLowerCase().endsWith(".svg"));
             if (files == null || files.length == 0) {
                 System.out.println("No SVG files found in folder!");
@@ -109,7 +111,6 @@ public class FlagsInserter {
                     System.out.println("Missing geo info for: " + iso3 + " -> using NULL for lat/lon");
                 }
 
-                // Convert SVG → PNG
                 String pngFilename = filename.replace(".svg", ".png");
                 File pngFile = new File(flagsFolder, pngFilename);
                 try (FileOutputStream fos = new FileOutputStream(pngFile)) {
@@ -119,7 +120,8 @@ public class FlagsInserter {
                     transcoder.transcode(input, output);
                 } catch (Exception ignored) {}
 
-                String path = "FlagsImages/" + pngFilename;
+                // Path saved to DB
+                String path = "DB/FlagsImages/" + pngFilename;
 
                 pstmt.setInt(1, rowId++);
                 pstmt.setString(2, iso2 != null ? iso2 : iso3);
@@ -142,28 +144,29 @@ public class FlagsInserter {
             System.out.println("Insertion complete! Total: " + (rowId - 1));
             System.out.println("Countries missing geo info: " + missingGeoInfo);
 
-            // --- יצירת עמודת neighborList ---
             try {
                 stmt.execute("ALTER TABLE Countries ADD COLUMN neighborList TEXT;");
-            } catch (SQLException ignored) {
-                // עמודה קיימת כבר
-            }
+            } catch (SQLException ignored) {}
 
-            // --- טעינת neighbors מהקובץ והכנסת נתונים לטבלה ---
             Map<String, String> neighborsMap = new HashMap<>();
-            try (BufferedReader br = new BufferedReader(new FileReader(neighborsFilePath))) {
-                String line;
-                while ((line = br.readLine()) != null) {
-                    line = line.trim();
-                    if (line.isEmpty()) continue;
-                    String[] parts = line.split(":");
-                    if (parts.length != 2) continue;
-                    String countryIso3 = parts[0].trim();
-                    String neighborList = parts[1].trim();
-                    neighborsMap.put(countryIso3, neighborList);
+            File neighborsFile = new File(neighborsFilePath);
+            if (!neighborsFile.exists()) {
+                System.err.println("❌ Error: Neighbors file not found at: " + neighborsFile.getAbsolutePath());
+            } else {
+                try (BufferedReader br = new BufferedReader(new FileReader(neighborsFile))) {
+                    String line;
+                    while ((line = br.readLine()) != null) {
+                        line = line.trim();
+                        if (line.isEmpty()) continue;
+                        String[] parts = line.split(":");
+                        if (parts.length != 2) continue;
+                        String countryIso3 = parts[0].trim();
+                        String neighborList = parts[1].trim();
+                        neighborsMap.put(countryIso3, neighborList);
+                    }
+                } catch (IOException e) {
+                    System.out.println("Failed to read neighbors file: " + e.getMessage());
                 }
-            } catch (IOException e) {
-                System.out.println("Failed to read neighbors file: " + e.getMessage());
             }
 
             for (Map.Entry<String, String> entry : neighborsMap.entrySet()) {
@@ -182,10 +185,13 @@ public class FlagsInserter {
 
             System.out.println("Neighbors update complete!");
 
-            // --- COPY DATABASE TO TARGET ---
-            String targetPath = "target\\\\classes\\\\DB\\\\Flaggle.db";
+            String targetPath = "target/classes/static/DB/Flaggle.db";
             File originalDb = new File(dbPath);
             File targetDb = new File(targetPath);
+
+            if (targetDb.getParentFile() != null) {
+                targetDb.getParentFile().mkdirs();
+            }
 
             try (InputStream is = new FileInputStream(originalDb);
                  OutputStream os = new FileOutputStream(targetDb)) {
@@ -195,7 +201,6 @@ public class FlagsInserter {
                 while ((length = is.read(buffer)) > 0) {
                     os.write(buffer, 0, length);
                 }
-
                 System.out.println("Database successfully copied to target: " + targetPath);
 
             } catch (IOException e) {
@@ -219,11 +224,12 @@ public class FlagsInserter {
     private static void loadCountryLongLat(String filePath) {
         File file = new File(filePath);
         if (!file.exists()) {
-            System.out.println("LongLat file not found: " + filePath);
+            System.err.println("❌ ERROR: LongLat file not found at relative path! Java is looking here: " + file.getAbsolutePath());
             return;
         }
 
         int loaded = 0;
+        int skipped = 0;
 
         try (BufferedReader br = new BufferedReader(new FileReader(file))) {
             String line;
@@ -232,7 +238,10 @@ public class FlagsInserter {
                 if (line.isEmpty() || line.startsWith("#")) continue;
 
                 String[] parts = line.split("\\t"); // Tab-separated
-                if (parts.length < 4) continue;
+                if (parts.length < 4) {
+                    skipped++;
+                    continue;
+                }
 
                 try {
                     String iso2 = parts[0].trim().toUpperCase();
@@ -252,7 +261,10 @@ public class FlagsInserter {
                     System.out.println("Bad line skipped: " + line);
                 }
             }
-            System.out.println("Loaded long/lat info for " + loaded + " countries");
+            System.out.println("✅ Loaded long/lat info for " + loaded + " countries.");
+            if (skipped > 0) {
+                System.out.println("⚠️ Warning: Skipped " + skipped + " lines (Are you sure they are separated by Tabs and not Spaces?)");
+            }
         } catch (Exception e) {
             System.out.println("Failed to read long/lat file: " + e.getMessage());
         }
