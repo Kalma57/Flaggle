@@ -117,6 +117,7 @@ export async function initGlobe() {
         const response = await fetch('https://unpkg.com/world-atlas@2.0.2/countries-50m.json');
         const topoData = await response.json();
         countriesData = topojson.feature(topoData, topoData.objects.countries);
+
         updateGlobeTexture();
     } catch (error) {
         console.error("Globe Error:", error);
@@ -125,8 +126,7 @@ export async function initGlobe() {
     animate();
 }
 
-// Draws a small irregular polygon centered at (cx, cy) with given size and color,
-// simulating the look of a tiny country shape on the map
+// Draws a small irregular polygon centered at (cx, cy) with given size and color
 function drawTinyCountryPolygon(ctx, cx, cy, size, color) {
     const offsets = [
         { dx: 0,           dy: -size },
@@ -162,6 +162,12 @@ function updateGlobeTexture() {
     ctx.fillStyle = '#87CEEB';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+    // --- ANTARCTICA HOLE FIX (SEAMLESS) ---
+    const antarcticaColor = guessedCountriesColors["Antarctica"] || '#D3D3D3';
+    ctx.fillStyle = antarcticaColor;
+    ctx.fillRect(0, canvas.height - 40, canvas.width, 40);
+    // --------------------------------------
+
     // Draw all countries from TopoJSON
     countriesData.features.forEach(country => {
         const name = country.properties.name;
@@ -171,21 +177,39 @@ function updateGlobeTexture() {
         ctx.strokeStyle = '#333333';
         ctx.lineWidth = 0.5;
 
-        const coords = country.geometry.coordinates;
-        ctx.beginPath();
-        if (country.geometry.type === "Polygon") {
-            renderRings(ctx, coords, canvas.width, canvas.height);
-        } else {
-            coords.forEach(poly => renderRings(ctx, poly, canvas.width, canvas.height));
-        }
-        ctx.fill('evenodd');
-        ctx.stroke();
+        // Create a reusable function to draw the country path
+        const drawCountryPath = () => {
+            ctx.beginPath();
+            const coords = country.geometry.coordinates;
+            if (country.geometry.type === "Polygon") {
+                renderRings(ctx, coords, canvas.width, canvas.height);
+            } else {
+                coords.forEach(poly => renderRings(ctx, poly, canvas.width, canvas.height));
+            }
+            ctx.fill('evenodd');
+            ctx.stroke();
+        };
+
+        // 1. Draw normally (Center)
+        drawCountryPath();
+
+        // 2. Draw shifted left (Fixes parts extending past the right edge)
+        ctx.save();
+        ctx.translate(-canvas.width, 0);
+        drawCountryPath();
+        ctx.restore();
+
+        // 3. Draw shifted right (Fixes parts extending past the left edge)
+        ctx.save();
+        ctx.translate(canvas.width, 0);
+        drawCountryPath();
+        ctx.restore();
     });
 
-    // Draw tiny countries as small irregular polygons directly on the texture
+    // Draw tiny countries
     Object.entries(tinyCountriesExtras).forEach(([name, extra]) => {
         const color = guessedCountriesColors[name];
-        if (!color) return; // Not guessed yet
+        if (!color) return;
 
         const cx = (extra.lon + 180) * (canvas.width / 360);
         const cy = (90 - extra.lat) * (canvas.height / 180);
@@ -201,17 +225,30 @@ function updateGlobeTexture() {
 
 function renderRings(ctx, rings, width, height) {
     rings.forEach(ring => {
-        let prevX = null;
-        ring.forEach(([lon, lat], i) => {
+        if (ring.length === 0) return;
+
+        // Start the shape
+        let currentLon = ring[0][0];
+        const startX = (currentLon + 180) * (width / 360);
+        const startY = (90 - ring[0][1]) * (height / 180);
+        ctx.moveTo(startX, startY);
+
+        for (let i = 1; i < ring.length; i++) {
+            let [lon, lat] = ring[i];
+
+            // --- ANTI-MERIDIAN FIX ---
+            // If the distance between the previous point and this point is huge,
+            // it means we crossed the 180 line. Instead of jumping across the screen,
+            // we adjust the longitude to keep drawing continuously outside the canvas.
+            while (lon - currentLon > 180) lon -= 360;
+            while (currentLon - lon > 180) lon += 360;
+
+            currentLon = lon;
+
             const x = (lon + 180) * (width / 360);
             const y = (90 - lat) * (height / 180);
-            if (i === 0 || (prevX !== null && Math.abs(x - prevX) > width / 2)) {
-                ctx.moveTo(x, y);
-            } else {
-                ctx.lineTo(x, y);
-            }
-            prevX = x;
-        });
+            ctx.lineTo(x, y);
+        }
     });
 }
 
