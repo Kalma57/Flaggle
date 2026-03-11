@@ -1,6 +1,8 @@
 package com.example.flagdemo.DataAccessLayer;
 
-import java.nio.file.Paths;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -23,14 +25,21 @@ public class CountryRepository {
         loadCountries();
     }
 
+    /**
+     * Creates a connection to the SQLite database.
+     * Loads the DB from the classpath (inside the JAR) and copies it to a temp file.
+     */
     private Connection getConnection() throws Exception {
-        String dbPath = Paths.get("src/main/resources/static/DB/Flaggle.db").toAbsolutePath().toString();
-
-        if (!Paths.get(dbPath).toFile().exists()) {
-            throw new Exception("Database file not found at: " + dbPath);
+        InputStream is = getClass().getResourceAsStream("/static/DB/Flaggle.db");
+        if (is == null) {
+            throw new Exception("Database not found in classpath at /static/DB/Flaggle.db");
         }
-
-        return DriverManager.getConnection("jdbc:sqlite:" + dbPath);
+        File tempDb = File.createTempFile("Flaggle", ".db");
+        tempDb.deleteOnExit();
+        try (FileOutputStream fos = new FileOutputStream(tempDb)) {
+            is.transferTo(fos);
+        }
+        return DriverManager.getConnection("jdbc:sqlite:" + tempDb.getAbsolutePath());
     }
 
     private void loadCountries() {
@@ -43,12 +52,12 @@ public class CountryRepository {
                 String name = rs.getString("CountryName");
                 String code = rs.getString("Code");
                 String flagPath = rs.getString("FlagPath");
-                double Latitude = rs.getDouble("Latitude");
+                double latitude = rs.getDouble("Latitude");
                 double longitude = rs.getDouble("Longitude");
                 String neighborList = rs.getString("neighborList");
-                String ISO3 = rs.getString("ISO3");
+                String iso3 = rs.getString("ISO3");
 
-                CountryDAL country = new CountryDAL(ID, name, code, flagPath, Latitude, longitude, neighborList, ISO3);
+                CountryDAL country = new CountryDAL(ID, name, code, flagPath, latitude, longitude, neighborList, iso3);
                 allCountries.add(country);
                 codeToName.put(code, name);
                 nameToCode.put(name.toLowerCase(), code);

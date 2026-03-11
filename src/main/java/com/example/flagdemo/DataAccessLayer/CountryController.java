@@ -2,7 +2,9 @@ package com.example.flagdemo.DataAccessLayer;
 
 import com.example.flagdemo.BusinessLayer.CountryBL;
 
-import java.nio.file.Path;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.nio.file.Paths;
 import java.sql.*;
 import java.util.List;
@@ -24,28 +26,32 @@ public class CountryController {
     }
 
     /**
-     * Creates and returns a connection to the SQLite database.
-     * FIXED: Using the direct absolute path to avoid "Resource not found" exceptions.
+     * Creates a connection to the SQLite database.
+     * Loads the DB from the classpath (inside the JAR) and copies it to a temp file.
      */
     private Connection getConnection() throws Exception {
-        // Using direct absolute path to the DB file
-        String dbPath = Paths.get("src/main/resources/static/DB/Flaggle.db").toAbsolutePath().toString();
-        return DriverManager.getConnection("jdbc:sqlite:" + dbPath);
+        InputStream is = getClass().getResourceAsStream("/static/DB/Flaggle.db");
+        if (is == null) {
+            throw new Exception("Database not found in classpath at /static/DB/Flaggle.db");
+        }
+        File tempDb = File.createTempFile("Flaggle", ".db");
+        tempDb.deleteOnExit();
+        try (FileOutputStream fos = new FileOutputStream(tempDb)) {
+            is.transferTo(fos);
+        }
+        return DriverManager.getConnection("jdbc:sqlite:" + tempDb.getAbsolutePath());
     }
 
     /**
-     * Helper method to fix the outdated image path coming from the database.
-     * It extracts just the file name (e.g., "ss.png") and appends it to the new correct directory.
+     * Fixes the image path to work from the classpath (inside the JAR).
+     * Extracts just the file name and returns a classpath-relative path.
      */
     private String fixImagePath(String dbPath) {
         if (dbPath == null || dbPath.isEmpty()) {
             return dbPath;
         }
-        // Extract just the file name from the old database path
         String fileName = Paths.get(dbPath).getFileName().toString();
-
-        // Build and return the absolute path to the new directory
-        return Paths.get("src/main/resources/static/DB/FlagsImages", fileName).toAbsolutePath().toString();
+        return "/static/DB/FlagsImages/" + fileName;
     }
 
     /**
@@ -61,9 +67,7 @@ public class CountryController {
 
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
-                    // Fix the image path before passing it to CountryBL
                     String correctImagePath = fixImagePath(rs.getString("FlagPath"));
-
                     return new CountryBL(
                             rs.getString("CountryName"),
                             rs.getInt("ID"),
@@ -97,9 +101,7 @@ public class CountryController {
             ResultSet rs = pstmt.executeQuery();
 
             if (rs.next()) {
-                // Fix the image path before passing it to CountryBL
                 String correctImagePath = fixImagePath(rs.getString("FlagPath"));
-
                 return new CountryBL(
                         rs.getString("CountryName"),
                         rs.getInt("ID"),
