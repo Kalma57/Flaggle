@@ -31,10 +31,6 @@ const countryNameMapping = {
     "Dominican Republic": "Dominican Rep.",
     "Equatorial Guinea": "Eq. Guinea",
 
-    // Korea
-    "North Korea": "Dem. Rep. Korea",
-    "South Korea": "Korea",
-
     // Congo
     "Congo - Kinshasa": "Dem. Rep. Congo",
     "Congo - Brazzaville": "Congo",
