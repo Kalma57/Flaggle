@@ -31,6 +31,10 @@ public class FlagsInserter {
         specialIso3.put("US", "USA"); specialNames.put("US", "United States");
         specialNames.put("TR", "Turkey");
 
+        // Fix 1: Manually adding Scotland and Wales so they don't appear as "Unknown"
+        specialNames.put("SCT", "Scotland");
+        specialNames.put("WLS", "Wales");
+
         // Load ISO2 to ISO3 from Java Locales
         for (Locale locale : Locale.getAvailableLocales()) {
             if (!locale.getCountry().isEmpty()) {
@@ -52,6 +56,11 @@ public class FlagsInserter {
         String neighborsFilePath = baseDir + "/countriesBorders/CountriesNeighbors.txt";
 
         loadCountryLongLat(longLatFilePath);
+
+        // Fix 2: Injecting hardcoded coordinates for Portugal and South Sudan
+        // We do this after reading the file to overwrite missing data if any
+        countryExtraInfo.put("PRT", new CountryInfo(39.3999, -8.2245));
+        countryExtraInfo.put("SSD", new CountryInfo(6.8770, 31.3070));
 
         File folder = new File(flagsFolder);
         if (!folder.exists() || !folder.isDirectory()) {

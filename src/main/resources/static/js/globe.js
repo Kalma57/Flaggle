@@ -3,26 +3,58 @@ import { OrbitControls } from '/controls/OrbitControls.js';
 
 // Country name mapping - critical for matching between DB and map
 const countryNameMapping = {
-    "Trinidad and Tobago": "Trinidad and Tobago",
-    "Trinidad & Tobago": "Trinidad and Tobago",
-    "Saint Vincent and the Grenadines": "St. Vin. and Gren.",
-    "Saint Vincent & the Grenadines": "St. Vin. and Gren.",
-    "St. Vincent and the Grenadines": "St. Vin. and Gren.",
-    "St. Vincent & the Grenadines": "St. Vin. and Gren.",
-    "St Vincent and the Grenadines": "St. Vin. and Gren.",
-    "St Vincent & the Grenadines": "St. Vin. and Gren.",
-    "Saint Kitts and Nevis": "Saint Kitts and Nevis",
-    "Saint Kitts & Nevis": "Saint Kitts and Nevis",
-    "St Kitts and Nevis": "Saint Kitts and Nevis",
-    "St Kitts & Nevis": "Saint Kitts and Nevis",
-    "Antigua and Barbuda": "Antigua and Barbuda",
+    // Cases of "&" vs "and" and abbreviations
     "Antigua & Barbuda": "Antigua and Barbuda",
+    "Trinidad & Tobago": "Trinidad and Tobago",
+    "Bosnia & Herzegovina": "Bosnia and Herz.",
+    "São Tomé & Príncipe": "São Tomé and Principe",
+    "St Vincent & the Grenadines": "St. Vin. and Gren.",
+    "St Kitts & Nevis": "Saint Kitts and Nevis",
+    "St Lucia": "Saint Lucia",
+    "St Martin": "St. Martin",
+    "St Barthélemy": "St-Barthélemy",
+    "St Helena": "Saint Helena",
+    "St Pierre & Miquelon": "St. Pierre and Miquelon",
+    "Turks & Caicos Islands": "Turks and Caicos Is.",
+    "Wallis & Futuna": "Wallis and Futuna",
+    "Svalbard & Jan Mayen": "Svalbard",
+    "South Georgia & South Sandwich Islands": "S. Geo. and S. Sandw. Is.",
+    "Heard & McDonald Islands": "Heard I. and McDonald Is.",
+
+    // United States and United Kingdom
+    "United States": "United States of America",
     "USA": "United States of America",
     "UK": "United Kingdom",
-    "South Korea": "Korea",
+
+    // Republic name changes (TopoJSON uses abbreviations)
+    "Central African Republic": "Central African Rep.",
+    "Dominican Republic": "Dominican Rep.",
+    "Equatorial Guinea": "Eq. Guinea",
+
+    // Korea
     "North Korea": "Dem. Rep. Korea",
+    "South Korea": "Korea",
+
+    // Congo
     "Congo - Kinshasa": "Dem. Rep. Congo",
-    "Congo - Brazzaville": "Congo"
+    "Congo - Brazzaville": "Congo",
+
+    // Political and regional adjustments
+    "North Macedonia": "Macedonia",
+    "Myanmar (Burma)": "Myanmar",
+    "Western Sahara": "W. Sahara",
+    "South Sudan": "S. Sudan",
+    "Eswatini": "eSwatini",
+    "Cape Verde": "Cabo Verde",
+    "Falkland Islands": "Falkland Is.",
+    "Solomon Islands": "Solomon Is.",
+
+    // Apostrophe fix (your DB uses a curly apostrophe ’, the map expects a straight one ')
+    "Côte d’Ivoire": "Côte d'Ivoire",
+
+    // Chinese territories (matched Macau to your definition in tinyCountriesExtras)
+    "Macao SAR China": "Macau",
+    "Hong Kong SAR China": "Hong Kong"
 };
 
 // Small countries with precise coordinates - drawn as tiny polygons on the texture
