@@ -5,8 +5,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Paths;
 
 public class CountryBL {
@@ -30,7 +30,7 @@ public class CountryBL {
 
     public CountryBL() {}
 
-    // FIXED: Now copies all data fields from CountryDAL, not just a few!
+    // Constructor to initialize from Data Access Layer object
     public CountryBL(CountryDAL cd) {
         this.name = cd.getCountryName();
         this.ID = cd.getID();
@@ -41,55 +41,40 @@ public class CountryBL {
         this.iso3 = cd.getIso3();
     }
 
-    /**
-     * Returns the name of the country.
-     *
-     * @return The country's name.
-     */
     public String getName() {
         return name;
     }
 
-    /**
-     * Returns the country's ID.
-     *
-     * @return The country's ID.
-     */
     public int getCode() {
         return ID;
     }
 
-    /**
-     * Returns the URL of the country's flag image.
-     *
-     * @return The flag image URL.
-     */
     public String getFlagPath() {
         return flagPath;
     }
 
     /**
-     * Returns the BufferedImage of the country's flag.
-     * If the flag image has not been loaded yet, it will be fetched from the URL.
-     *
-     * @return The flag image as a BufferedImage, or {@code null} if loading fails.
+     * Loads the flag image from the classpath.
+     * Uses getResourceAsStream to ensure compatibility inside packaged JARs.
+     * * @return The flag image as a BufferedImage, or null if loading fails.
      */
     @JsonIgnore
     public BufferedImage getFlagImage() {
-        // FIXED: Extracts just the file name and generates an accurate absolute path to the new directory.
+        // Extract the filename from the path
         String fileName = Paths.get(flagPath).getFileName().toString();
-        String correctPath = Paths.get("src/main/resources/static/DB/FlagsImages", fileName).toAbsolutePath().toString();
 
-        File file = new File(correctPath);
+        // Define the path relative to the resources folder (Classpath)
+        String resourcePath = "/static/DB/FlagsImages/" + fileName;
 
-        if (!file.exists()) {
-            System.err.println("Flag file not found: " + file.getAbsolutePath());
-            return null;
-        }
-
-        try {
-            return ImageIO.read(file);
+        // Load the image as a stream to support execution from inside a JAR
+        try (InputStream is = getClass().getResourceAsStream(resourcePath)) {
+            if (is == null) {
+                System.err.println("Flag file not found in classpath: " + resourcePath);
+                return null;
+            }
+            return ImageIO.read(is);
         } catch (IOException e) {
+            System.err.println("Error reading flag image: " + resourcePath);
             e.printStackTrace();
             return null;
         }
@@ -100,18 +85,10 @@ public class CountryBL {
     public String getNeighborsList() { return neighbors; }
     public String getIso3() { return iso3; }
 
-    /**
-     * Compares this country to another object based on the country ID.
-     *
-     * @param o The object to compare with.
-     * @return {@code true} if the other object is a CountryBL with the same ID, otherwise {@code false}.
-     */
     @Override
     public boolean equals(Object o) {
         if (o instanceof CountryBL){
-            if (this.ID == ((CountryBL) o).ID) {
-                return true;
-            }
+            return this.ID == ((CountryBL) o).ID;
         }
         return false;
     }
