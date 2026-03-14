@@ -9,7 +9,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 /**
  * Represents the result of a guess in the "Globe" game mode.
  */
-public class GuessResultGlobeBL {
+public class GuessResultGlobeBL implements java.io.Serializable {
 
     // ----------------- Fields -----------------
 

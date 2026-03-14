@@ -13,7 +13,7 @@ import java.util.List;
  * Responsible for connecting the View with the Model.
  * The ViewModel exposes only the data that the View needs.
  */
-public class GlobeViewModel {
+public class GlobeViewModel implements java.io.Serializable {
 
     // -------------------- Fields --------------------
 

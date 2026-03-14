@@ -7,7 +7,7 @@ import com.example.flagdemo.DataAccessLayer.CountryRepository;
 import java.sql.SQLException;
 import java.util.Random;
 
-public class GameEngineBL {
+public class GameEngineBL implements java.io.Serializable {
         private CountryBL targetCountry;
         private int attempts;
         private boolean gameOver;

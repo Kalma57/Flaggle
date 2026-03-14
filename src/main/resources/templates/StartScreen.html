@@ -2,63 +2,272 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>StartScreen</title>
+    <title>Flaggle</title>
+
     <style>
-        body {
-            background-color: #f9f9f9;
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-start;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            font-family: Arial, sans-serif;
-            padding-top: 15vh;
+
+        /* Reset default browser styles */
+        *{
+            margin:0;
+            padding:0;
+            box-sizing:border-box;
+            font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
-        h1 {
-            color: #3fc1aa;
-            font-size: 64px;
-            text-align: center;
-            text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.2);
-            margin-bottom: 50px;
+        /* Full screen animated gradient background */
+        body{
+
+            height:100vh;
+            display:flex;
+            justify-content:center;
+            align-items:center;
+
+            background: linear-gradient(-45deg,#e9f8f5,#f9f9f9,#dff6f1,#e6fffb);
+            background-size:400% 400%;
+
+            animation: gradientMove 12s ease infinite;
+
+            overflow:hidden;
         }
 
-        .button-row {
-            display: flex;
-            gap: 40px; /* מרווח בין הכפתורים */
+        /* Gradient animation */
+        @keyframes gradientMove{
+
+            0%{
+                background-position:0% 50%;
+            }
+
+            50%{
+                background-position:100% 50%;
+            }
+
+            100%{
+                background-position:0% 50%;
+            }
+
         }
 
-        .start-button {
-            background-color: #3fc1aa;
-            border: none;
-            color: white;
-            padding: 15px 45px;
-            font-size: 24px;
-            border-radius: 12px;
-            cursor: pointer;
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
-            transition: all 0.3s ease;
+        /* Decorative floating glow circles */
+        .glow-circle{
+
+            position:absolute;
+            width:400px;
+            height:400px;
+
+            background:#3fc1aa;
+
+            opacity:0.15;
+
+            filter:blur(120px);
+
+            border-radius:50%;
+
+            animation: float 10s infinite alternate ease-in-out;
+
         }
 
-        .start-button:hover {
-            background-color: #36a08f;
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
-            transform: translateY(-2px);
+        /* Second glow element */
+        .glow2{
+            top:10%;
+            left:5%;
         }
+
+        /* Third glow element */
+        .glow3{
+            bottom:10%;
+            right:10%;
+        }
+
+        /* Floating animation */
+        @keyframes float{
+
+            from{
+                transform:translateY(0px);
+            }
+
+            to{
+                transform:translateY(-60px);
+            }
+
+        }
+
+        /* Main glass container */
+        .container{
+
+            position:relative;
+
+            background:rgba(255,255,255,0.75);
+
+            backdrop-filter:blur(12px);
+
+            padding:80px 120px;
+
+            border-radius:30px;
+
+            box-shadow:
+                0 25px 60px rgba(0,0,0,0.2);
+
+            text-align:center;
+
+            animation: fadeIn 1.2s ease;
+
+        }
+
+        /* Entrance animation */
+        @keyframes fadeIn{
+
+            from{
+                transform:translateY(40px);
+                opacity:0;
+            }
+
+            to{
+                transform:translateY(0);
+                opacity:1;
+            }
+
+        }
+
+        /* Title styling */
+        h1{
+
+            font-size:90px;
+
+            letter-spacing:4px;
+
+            color:#3fc1aa;
+
+            margin-bottom:70px;
+
+            text-shadow:
+                0 10px 25px rgba(63,193,170,0.35);
+
+            animation:titleGlow 3s infinite alternate;
+
+        }
+
+        /* Subtle glowing title animation */
+        @keyframes titleGlow{
+
+            from{
+                text-shadow:0 5px 15px rgba(63,193,170,0.3);
+            }
+
+            to{
+                text-shadow:0 10px 40px rgba(63,193,170,0.7);
+            }
+
+        }
+
+        /* Row of buttons */
+        .button-row{
+
+            display:flex;
+
+            gap:40px;
+
+        }
+
+        /* Button base styling */
+        .start-button{
+
+            position:relative;
+
+            border:none;
+
+            padding:20px 60px;
+
+            font-size:22px;
+
+            border-radius:16px;
+
+            cursor:pointer;
+
+            color:white;
+
+            background:linear-gradient(135deg,#3fc1aa,#2da892);
+
+            box-shadow:
+                0 12px 25px rgba(0,0,0,0.25);
+
+            transition:all 0.35s ease;
+
+            overflow:hidden;
+
+        }
+
+        /* Shine effect layer */
+        .start-button::before{
+
+            content:"";
+
+            position:absolute;
+
+            top:0;
+            left:-120%;
+
+            width:120%;
+            height:100%;
+
+            background:linear-gradient(
+                120deg,
+                transparent,
+                rgba(255,255,255,0.6),
+                transparent
+            );
+
+            transition:0.6s;
+
+        }
+
+        /* Button hover interaction */
+        .start-button:hover{
+
+            transform:translateY(-6px) scale(1.07);
+
+            box-shadow:
+                0 18px 35px rgba(0,0,0,0.35);
+
+        }
+
+        /* Shine animation when hovering */
+        .start-button:hover::before{
+
+            left:120%;
+
+        }
+
     </style>
 </head>
+
 <body>
-<h1>Flaggle</h1>
 
-<div class="button-row">
-    <button class="start-button" onclick="window.location.href='/Flaggle/start'">
-        FLAGGLE
-    </button>
+<!-- Decorative background glow elements -->
+<div class="glow-circle glow2"></div>
+<div class="glow-circle glow3"></div>
 
-    <button class="start-button" onclick="window.location.href='/Globe/start'">
-        GLOBE
-    </button>
+<!-- Main UI container -->
+<div class="container">
+
+    <!-- Game title -->
+    <h1>Flaggle</h1>
+
+    <!-- Navigation buttons -->
+    <div class="button-row">
+
+        <button class="start-button"
+                onclick="window.location.href='/Flaggle/start'">
+            FLAGGLE
+        </button>
+
+        <button class="start-button"
+                onclick="window.location.href='/Globe/start'">
+            GLOBE
+        </button>
+
+    </div>
+
 </div>
+
 </body>
 </html>

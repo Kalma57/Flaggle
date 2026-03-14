@@ -16,7 +16,7 @@ import java.awt.image.BufferedImage;
  * - Black pixels represent different colors
  * - White pixels represent background or frame areas
  */
-public class GuessResultBL {
+public class GuessResultBL implements java.io.Serializable {
 
     // ----------------- Constants -----------------
 

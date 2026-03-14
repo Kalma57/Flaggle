@@ -18,7 +18,7 @@ import java.util.List;
  * - Storing guess results
  * - Tracking the number of attempts
  */
-public class GlobeModel {
+public class GlobeModel implements java.io.Serializable {
 
     // -------------------- Fields --------------------
     private GlobeGameService gs;
