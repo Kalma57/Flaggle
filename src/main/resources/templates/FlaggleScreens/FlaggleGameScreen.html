@@ -3,121 +3,134 @@
 <head>
     <meta charset="UTF-8">
     <title>Flaggle - Game</title>
+
     <style>
+        /* Reset browser default styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        /* Animated gradient background */
         body {
-            background-color: #f9f9f9;
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
-            margin: 0;
-            font-family: Arial, sans-serif;
-            color: #4CAF50;
-            padding: 5vh 0;
+            padding: 40px 0;
+            background: linear-gradient(-45deg, #e8f7ee, #f9f9f9, #e1f5e6, #f0fff3);
+            background-size: 400% 400%;
+            animation: gradientMove 12s ease infinite;
         }
 
+        @keyframes gradientMove {
+            0%   { background-position: 0% 50%; }
+            50%  { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Page title */
         h1 {
-            font-size: 48px;
-            margin-bottom: 20px;
+            font-size: 60px;
+            color: #4CAF50;
+            margin-bottom: 30px;
+            text-shadow: 0 8px 20px rgba(76,175,80,0.35);
         }
 
+        /* Input and guess form container */
         .guess-form {
             display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 10px;
+            gap: 15px;
+            margin-bottom: 15px;
         }
 
+        /* Country input field */
         input[type="text"] {
-            padding: 10px;
+            padding: 12px;
             font-size: 18px;
-            width: 250px;
+            width: 260px;
             text-align: center;
-            border-radius: 8px;
+            border-radius: 10px;
             border: 2px solid #4CAF50;
+            outline: none;
+            transition: 0.3s;
         }
 
+        input[type="text"]:focus {
+            box-shadow: 0 0 10px rgba(76,175,80,0.4);
+        }
+
+        /* General button styling */
         button {
-            padding: 10px 25px;
-            font-size: 18px;
-            border-radius: 8px;
+            padding: 12px 28px;
+            font-size: 17px;
+            border-radius: 10px;
             cursor: pointer;
             border: none;
+            transition: 0.3s;
         }
 
+        /* Guess button */
         .guess-btn {
-            background-color: #4CAF50;
+            background: linear-gradient(135deg, #4CAF50, #3f9142);
             color: white;
+            box-shadow: 0 8px 18px rgba(0,0,0,0.25);
         }
 
         .guess-btn:hover {
-            background-color: #45a049;
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 12px 22px rgba(0,0,0,0.35);
         }
 
+        /* Give up button */
         .giveup-btn {
-            background-color: white;
+            margin-top: 10px;
+            background: white;
             color: #4CAF50;
             border: 2px solid #4CAF50;
-            margin-top: 10px;
         }
 
-        .giveup-btn:hover {
-            background-color: #f1f1f1;
-        }
+        .giveup-btn:hover { background: #e8f7ee; }
 
-        /* RULES button */
+        /* Rules button — fixed top-right */
         .rules-btn {
             position: fixed;
-            top: 80px;
-            right: 460px;
-            background-color: #f9f9f9;
+            top: 40px;
+            right: 40px;
+            background: white;
             color: #4CAF50;
             border: 2px solid #4CAF50;
-            padding: 10px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-            z-index: 101;
         }
 
-        .rules-btn:hover {
-            background-color: #f1f1f1;
-        }
+        .rules-btn:hover { background: #e8f7ee; }
 
+        /* Guesses list container */
         .guesses {
             display: flex;
             flex-direction: column-reverse;
             gap: 20px;
             width: 100%;
-            max-width: 800px;
-            margin-top: 30px;
-            align-items: center;
+            max-width: 900px;
+            margin-top: 35px;
         }
 
+        /* Individual guess card */
         .guess-row {
             display: flex;
             justify-content: center;
-            gap: 30px;
             align-items: center;
-            width: 100%;
-            background-color: #ffffff;
-            border-radius: 12px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-            padding: 15px 0;
+            gap: 40px;
+            padding: 20px;
+            background: rgba(255,255,255,0.8);
+            backdrop-filter: blur(8px);
+            border-radius: 18px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            transition: 0.3s;
         }
 
-        .flag img {
-            width: 300px;
-            height: 225px;
-            border: 3px solid #4CAF50;
-            border-radius: 10px;
-            object-fit: cover;
-        }
-
-        .guess-label {
-            text-align: center;
-            margin-bottom: 8px;
-            font-weight: bold;
-            color: #388e3c;
-        }
+        .guess-row:hover { transform: scale(1.02); }
 
         .flag {
             display: flex;
@@ -125,7 +138,21 @@
             align-items: center;
         }
 
-        /* Side panel for Rules */
+        .guess-label {
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #2f7a34;
+        }
+
+        .flag img {
+            width: 300px;
+            height: 225px;
+            border: 3px solid #4CAF50;
+            border-radius: 12px;
+            object-fit: cover;
+        }
+
+        /* Rules side panel */
         .rules-panel {
             height: 100%;
             width: 0;
@@ -133,82 +160,105 @@
             z-index: 100;
             top: 0;
             right: 0;
-            background-color: #ffffff;
+            background: white;
             overflow-x: hidden;
             transition: 0.4s;
-            padding: 20px;
-            box-shadow: -4px 0 8px rgba(0,0,0,0.2);
+            padding: 25px;
+            box-shadow: -5px 0 15px rgba(0,0,0,0.2);
         }
 
         .rules-panel h2 {
-            margin-top: 0;
             color: #4CAF50;
+            margin-bottom: 15px;
         }
 
-        .rules-panel p {
-            margin: 10px 0;
-            color: #333;
-        }
+        .rules-panel p { margin: 10px 0; color: #333; }
 
         .close-rules {
             position: absolute;
-            top: 10px;
-            right: 20px;
-            font-size: 30px;
+            top: 15px;
+            right: 25px;
+            font-size: 32px;
             cursor: pointer;
             color: #4CAF50;
         }
     </style>
 </head>
-<body>
-<h1>Flaggle - Game</h1>
 
+<body>
+
+<h1>Flaggle</h1>
+
+<!--
+    FIX: gameId is embedded as a hidden field in every form.
+    This tells the controller which ViewModel belongs to this window,
+    so two windows in the same browser stay independent.
+-->
+
+<!-- Guess form — carries gameId as a hidden field -->
 <form action="/Flaggle/guess" method="post" class="guess-form">
-    <input type="text" name="countryName" placeholder="Enter country name" required list="countries">
+
+    <!-- Hidden field: passes the unique game ID back to the controller -->
+    <input type="hidden" name="gameId" th:value="${gameId}">
+
+    <input type="text"
+           name="countryName"
+           placeholder="Enter country name"
+           required
+           list="countries">
+
     <datalist id="countries">
         <option th:each="c : ${viewModel.allCountries}" th:value="${c.name}"/>
     </datalist>
+
     <button type="submit" class="guess-btn">GUESS</button>
+
 </form>
 
+<!-- Give up form — also carries gameId -->
 <form action="/Flaggle/giveup" method="post">
+
+    <!-- Hidden field: passes the unique game ID back to the controller -->
+    <input type="hidden" name="gameId" th:value="${gameId}">
+
     <button type="submit" class="giveup-btn">GIVE UP</button>
+
 </form>
 
 <button class="rules-btn" onclick="openRules()">RULES</button>
 
+<!-- Guesses list — populated by Thymeleaf -->
 <div class="guesses" th:if="${guesses}">
     <div th:each="guess, iterStat : ${guesses}" class="guess-row">
+
         <div class="flag guessed-flag">
             <div class="guess-label">
                 guess [[${iterStat.index + 1}]]: [[${guess.guessedName}]]
             </div>
             <img th:src="'data:image/png;base64,' + ${guess.guessedImage}" alt="Guessed Flag">
         </div>
+
         <div class="flag result-flag">
             <div class="guess-label">result</div>
             <img th:src="'data:image/png;base64,' + ${guess.resultImage}" alt="Result Flag">
         </div>
+
     </div>
 </div>
 
+<!-- Rules side panel -->
 <div id="rulesPanel" class="rules-panel">
     <span class="close-rules" onclick="closeRules()">&times;</span>
     <h2>Flaggle Rules</h2>
     <p>Can you identify the country by its flag?</p>
-    <p>Enter a country name and press <strong>GUESS</strong>. After each attempt, you'll see visual feedback comparing your guess to the correct flag. Use the hints to get closer to the answer.</p>
-    <p>Guess correctly to win — or press <strong>GIVE UP</strong> to reveal the solution.</p>
-    <p>Challenge yourself to solve it in the fewest attempts possible!</p>
+    <p>Enter a country name and press <strong>GUESS</strong>. After each attempt you will see feedback comparing your guess to the correct flag.</p>
+    <p>Use the hints to get closer to the correct answer.</p>
+    <p>Guess correctly to win or press <strong>GIVE UP</strong> to reveal the answer.</p>
 </div>
 
 <script>
-    function openRules() {
-        document.getElementById("rulesPanel").style.width = "400px";
-    }
-
-    function closeRules() {
-        document.getElementById("rulesPanel").style.width = "0";
-    }
+    function openRules()  { document.getElementById("rulesPanel").style.width = "400px"; }
+    function closeRules() { document.getElementById("rulesPanel").style.width = "0"; }
 </script>
 
 </body>

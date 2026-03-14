@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
  * - Tracking number of attempts
  * - Determining when the game ends
  */
-public class GlobeEngineBL {
+public class GlobeEngineBL implements java.io.Serializable {
 
     // -------------------- Fields --------------------
 

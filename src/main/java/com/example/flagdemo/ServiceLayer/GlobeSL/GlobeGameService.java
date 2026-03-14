@@ -10,7 +10,7 @@ import java.sql.SQLException;
  *
  * Acts as a bridge between the ViewModel and the GlobeEngineBL.
  */
-public class GlobeGameService {
+public class GlobeGameService implements java.io.Serializable {
 
     // -------------------- Fields --------------------
     private GlobeEngineBL geb;

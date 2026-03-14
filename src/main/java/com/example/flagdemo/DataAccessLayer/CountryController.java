@@ -13,7 +13,7 @@ import java.util.List;
  * Controller responsible for accessing country data from the database
  * and converting it into Business Layer objects (CountryBL).
  */
-public class CountryController {
+public class CountryController implements java.io.Serializable {
 
     // Repository used to fetch country data from DAL
     private CountryRepository cr;

@@ -5,7 +5,7 @@ import com.example.flagdemo.BusinessLayer.FlaggleBL.GuessResultBL;
 
 import java.sql.SQLException;
 
-public class GameService {
+public class GameService implements java.io.Serializable {
     private GameEngineBL geb;
 
     public GameService(){

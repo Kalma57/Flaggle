@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Paths;
 
-public class CountryBL {
+public class CountryBL implements java.io.Serializable {
     private String name;
     private int ID;
     private String flagPath;

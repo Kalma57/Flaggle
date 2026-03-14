@@ -15,7 +15,7 @@ import java.util.Map;
 /**
  * Repository responsible for loading and storing country data from the database.
  */
-public class CountryRepository {
+public class CountryRepository implements java.io.Serializable {
 
     private Map<String, String> codeToName = new HashMap<>();
     private Map<String, String> nameToCode = new HashMap<>();

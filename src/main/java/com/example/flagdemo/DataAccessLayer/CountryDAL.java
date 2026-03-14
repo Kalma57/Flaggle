@@ -1,6 +1,6 @@
 package com.example.flagdemo.DataAccessLayer;
 
-public class CountryDAL {
+public class CountryDAL implements java.io.Serializable {
     private int ID;
     private String countryName;
     private String code;

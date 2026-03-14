@@ -3,100 +3,310 @@
 <head>
   <meta charset="UTF-8">
   <title>Flaggle - Game Over</title>
+
   <style>
-    body {
-        background-color: #f9f9f9;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        height: 100vh;
-        margin: 0;
-        font-family: Arial, sans-serif;
-        color: #4CAF50;
+
+    /* Reset browser styles */
+    *{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
 
-    .container {
-        background-color: white;
-        padding: 40px 60px;
-        border-radius: 16px;
-        text-align: center;
-        box-shadow: 0 6px 12px rgba(0,0,0,0.15);
-        max-width: 500px;
+    /* Animated gradient background */
+    body{
+
+    height:100vh;
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
+
+    background:linear-gradient(-45deg,#e8f7ee,#f9f9f9,#e1f5e6,#f0fff3);
+    background-size:400% 400%;
+
+    animation:gradientMove 12s ease infinite;
+
+    overflow:hidden;
+
     }
 
-    h1 {
-        font-size: 42px;
-        margin-bottom: 25px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 10px;
+    /* Background animation */
+    @keyframes gradientMove{
+
+    0%{background-position:0% 50%;}
+    50%{background-position:100% 50%;}
+    100%{background-position:0% 50%;}
+
     }
 
-    .emoji {
-        font-size: 42px;
+    /* Floating glow decorations */
+    .glow{
+
+    position:absolute;
+
+    width:350px;
+    height:350px;
+
+    background:#4CAF50;
+
+    opacity:0.15;
+
+    filter:blur(120px);
+
+    border-radius:50%;
+
+    animation:float 8s infinite alternate ease-in-out;
+
     }
 
-    p {
-        font-size: 20px;
-        margin: 10px 0;
+    .glow1{
+    top:5%;
+    left:10%;
     }
 
-    img {
-        width: 300px;
-        height: 225px;
-        border: 3px solid #4CAF50;
-        border-radius: 10px;
-        object-fit: cover;
+    .glow2{
+    bottom:5%;
+    right:10%;
     }
 
-    button {
-        margin-top: 20px;
-        background-color: #4CAF50;
-        color: white;
-        border: none;
-        padding: 12px 30px;
-        font-size: 18px;
-        border-radius: 8px;
-        cursor: pointer;
+    /* Floating movement */
+    @keyframes float{
+
+    from{
+    transform:translateY(0px);
     }
 
-    button:hover {
-        background-color: #45a049;
+    to{
+    transform:translateY(-60px);
     }
 
-    .buttons-container {
-        display: flex;
-        gap: 15px;
-        justify-content: center;
-        flex-wrap: wrap;
     }
 
-    .home-btn {
-        background-color: white;
-        color: #4CAF50;
-        border: 2px solid #4CAF50;
+    /* Main glass container */
+    .container{
+
+    background:rgba(255,255,255,0.85);
+
+    backdrop-filter:blur(12px);
+
+    padding:50px 70px;
+
+    border-radius:25px;
+
+    text-align:center;
+
+    box-shadow:0 25px 60px rgba(0,0,0,0.25);
+
+    max-width:520px;
+
+    animation:fadeIn 1s ease;
+
     }
 
-    .home-btn:hover {
-        background-color: #f1f1f1;
+    /* Entrance animation */
+    @keyframes fadeIn{
+
+    from{
+    transform:translateY(40px);
+    opacity:0;
     }
+
+    to{
+    transform:translateY(0);
+    opacity:1;
+    }
+
+    }
+
+    /* Title styling */
+    h1{
+
+    font-size:42px;
+
+    margin-bottom:20px;
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    gap:10px;
+
+    color:#4CAF50;
+
+    text-shadow:0 6px 18px rgba(76,175,80,0.4);
+
+    }
+
+    /* Emoji size */
+    .emoji{
+
+    font-size:42px;
+
+    animation:bounce 1.5s infinite;
+
+    }
+
+    /* Emoji bounce animation */
+    @keyframes bounce{
+
+    0%,100%{
+    transform:translateY(0);
+    }
+
+    50%{
+    transform:translateY(-8px);
+    }
+
+    }
+
+    /* Text styling */
+    p{
+
+    font-size:20px;
+
+    margin:10px 0;
+
+    color:#333;
+
+    }
+
+    /* Flag image styling */
+    img{
+
+    margin-top:15px;
+
+    width:300px;
+    height:225px;
+
+    border:4px solid #4CAF50;
+
+    border-radius:14px;
+
+    object-fit:cover;
+
+    box-shadow:0 10px 25px rgba(0,0,0,0.25);
+
+    animation:flagReveal 1s ease;
+
+    }
+
+    /* Flag reveal animation */
+    @keyframes flagReveal{
+
+    from{
+    transform:scale(0.8);
+    opacity:0;
+    }
+
+    to{
+    transform:scale(1);
+    opacity:1;
+    }
+
+    }
+
+    /* Buttons container */
+    .buttons-container{
+
+    margin-top:25px;
+
+    display:flex;
+    gap:15px;
+
+    justify-content:center;
+
+    flex-wrap:wrap;
+
+    }
+
+    /* Base button style */
+    button{
+
+    padding:12px 30px;
+
+    font-size:18px;
+
+    border-radius:10px;
+
+    cursor:pointer;
+
+    border:none;
+
+    transition:0.3s;
+
+    }
+
+    /* Play again button */
+    button[type="submit"]{
+
+    background:linear-gradient(135deg,#4CAF50,#3f9142);
+
+    color:white;
+
+    box-shadow:0 8px 20px rgba(0,0,0,0.25);
+
+    }
+
+    /* Play again hover */
+    button[type="submit"]:hover{
+
+    transform:translateY(-3px) scale(1.05);
+
+    box-shadow:0 12px 25px rgba(0,0,0,0.35);
+
+    }
+
+    /* Home button */
+    .home-btn{
+
+    background:white;
+
+    color:#4CAF50;
+
+    border:2px solid #4CAF50;
+
+    }
+
+    /* Home button hover */
+    .home-btn:hover{
+
+    background:#e8f7ee;
+
+    }
+
   </style>
 </head>
+
 <body>
+
+<!-- Decorative background glow -->
+<div class="glow glow1"></div>
+<div class="glow glow2"></div>
+
 <div class="container">
+
   <h1>
+
     <span th:text="${success} ? 'Congratulations!' : 'Game Over'">Game Over</span>
-    <span class="emoji" th:text="${success} ? '🎉🎉🎉' : '😔😔😔'">🎉🎉🎉</span>
+
+    <span class="emoji"
+          th:text="${success} ? '🎉🎉🎉' : '😔😔😔'">
+🎉🎉🎉
+</span>
+
   </h1>
 
   <p>Attempts: <span th:text="${attempts}">0</span></p>
-  <p>The country was: <strong th:text="${countryName}">Country Name</strong></p>
+
+  <p>The country was:
+    <strong th:text="${countryName}">Country Name</strong>
+  </p>
 
   <img th:src="'data:image/png;base64,' + ${countryImage}" alt="Country Flag">
 
   <div class="buttons-container">
+
     <form th:action="@{/Flaggle/start}" method="get">
       <button type="submit">Play Again</button>
     </form>
@@ -106,7 +316,57 @@
             onclick="window.location.href='/Flaggle'">
       Return to home page
     </button>
+
   </div>
+
 </div>
+
+<!-- Confetti library -->
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+<script>
+
+  /* Function that launches a confetti celebration */
+  function launchConfetti() {
+
+  const duration = 3000;
+  const end = Date.now() + duration;
+
+  /* Colors matching the green theme */
+  const colors = ['#4CAF50','#66BB6A','#81C784','#A5D6A7'];
+
+  (function frame() {
+
+  confetti({
+  particleCount:7,
+  angle:60,
+  spread:70,
+  origin:{ x:0 },
+  colors:colors
+  });
+
+  confetti({
+  particleCount:7,
+  angle:120,
+  spread:70,
+  origin:{ x:1 },
+  colors:colors
+  });
+
+  if (Date.now() < end) {
+  requestAnimationFrame(frame);
+  }
+
+  }());
+
+  }
+
+</script>
+
+<!-- Run confetti only when the player wins -->
+<script th:if="${success}">
+  launchConfetti();
+</script>
+
 </body>
 </html>

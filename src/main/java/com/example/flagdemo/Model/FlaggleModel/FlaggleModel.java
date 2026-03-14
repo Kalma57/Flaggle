@@ -20,7 +20,7 @@ import java.util.List;
  * - Tracking the player's guesses
  * - Tracking the number of attempts
  */
-public class FlaggleModel {
+public class FlaggleModel implements java.io.Serializable {
 
     /** Service layer responsible for game logic */
     private GameService gs;
