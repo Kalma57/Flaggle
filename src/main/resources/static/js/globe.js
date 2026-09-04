@@ -112,13 +112,13 @@ export async function initGlobe() {
     renderer.setSize(canvas.clientWidth, canvas.clientHeight);
 
     // Soft fill light + a "sun" so the sphere shows a realistic lit/shaded side
-    scene.add(new THREE.AmbientLight(0xffffff, 0.9));
+    scene.add(new THREE.AmbientLight(0xffffff, 1.3));
     const sun = new THREE.DirectionalLight(0xffffff, 1.1);
     sun.position.set(-2, 1, 1);
     scene.add(sun);
 
     world = new ThreeGlobe()
-        .globeImageUrl('https://unpkg.com/three-globe@2.45.2/example/img/earth-blue-marble.jpg')
+        .globeImageUrl('/assets/earth-day.jpg')
         .showAtmosphere(true)
         .atmosphereColor('#ffffff')
         .atmosphereAltitude(0.18)
@@ -145,7 +145,7 @@ export async function initGlobe() {
     controls.maxDistance = 700;
 
     try {
-        const response = await fetch('https://unpkg.com/world-atlas@2.0.2/countries-110m.json');
+        const response = await fetch('/assets/countries-50m.json');
         const topoData = await response.json();
         countriesData = topojson.feature(topoData, topoData.objects.countries);
 
