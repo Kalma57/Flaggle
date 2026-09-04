@@ -105,10 +105,13 @@ export async function initGlobe() {
     scene.background = new THREE.Color(SKY_COLOR);
 
     camera = new THREE.PerspectiveCamera(50, canvas.clientWidth / canvas.clientHeight, 0.1, 2000);
-    camera.position.set(0, 0, 250);
+    camera.position.set(0, 0, 200);
 
     renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
-    renderer.setPixelRatio(window.devicePixelRatio || 1);
+    // Cap the pixel ratio — on 3x/4x-DPI screens rendering at the full
+    // native ratio multiplies the pixel count for little visible gain
+    // and was a real contributor to the frame-rate lag.
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     renderer.setSize(canvas.clientWidth, canvas.clientHeight);
 
     // Soft fill light + a "sun" so the sphere shows a realistic lit/shaded side
@@ -126,7 +129,7 @@ export async function initGlobe() {
         .polygonSideColor(sideColorFor)
         .polygonStrokeColor(strokeColorFor)
         .polygonAltitude(altitudeFor)
-        .polygonsTransitionDuration(400)
+        .polygonsTransitionDuration(200)
         .pointLat('lat')
         .pointLng('lng')
         .pointColor('color')
@@ -141,8 +144,13 @@ export async function initGlobe() {
     controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = false;
     controls.rotateSpeed = 0.25;
-    controls.minDistance = 95;
-    controls.maxDistance = 500;
+    // GLOBE_RADIUS is hardcoded to 100 inside three-globe — going below
+    // that puts the camera inside the (backface-culled) sphere, which
+    // renders as a blank white screen. 118 keeps a safe margin outside
+    // the atmosphere shell (radius 100 * 1.18) while still allowing a
+    // close zoom on small countries.
+    controls.minDistance = 118;
+    controls.maxDistance = 480;
 
     try {
         const response = await fetch('/assets/countries-50m.json');
