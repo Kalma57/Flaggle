@@ -2,6 +2,7 @@ package com.example.flagdemo.Model.GlobeModel;
 
 import com.example.flagdemo.BusinessLayer.CountryBL;
 import com.example.flagdemo.BusinessLayer.GlobeBL.GuessResultGlobeBL;
+import com.example.flagdemo.DataAccessLayer.CountryController;
 import com.example.flagdemo.ServiceLayer.GlobeSL.GlobeGameService;
 
 import java.sql.SQLException;
@@ -28,8 +29,8 @@ public class GlobeModel implements java.io.Serializable {
     private int attempts;
 
     // -------------------- Constructor --------------------
-    public GlobeModel() throws SQLException {
-        this.gs = new GlobeGameService();
+    public GlobeModel(CountryController cc) throws SQLException {
+        this.gs = new GlobeGameService(cc);
         this.allCountries = gs.getEngine().getCountryController().getAllCountries();
         this.guesses = new ArrayList<>();
         this.attempts = 0;

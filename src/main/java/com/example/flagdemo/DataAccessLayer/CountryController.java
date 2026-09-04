@@ -8,11 +8,16 @@ import java.io.InputStream;
 import java.nio.file.Paths;
 import java.sql.*;
 import java.util.List;
+import org.springframework.stereotype.Service;
 
 /**
  * Controller responsible for accessing country data from the database
  * and converting it into Business Layer objects (CountryBL).
+ *
+ * Spring-managed singleton, shared by every request/game instead of being
+ * recreated (with its own temp SQLite file) each time.
  */
+@Service
 public class CountryController implements java.io.Serializable {
 
     // Repository used to fetch country data from DAL

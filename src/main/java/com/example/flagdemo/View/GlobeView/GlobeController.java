@@ -2,6 +2,7 @@ package com.example.flagdemo.View.GlobeView;
 
 import com.example.flagdemo.BusinessLayer.CountryBL;
 import com.example.flagdemo.BusinessLayer.GlobeBL.GuessResultGlobeBL;
+import com.example.flagdemo.DataAccessLayer.CountryController;
 import com.example.flagdemo.ViewModel.GlobeVM.GlobeViewModel;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -30,6 +31,13 @@ public class GlobeController {
      * Two windows -> two different gameIds -> two isolated game states.
      */
 
+    // Singleton, shared across all games/requests (loaded once by Spring)
+    private final CountryController countryController;
+
+    public GlobeController(CountryController countryController) {
+        this.countryController = countryController;
+    }
+
     @GetMapping("/start")
     public String startGame(Model model, HttpSession session) throws SQLException {
 
@@ -37,7 +45,7 @@ public class GlobeController {
         String gameId = UUID.randomUUID().toString();
 
         // Create a fresh ViewModel for this game instance
-        GlobeViewModel viewModel = new GlobeViewModel();
+        GlobeViewModel viewModel = new GlobeViewModel(countryController);
         viewModel.StartNewGame();
 
         // Store the ViewModel under a unique key so multiple windows

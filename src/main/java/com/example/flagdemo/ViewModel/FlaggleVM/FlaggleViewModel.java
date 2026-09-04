@@ -2,6 +2,7 @@ package com.example.flagdemo.ViewModel.FlaggleVM;
 
 import com.example.flagdemo.BusinessLayer.CountryBL;
 import com.example.flagdemo.BusinessLayer.FlaggleBL.GuessResultBL;
+import com.example.flagdemo.DataAccessLayer.CountryController;
 import com.example.flagdemo.Model.FlaggleModel.FlaggleModel;
 
 import java.awt.image.BufferedImage;
@@ -25,8 +26,8 @@ public class FlaggleViewModel {
      *
      * @throws SQLException if there is a problem accessing the database
      */
-    public FlaggleViewModel() throws SQLException {
-        fm = new FlaggleModel();
+    public FlaggleViewModel(CountryController cc) throws SQLException {
+        fm = new FlaggleModel(cc);
     }
 
     /**

@@ -2,6 +2,7 @@ package com.example.flagdemo.Model.FlaggleModel;
 
 import com.example.flagdemo.BusinessLayer.CountryBL;
 import com.example.flagdemo.BusinessLayer.FlaggleBL.GuessResultBL;
+import com.example.flagdemo.DataAccessLayer.CountryController;
 import com.example.flagdemo.ServiceLayer.FlaggleSL.GameService;
 
 import java.sql.SQLException;
@@ -43,9 +44,8 @@ public class FlaggleModel implements java.io.Serializable {
      *
      * @throws SQLException if there is a problem accessing the database
      */
-    public FlaggleModel() throws SQLException {
-        gs = new GameService();
-        allCountries = gs.getEngine().getCountryController().getAllCountries();
+    public FlaggleModel(CountryController cc) throws SQLException {
+        gs = new GameService(cc);
         this.allCountries = gs.getEngine().getCc().getAllCountries();
         this.guesses = new ArrayList<>();
     }

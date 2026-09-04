@@ -2,14 +2,15 @@ package com.example.flagdemo.ServiceLayer.FlaggleSL;
 
 import com.example.flagdemo.BusinessLayer.FlaggleBL.GameEngineBL;
 import com.example.flagdemo.BusinessLayer.FlaggleBL.GuessResultBL;
+import com.example.flagdemo.DataAccessLayer.CountryController;
 
 import java.sql.SQLException;
 
 public class GameService implements java.io.Serializable {
     private GameEngineBL geb;
 
-    public GameService(){
-        this.geb = new GameEngineBL();
+    public GameService(CountryController cc){
+        this.geb = new GameEngineBL(cc);
     }
 
     /**

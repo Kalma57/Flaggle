@@ -2,6 +2,7 @@ package com.example.flagdemo.View.FlaggleView;
 
 import com.example.flagdemo.BusinessLayer.CountryBL;
 import com.example.flagdemo.BusinessLayer.FlaggleBL.GuessResultBL;
+import com.example.flagdemo.DataAccessLayer.CountryController;
 import com.example.flagdemo.ViewModel.FlaggleVM.FlaggleViewModel;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -21,6 +22,13 @@ import java.util.*;
 @Controller
 @RequestMapping("/Flaggle")
 public class FlaggleController {
+
+    // Singleton, shared across all games/requests (loaded once by Spring)
+    private final CountryController countryController;
+
+    public FlaggleController(CountryController countryController) {
+        this.countryController = countryController;
+    }
 
     @GetMapping({""})
     public String showStartPage() {
@@ -45,7 +53,7 @@ public class FlaggleController {
         String gameId = UUID.randomUUID().toString();
 
         // Create a fresh ViewModel for this game instance
-        FlaggleViewModel viewModel = new FlaggleViewModel();
+        FlaggleViewModel viewModel = new FlaggleViewModel(countryController);
         viewModel.StartNewGame();
 
         // Store under a unique key — prevents windows from overwriting each other
