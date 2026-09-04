@@ -9,7 +9,10 @@
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 
   <script type="importmap">
-    { "imports": { "three": "/three/three.module.js" } }
+    { "imports": {
+        "three": "/three/three.module.js",
+        "three-globe": "https://unpkg.com/three-globe@2.45.2/dist/three-globe.mjs"
+    } }
   </script>
 
   <style>
@@ -165,7 +168,7 @@
       flex: 1;
       display: block;
       outline: none;
-      background-color: #87CEEB;
+      background-color: #cdeefb;
     }
 
     .neighbor-toast {
@@ -357,19 +360,39 @@
     ===================================================================== */
     .rules-panel {
       height: 100%;
-      width: 0;
+      width: 400px;
+      max-width: 85vw;
       position: fixed;
       z-index: 200;
       top: 0;
       right: 0;
       background-color: #ffffff;
-      overflow-x: hidden;
-      transition: width 0.35s cubic-bezier(0.4,0,0.2,1);
+      overflow-y: auto;
+      transform: translateX(100%);
+      transition: transform 0.35s cubic-bezier(0.4,0,0.2,1);
       padding: 20px;
       box-shadow: -4px 0 8px rgba(0,0,0,0.2);
     }
 
-    .rules-inner { width: 400px; }
+    .rules-panel.open {
+      transform: translateX(0);
+    }
+
+    /* Dark backdrop behind the open drawer — click it (or Escape) to close */
+    .rules-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.35);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.35s ease;
+      z-index: 199;
+    }
+
+    .rules-backdrop.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
 
     .rules-panel h2 {
       font-family: var(--font-display);
@@ -473,6 +496,9 @@
   </div>
 </div>
 
+<!-- Backdrop behind the rules drawer — clicking it closes the panel -->
+<div id="rulesBackdrop" class="rules-backdrop" onclick="closeRules()"></div>
+
 <!-- RULES SIDE PANEL -->
 <div id="rulesPanel" class="rules-panel">
   <div class="rules-inner">
@@ -502,7 +528,7 @@
 
 <!-- GAME LOGIC -->
 <script type="module">
-  import { initGlobe, colorCountry, focusOnCountry } from '/js/globe.js?v=2036';
+  import { initGlobe, colorCountry, focusOnCountry } from '/js/globe.js?v=2037';
 
   let guessesArray   = [];
   let validCountries = [];
@@ -679,8 +705,17 @@
 
 <!-- RULES PANEL OPEN / CLOSE -->
 <script>
-  function openRules()  { document.getElementById("rulesPanel").style.width = "400px"; }
-  function closeRules() { document.getElementById("rulesPanel").style.width = "0"; }
+  function openRules() {
+    document.getElementById("rulesPanel").classList.add("open");
+    document.getElementById("rulesBackdrop").classList.add("active");
+  }
+  function closeRules() {
+    document.getElementById("rulesPanel").classList.remove("open");
+    document.getElementById("rulesBackdrop").classList.remove("active");
+  }
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape") closeRules();
+  });
 </script>
 
 </body>
