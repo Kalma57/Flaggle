@@ -85,6 +85,9 @@ public class FlaggleController {
             model.addAttribute("countryName",  targetCountry.getName());
             model.addAttribute("countryImage", countryImage);
 
+            // Game is over — release the ViewModel (and its guess/image history) from the session
+            session.removeAttribute("flaggleVM_" + gameId);
+
             return "FlaggleScreens/FlaggleEndScreen";
         }
 
@@ -137,6 +140,9 @@ public class FlaggleController {
         model.addAttribute("attempts",     attempts);
         model.addAttribute("countryName",  targetCountry.getName());
         model.addAttribute("countryImage", countryImage);
+
+        // Game is over — release the ViewModel (and its guess/image history) from the session
+        session.removeAttribute("flaggleVM_" + gameId);
 
         return "FlaggleScreens/FlaggleEndScreen";
     }
