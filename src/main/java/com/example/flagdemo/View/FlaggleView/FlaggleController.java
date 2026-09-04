@@ -13,7 +13,6 @@ import org.springframework.ui.Model;
 import jakarta.servlet.http.HttpSession;
 
 import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.sql.SQLException;
@@ -104,16 +103,11 @@ public class FlaggleController {
         for (GuessResultBL gr : viewModel.getGuesses()) {
             Map<String, String> guessData = new HashMap<>();
 
-            BufferedImage guessedFlag = gr.getGuessedCountry().getFlagImage();
-            ByteArrayOutputStream baos1 = new ByteArrayOutputStream();
-            ImageIO.write(guessedFlag, "png", baos1);
-            guessData.put("guessedImage", Base64.getEncoder().encodeToString(baos1.toByteArray()));
+            // Images are base64-encoded once when the guess is created (GuessResultBL),
+            // so re-rendering the guess history doesn't re-decode/re-encode them every request
+            guessData.put("guessedImage", gr.getGuessedFlagBase64());
             guessData.put("guessedName",  gr.getGuessedCountry().getName());
-
-            BufferedImage resultImage = gr.getFlagDifferences();
-            ByteArrayOutputStream baos2 = new ByteArrayOutputStream();
-            ImageIO.write(resultImage, "png", baos2);
-            guessData.put("resultImage", Base64.getEncoder().encodeToString(baos2.toByteArray()));
+            guessData.put("resultImage",  gr.getFlagDifferencesBase64());
 
             guessList.add(guessData);
         }

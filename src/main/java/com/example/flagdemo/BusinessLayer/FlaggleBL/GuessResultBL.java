@@ -2,8 +2,13 @@ package com.example.flagdemo.BusinessLayer.FlaggleBL;
 
 import com.example.flagdemo.BusinessLayer.CountryBL;
 
+import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.util.Base64;
 
 /**
  * Represents the result of a user's guess in the Flaggle game.
@@ -56,6 +61,13 @@ public class GuessResultBL implements java.io.Serializable {
     // Image showing the visual differences between the two flags
     private final BufferedImage flagDifferences;
 
+    // Base64-encoded PNG of the guessed flag, computed once and cached so repeated
+    // renders of the guess history don't re-decode/re-encode the same image every request
+    private final String guessedFlagBase64;
+
+    // Base64-encoded PNG of the difference image, computed once and cached for the same reason
+    private final String flagDifferencesBase64;
+
     // ----------------- Constructor -----------------
 
     /**
@@ -77,6 +89,10 @@ public class GuessResultBL implements java.io.Serializable {
                 guessedCountry.getFlagImage(),
                 targetCountry.getFlagImage()
         );
+
+        // Encode both images to base64 once, up front, instead of on every subsequent render
+        this.guessedFlagBase64 = encodeToBase64(guessedCountry.getFlagImage());
+        this.flagDifferencesBase64 = encodeToBase64(this.flagDifferences);
     }
 
     // ----------------- Public Methods -----------------
@@ -118,6 +134,20 @@ public class GuessResultBL implements java.io.Serializable {
         return flagDifferences;
     }
 
+    /**
+     * Returns the base64-encoded PNG of the guessed flag (pre-computed in the constructor).
+     */
+    public String getGuessedFlagBase64() {
+        return guessedFlagBase64;
+    }
+
+    /**
+     * Returns the base64-encoded PNG of the flag difference image (pre-computed in the constructor).
+     */
+    public String getFlagDifferencesBase64() {
+        return flagDifferencesBase64;
+    }
+
     @Override
     public String toString() {
         return "GuessResult{" +
@@ -128,6 +158,21 @@ public class GuessResultBL implements java.io.Serializable {
     }
 
     // ----------------- Helper Methods -----------------
+
+    /**
+     * Encodes an image as a base64 PNG string.
+     * Wraps IOException as unchecked since encoding an in-memory BufferedImage
+     * to a ByteArrayOutputStream does not perform real I/O and cannot realistically fail.
+     */
+    private static String encodeToBase64(BufferedImage image) {
+        try {
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            ImageIO.write(image, "png", baos);
+            return Base64.getEncoder().encodeToString(baos.toByteArray());
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
 
     /**
      * Generates an image that highlights the differences between two flags.
