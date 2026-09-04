@@ -105,7 +105,7 @@ export async function initGlobe() {
     scene.background = new THREE.Color(SKY_COLOR);
 
     camera = new THREE.PerspectiveCamera(50, canvas.clientWidth / canvas.clientHeight, 0.1, 2000);
-    camera.position.set(0, 0, 350);
+    camera.position.set(0, 0, 250);
 
     renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
     renderer.setPixelRatio(window.devicePixelRatio || 1);
@@ -140,9 +140,9 @@ export async function initGlobe() {
 
     controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = false;
-    controls.rotateSpeed = 0.4;
-    controls.minDistance = 130;
-    controls.maxDistance = 700;
+    controls.rotateSpeed = 0.25;
+    controls.minDistance = 95;
+    controls.maxDistance = 500;
 
     try {
         const response = await fetch('/assets/countries-50m.json');
