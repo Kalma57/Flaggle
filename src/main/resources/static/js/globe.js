@@ -89,7 +89,7 @@ const tinyCountriesExtras = {
     "Tuvalu": { lat: -7.10, lon: 177.64 }
 };
 
-const SKY_COLOR = 0xcdeefb;
+const SKY_COLOR = 0xffffff;
 
 let scene, camera, renderer, controls, world;
 let countriesData = null;
@@ -119,7 +119,6 @@ export async function initGlobe() {
 
     world = new ThreeGlobe()
         .globeImageUrl('https://unpkg.com/three-globe@2.45.2/example/img/earth-blue-marble.jpg')
-        .bumpImageUrl('https://unpkg.com/three-globe@2.45.2/example/img/earth-topology.png')
         .showAtmosphere(true)
         .atmosphereColor('#ffffff')
         .atmosphereAltitude(0.18)
@@ -140,13 +139,13 @@ export async function initGlobe() {
     scene.add(world);
 
     controls = new OrbitControls(camera, renderer.domElement);
-    controls.enableDamping = true;
+    controls.enableDamping = false;
     controls.rotateSpeed = 0.4;
     controls.minDistance = 130;
     controls.maxDistance = 700;
 
     try {
-        const response = await fetch('https://unpkg.com/world-atlas@2.0.2/countries-50m.json');
+        const response = await fetch('https://unpkg.com/world-atlas@2.0.2/countries-110m.json');
         const topoData = await response.json();
         countriesData = topojson.feature(topoData, topoData.objects.countries);
 

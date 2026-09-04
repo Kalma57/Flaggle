@@ -12,7 +12,7 @@
     { "imports": {
         "three": "/three/three.module.js",
         "three/": "https://unpkg.com/three@0.155.0/",
-        "three-globe": "https://esm.sh/three-globe@2.41.11?external=three"
+        "three-globe": "https://esm.sh/three-globe@2.41.11?external=three&bundle"
     } }
   </script>
 
@@ -169,7 +169,7 @@
       flex: 1;
       display: block;
       outline: none;
-      background-color: #cdeefb;
+      background-color: #ffffff;
     }
 
     .neighbor-toast {
@@ -529,7 +529,7 @@
 
 <!-- GAME LOGIC -->
 <script type="module">
-  import { initGlobe, colorCountry, focusOnCountry } from '/js/globe.js?v=2039';
+  import { initGlobe, colorCountry, focusOnCountry } from '/js/globe.js?v=2040';
 
   let guessesArray   = [];
   let validCountries = [];
