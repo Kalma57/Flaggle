@@ -11,7 +11,8 @@
   <script type="importmap">
     { "imports": {
         "three": "/three/three.module.js",
-        "three-globe": "https://esm.sh/three-globe@2.45.2?external=three"
+        "three/": "https://unpkg.com/three@0.155.0/",
+        "three-globe": "https://esm.sh/three-globe@2.41.11?external=three"
     } }
   </script>
 
@@ -528,7 +529,7 @@
 
 <!-- GAME LOGIC -->
 <script type="module">
-  import { initGlobe, colorCountry, focusOnCountry } from '/js/globe.js?v=2038';
+  import { initGlobe, colorCountry, focusOnCountry } from '/js/globe.js?v=2039';
 
   let guessesArray   = [];
   let validCountries = [];
