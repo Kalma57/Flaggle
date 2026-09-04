@@ -17,18 +17,21 @@
     /* Animated gradient background */
     body{
 
-    height:100vh;
+    min-height:100vh;
 
     display:flex;
+    flex-direction:column;
     justify-content:center;
     align-items:center;
+    gap:30px;
+    padding:40px 20px;
 
     background:linear-gradient(-45deg,#e8f7ee,#f9f9f9,#e1f5e6,#f0fff3);
     background-size:400% 400%;
 
     animation:gradientMove 12s ease infinite;
 
-    overflow:hidden;
+    overflow-x:hidden;
 
     }
 
@@ -41,10 +44,10 @@
 
     }
 
-    /* Floating glow decorations */
+    /* Floating glow decorations — fixed so they stay put even if the page scrolls */
     .glow{
 
-    position:absolute;
+    position:fixed;
 
     width:350px;
     height:350px;
@@ -273,6 +276,86 @@
 
     }
 
+    /* Guess history — scrollable list of every guess made during the game */
+    .guess-history{
+
+    width:100%;
+    max-width:900px;
+
+    z-index:1;
+
+    }
+
+    .guess-history h3{
+
+    text-align:center;
+    color:#4CAF50;
+    margin-bottom:15px;
+    font-size:22px;
+
+    }
+
+    .guesses-scroll{
+
+    display:flex;
+    flex-direction:column;
+    gap:20px;
+
+    max-height:420px;
+    overflow-y:auto;
+
+    padding:10px;
+
+    }
+
+    .guess-history-row{
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    gap:30px;
+
+    padding:15px;
+
+    background:rgba(255,255,255,0.8);
+    backdrop-filter:blur(8px);
+
+    border-radius:16px;
+
+    box-shadow:0 8px 20px rgba(0,0,0,0.12);
+
+    }
+
+    .guess-history-flag{
+
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+
+    }
+
+    .guess-history-label{
+
+    margin-bottom:6px;
+    font-size:14px;
+    font-weight:bold;
+    color:#2f7a34;
+
+    }
+
+    .guess-history-flag img{
+
+    width:160px;
+    height:120px;
+
+    border-radius:10px;
+
+    box-shadow:0 6px 16px rgba(0,0,0,0.15);
+
+    object-fit:cover;
+
+    }
+
   </style>
 </head>
 
@@ -317,6 +400,28 @@
 
   </div>
 
+</div>
+
+<!-- Guess history — every guess made this game, scrollable so long games stay readable -->
+<div class="guess-history" th:if="${guesses}">
+  <h3>Your Guesses</h3>
+  <div class="guesses-scroll">
+    <div th:each="guess, iterStat : ${guesses}" class="guess-history-row">
+
+      <div class="guess-history-flag">
+        <div class="guess-history-label">
+          guess [[${iterStat.index + 1}]]: [[${guess.guessedName}]]
+        </div>
+        <img th:src="'data:image/png;base64,' + ${guess.guessedImage}" alt="Guessed Flag">
+      </div>
+
+      <div class="guess-history-flag">
+        <div class="guess-history-label">result</div>
+        <img th:src="'data:image/png;base64,' + ${guess.resultImage}" alt="Result Flag">
+      </div>
+
+    </div>
+  </div>
 </div>
 
 <!-- Confetti library -->

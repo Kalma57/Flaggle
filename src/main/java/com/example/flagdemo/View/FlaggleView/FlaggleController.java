@@ -91,6 +91,7 @@ public class FlaggleController {
             model.addAttribute("attempts",     attempts);
             model.addAttribute("countryName",  targetCountry.getName());
             model.addAttribute("countryImage", countryImage);
+            model.addAttribute("guesses",      buildGuessList(viewModel));
 
             // Game is over — release the ViewModel (and its guess/image history) from the session
             session.removeAttribute("flaggleVM_" + gameId);
@@ -98,21 +99,7 @@ public class FlaggleController {
             return "FlaggleScreens/FlaggleEndScreen";
         }
 
-        List<Map<String, String>> guessList = new ArrayList<>();
-
-        for (GuessResultBL gr : viewModel.getGuesses()) {
-            Map<String, String> guessData = new HashMap<>();
-
-            // Images are base64-encoded once when the guess is created (GuessResultBL),
-            // so re-rendering the guess history doesn't re-decode/re-encode them every request
-            guessData.put("guessedImage", gr.getGuessedFlagBase64());
-            guessData.put("guessedName",  gr.getGuessedCountry().getName());
-            guessData.put("resultImage",  gr.getFlagDifferencesBase64());
-
-            guessList.add(guessData);
-        }
-
-        model.addAttribute("guesses",   guessList);
+        model.addAttribute("guesses",   buildGuessList(viewModel));
         model.addAttribute("viewModel", viewModel);
 
         // Pass gameId back so the next form submission also carries it
@@ -142,10 +129,33 @@ public class FlaggleController {
         model.addAttribute("attempts",     attempts);
         model.addAttribute("countryName",  targetCountry.getName());
         model.addAttribute("countryImage", countryImage);
+        model.addAttribute("guesses",      buildGuessList(viewModel));
 
         // Game is over — release the ViewModel (and its guess/image history) from the session
         session.removeAttribute("flaggleVM_" + gameId);
 
         return "FlaggleScreens/FlaggleEndScreen";
+    }
+
+    /**
+     * Builds the list of guess data (guessed flag, name, diff image) for rendering,
+     * shared by the in-progress game screen and the end screen's guess history.
+     */
+    private List<Map<String, String>> buildGuessList(FlaggleViewModel viewModel) {
+        List<Map<String, String>> guessList = new ArrayList<>();
+
+        for (GuessResultBL gr : viewModel.getGuesses()) {
+            Map<String, String> guessData = new HashMap<>();
+
+            // Images are base64-encoded once when the guess is created (GuessResultBL),
+            // so re-rendering the guess history doesn't re-decode/re-encode them every request
+            guessData.put("guessedImage", gr.getGuessedFlagBase64());
+            guessData.put("guessedName",  gr.getGuessedCountry().getName());
+            guessData.put("resultImage",  gr.getFlagDifferencesBase64());
+
+            guessList.add(guessData);
+        }
+
+        return guessList;
     }
 }
