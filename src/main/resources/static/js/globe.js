@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from '/controls/OrbitControls.js';
 import ThreeGlobe from 'three-globe';
+import { __setPrecomputedPolygonGeometry } from 'three-conic-polygon-geometry';
 
 // Country name mapping - critical for matching between DB and map
 const countryNameMapping = {
@@ -153,9 +154,12 @@ export async function initGlobe() {
     controls.maxDistance = 480;
 
     try {
-        const response = await fetch('/assets/countries-50m.json');
-        const topoData = await response.json();
-        countriesData = topojson.feature(topoData, topoData.objects.countries);
+        const [topoResponse, manifest, geometryBuffer] = await Promise.all([
+            fetch('/assets/countries-50m.json').then(r => r.json()),
+            fetch('/assets/polygon-geometry-manifest.json').then(r => r.json()),
+            fetch('/assets/polygon-geometry.bin').then(r => r.arrayBuffer())
+        ]);
+        countriesData = topojson.feature(topoResponse, topoResponse.objects.countries);
 
         // Only micro-states genuinely missing a polygon in this dataset need
         // the point-marker fallback — everything else renders as a real,
@@ -164,6 +168,11 @@ export async function initGlobe() {
         missingPolygonNames = new Set(
             Object.keys(tinyCountriesExtras).filter(name => !featureNames.has(name))
         );
+
+        // Supplies the precomputed cap/side triangulation for every country so
+        // the browser never has to build it live (~7.5s of blocking work for
+        // all 241 countries otherwise) — see tools/globe-geometry-build.
+        __setPrecomputedPolygonGeometry(manifest, geometryBuffer);
 
         world.polygonsData(countriesData.features);
     } catch (error) {
