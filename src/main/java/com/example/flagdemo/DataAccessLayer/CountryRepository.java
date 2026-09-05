@@ -11,10 +11,15 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.springframework.stereotype.Repository;
 
 /**
  * Repository responsible for loading and storing country data from the database.
+ *
+ * Spring-managed singleton: loaded once at application startup and shared by every
+ * request, instead of being reconstructed (and re-copying the SQLite temp file) per game.
  */
+@Repository
 public class CountryRepository implements java.io.Serializable {
 
     private Map<String, String> codeToName = new HashMap<>();

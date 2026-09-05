@@ -2,7 +2,6 @@ package com.example.flagdemo.BusinessLayer.FlaggleBL;
 
 import com.example.flagdemo.BusinessLayer.CountryBL;
 import com.example.flagdemo.DataAccessLayer.CountryController;
-import com.example.flagdemo.DataAccessLayer.CountryRepository;
 
 import java.sql.SQLException;
 import java.util.Random;
@@ -13,10 +12,10 @@ public class GameEngineBL implements java.io.Serializable {
         private boolean gameOver;
         private CountryController cc;
 
-        public GameEngineBL() {
+        public GameEngineBL(CountryController cc) {
             this.attempts = 0;
             this.gameOver = false;
-            this.cc = new CountryController(new CountryRepository());
+            this.cc = cc;
         }
 
     /**

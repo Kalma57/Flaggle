@@ -2,6 +2,7 @@ package com.example.flagdemo.View.FlaggleView;
 
 import com.example.flagdemo.BusinessLayer.CountryBL;
 import com.example.flagdemo.BusinessLayer.FlaggleBL.GuessResultBL;
+import com.example.flagdemo.DataAccessLayer.CountryController;
 import com.example.flagdemo.ViewModel.FlaggleVM.FlaggleViewModel;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -12,7 +13,6 @@ import org.springframework.ui.Model;
 import jakarta.servlet.http.HttpSession;
 
 import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.sql.SQLException;
@@ -21,6 +21,13 @@ import java.util.*;
 @Controller
 @RequestMapping("/Flaggle")
 public class FlaggleController {
+
+    // Singleton, shared across all games/requests (loaded once by Spring)
+    private final CountryController countryController;
+
+    public FlaggleController(CountryController countryController) {
+        this.countryController = countryController;
+    }
 
     @GetMapping({""})
     public String showStartPage() {
@@ -45,7 +52,7 @@ public class FlaggleController {
         String gameId = UUID.randomUUID().toString();
 
         // Create a fresh ViewModel for this game instance
-        FlaggleViewModel viewModel = new FlaggleViewModel();
+        FlaggleViewModel viewModel = new FlaggleViewModel(countryController);
         viewModel.StartNewGame();
 
         // Store under a unique key — prevents windows from overwriting each other
@@ -84,30 +91,15 @@ public class FlaggleController {
             model.addAttribute("attempts",     attempts);
             model.addAttribute("countryName",  targetCountry.getName());
             model.addAttribute("countryImage", countryImage);
+            model.addAttribute("guesses",      buildGuessList(viewModel));
+
+            // Game is over — release the ViewModel (and its guess/image history) from the session
+            session.removeAttribute("flaggleVM_" + gameId);
 
             return "FlaggleScreens/FlaggleEndScreen";
         }
 
-        List<Map<String, String>> guessList = new ArrayList<>();
-
-        for (GuessResultBL gr : viewModel.getGuesses()) {
-            Map<String, String> guessData = new HashMap<>();
-
-            BufferedImage guessedFlag = gr.getGuessedCountry().getFlagImage();
-            ByteArrayOutputStream baos1 = new ByteArrayOutputStream();
-            ImageIO.write(guessedFlag, "png", baos1);
-            guessData.put("guessedImage", Base64.getEncoder().encodeToString(baos1.toByteArray()));
-            guessData.put("guessedName",  gr.getGuessedCountry().getName());
-
-            BufferedImage resultImage = gr.getFlagDifferences();
-            ByteArrayOutputStream baos2 = new ByteArrayOutputStream();
-            ImageIO.write(resultImage, "png", baos2);
-            guessData.put("resultImage", Base64.getEncoder().encodeToString(baos2.toByteArray()));
-
-            guessList.add(guessData);
-        }
-
-        model.addAttribute("guesses",   guessList);
+        model.addAttribute("guesses",   buildGuessList(viewModel));
         model.addAttribute("viewModel", viewModel);
 
         // Pass gameId back so the next form submission also carries it
@@ -137,7 +129,33 @@ public class FlaggleController {
         model.addAttribute("attempts",     attempts);
         model.addAttribute("countryName",  targetCountry.getName());
         model.addAttribute("countryImage", countryImage);
+        model.addAttribute("guesses",      buildGuessList(viewModel));
+
+        // Game is over — release the ViewModel (and its guess/image history) from the session
+        session.removeAttribute("flaggleVM_" + gameId);
 
         return "FlaggleScreens/FlaggleEndScreen";
+    }
+
+    /**
+     * Builds the list of guess data (guessed flag, name, diff image) for rendering,
+     * shared by the in-progress game screen and the end screen's guess history.
+     */
+    private List<Map<String, String>> buildGuessList(FlaggleViewModel viewModel) {
+        List<Map<String, String>> guessList = new ArrayList<>();
+
+        for (GuessResultBL gr : viewModel.getGuesses()) {
+            Map<String, String> guessData = new HashMap<>();
+
+            // Images are base64-encoded once when the guess is created (GuessResultBL),
+            // so re-rendering the guess history doesn't re-decode/re-encode them every request
+            guessData.put("guessedImage", gr.getGuessedFlagBase64());
+            guessData.put("guessedName",  gr.getGuessedCountry().getName());
+            guessData.put("resultImage",  gr.getFlagDifferencesBase64());
+
+            guessList.add(guessData);
+        }
+
+        return guessList;
     }
 }

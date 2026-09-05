@@ -4,98 +4,151 @@
   <meta charset="UTF-8">
   <title>Globe Game</title>
 
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-
   <script type="importmap">
-    { "imports": { "three": "/three/three.module.js" } }
+    { "imports": {
+        "three": "/three/three.module.js?v=2",
+        "three/": "/three/",
+        "three-globe": "https://esm.sh/three-globe@2.41.11?external=three,three-conic-polygon-geometry&bundle",
+        "three-conic-polygon-geometry": "/js/conic-polygon-geometry-cache.js?v=1"
+    } }
   </script>
 
   <style>
     :root {
       --green:      #4CAF50;
       --green-dark: #45a049;
-      --radius:     6px;
-      --font-display: 'Syne', sans-serif;
-      --font-body:    'DM Sans', sans-serif;
+      --radius:     10px;
+      --shadow-sm:  0 4px 12px rgba(0,0,0,0.08);
+      --shadow-md:  0 10px 25px rgba(0,0,0,0.15);
+      --shadow-lg:  0 20px 50px rgba(0,0,0,0.2);
+
+      /* Warm end-screen palette: replaces flat grays with warm brown/amber
+         tones, and gives the loss state a deeper warm (not cold-gray) tint */
+      --warm-text:      #6b4a3a;
+      --warm-text-dark: #4a3125;
+      --warm-loss:      #c1442e;
+      --warm-loss-dark: #8f2f1e;
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      font-family: var(--font-body);
-      background: #ffffff;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
+      padding: 40px 0 60px;
+      background: linear-gradient(-45deg, #e8f7ee, #f9f9f9, #e1f5e6, #f0fff3);
+      background-size: 400% 400%;
+      animation: gradientMove 12s ease infinite;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    @keyframes gradientMove {
+      0%   { background-position: 0% 50%; }
+      50%  { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    /* Decorative floating glow circles — purely ambient, sit behind everything */
+    .glow-circle {
+      position: fixed;
+      width: 380px;
+      height: 380px;
+      background: var(--green);
+      opacity: 0.15;
+      filter: blur(120px);
+      border-radius: 50%;
+      animation: float 9s infinite alternate ease-in-out;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .glow1 { top: 5%; left: 6%; }
+    .glow2 { bottom: 5%; right: 6%; }
+
+    @keyframes float {
+      from { transform: translateY(0); }
+      to   { transform: translateY(-50px); }
     }
 
     /* =====================================================================
        HEADER
     ===================================================================== */
     h1 {
-      margin-top: 20px;
+      position: relative;
+      z-index: 1;
+      margin-top: 10px;
+      margin-bottom: 10px;
       color: var(--green);
-      font-family: var(--font-display);
-      font-size: 48px;
+      font-size: 56px;
       font-weight: 800;
       letter-spacing: -1px;
+      text-shadow: 0 8px 20px rgba(76,175,80,0.35);
     }
 
     /* =====================================================================
        GUESS SECTION
     ===================================================================== */
     #guessSection {
+      position: relative;
+      z-index: 1;
       width: 800px;
       margin: 20px 0;
       display: flex;
       justify-content: center;
       align-items: flex-end;
-      position: relative;
     }
 
     .guess-controls {
       display: flex;
-      gap: 10px;
+      gap: 12px;
     }
 
     #countryInput {
-      padding: 8px;
-      font-family: var(--font-body);
+      padding: 12px;
       font-size: 16px;
-      width: 220px;
+      width: 240px;
+      text-align: center;
       border-radius: var(--radius);
-      border: 1px solid #ccc;
+      border: 2px solid var(--green);
       outline: none;
-      transition: border-color 0.2s, box-shadow 0.2s;
+      box-shadow: var(--shadow-sm);
+      background: rgba(255,255,255,0.9);
+      transition: 0.3s;
     }
 
     #countryInput:focus {
-      border-color: var(--green);
-      box-shadow: 0 0 0 3px rgba(76,175,80,0.15);
+      box-shadow: 0 0 10px rgba(76,175,80,0.4);
     }
 
     #guessBtn {
-      padding: 8px 16px;
-      font-family: var(--font-body);
+      padding: 12px 28px;
       font-size: 16px;
       cursor: pointer;
-      background-color: var(--green);
+      background: linear-gradient(135deg, var(--green), var(--green-dark));
       color: white;
       border: none;
       border-radius: var(--radius);
-      transition: background-color 0.2s;
+      box-shadow: 0 8px 18px rgba(0,0,0,0.25);
+      transition: 0.3s;
     }
 
-    #guessBtn:hover:not(:disabled) { background-color: var(--green-dark); }
+    #guessBtn:hover:not(:disabled) {
+      transform: translateY(-3px) scale(1.05);
+      box-shadow: 0 12px 22px rgba(0,0,0,0.35);
+    }
 
     #guessBtn:disabled,
     #btn-give-up:disabled,
     #countryInput:disabled {
-      background-color: #cccccc;
+      background: #cccccc;
       cursor: not-allowed;
       opacity: 0.7;
+      transform: none;
+      box-shadow: none;
     }
 
     .right-buttons {
@@ -104,51 +157,84 @@
       bottom: 0;
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 8px;
       align-items: stretch;
     }
 
-    #btn-give-up {
-      padding: 8px 16px;
-      font-family: var(--font-body);
-      font-size: 16px;
+    .secondary-btn {
+      padding: 10px 20px;
+      font-size: 15px;
       cursor: pointer;
-      background-color: var(--green);
-      color: white;
-      border: none;
-      border-radius: var(--radius);
-      transition: background-color 0.2s;
-    }
-
-    #btn-give-up:hover:not(:disabled) { background-color: var(--green-dark); }
-
-    .rules-btn {
-      padding: 8px 16px;
-      font-family: var(--font-body);
-      font-size: 16px;
-      cursor: pointer;
-      background-color: white;
+      background: white;
       color: var(--green);
       border: 2px solid var(--green);
       border-radius: var(--radius);
       font-weight: 600;
-      transition: background-color 0.2s;
+      box-shadow: var(--shadow-sm);
+      transition: 0.3s;
     }
 
-    .rules-btn:hover { background-color: #f1f1f1; }
+    .secondary-btn:hover:not(:disabled) {
+      background: #e8f7ee;
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
 
     /* =====================================================================
        GLOBE CONTAINER
     ===================================================================== */
     #globeContainer {
+      position: relative;
+      z-index: 1;
       width: 800px;
       height: 600px;
-      border: 2px solid var(--green);
-      border-radius: 12px;
+      border: 3px solid rgba(76,175,80,0.35);
+      border-radius: 24px;
       background-color: #ffffff;
       display: flex;
       flex-direction: column;
       overflow: hidden;
+      box-shadow: var(--shadow-lg);
+    }
+
+    /* Loading overlay — shown while the globe assets/geometry are being fetched
+       and built, hidden once initGlobe() resolves. Sits above the canvas so the
+       player understands something is happening instead of staring at a blank box. */
+    #globeLoadingOverlay {
+      position: absolute;
+      inset: 0;
+      z-index: 20;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      background-color: #ffffff;
+      transition: opacity 0.3s ease;
+    }
+
+    #globeLoadingOverlay.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .globe-spinner {
+      width: 54px;
+      height: 54px;
+      border-radius: 50%;
+      border: 5px solid #d9f0db;
+      border-top-color: var(--green);
+      animation: globeSpin 0.9s linear infinite;
+    }
+
+    @keyframes globeSpin {
+      to { transform: rotate(360deg); }
+    }
+
+    .globe-loading-text {
+      color: var(--green);
+      font-weight: 600;
+      font-size: 15px;
     }
 
     #notificationArea {
@@ -165,14 +251,14 @@
       flex: 1;
       display: block;
       outline: none;
-      background-color: #87CEEB;
+      background-color: #ffffff;
     }
 
     .neighbor-toast {
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      background-color: var(--green);
+      background: linear-gradient(135deg, var(--green), var(--green-dark));
       color: white;
       padding: 10px 24px;
       border-radius: 8px;
@@ -182,7 +268,7 @@
       visibility: hidden;
       transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.3s ease;
       transform: translateY(4px);
-      box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.25);
     }
 
     .neighbor-toast.show {
@@ -195,49 +281,54 @@
        GUESSES LIST
     ===================================================================== */
     .guesses-title {
+      position: relative;
+      z-index: 1;
       color: var(--green);
-      font-family: var(--font-display);
-      font-size: 24px;
+      font-size: 26px;
       font-weight: 700;
-      margin-top: 30px;
-      margin-bottom: 5px;
+      margin-top: 35px;
+      margin-bottom: 15px;
       text-align: center;
+      text-shadow: 0 4px 10px rgba(76,175,80,0.2);
     }
 
     #guessesContainer {
+      position: relative;
+      z-index: 1;
       width: 800px;
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 16px;
       padding-bottom: 40px;
     }
 
     .guess-row {
       display: flex;
       align-items: center;
-      background: #f9f9f9;
-      padding: 10px 15px;
-      border-radius: 8px;
-      border: 1px solid #e0e0e0;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-      transition: transform 0.2s ease;
-      animation: row-in 0.3s ease both;
+      background: rgba(255,250,242,0.85);
+      backdrop-filter: blur(8px);
+      padding: 14px 20px;
+      border-radius: 16px;
+      box-shadow: var(--shadow-md);
+      transition: 0.3s;
+      animation: fadeSlideIn 0.4s ease-out both;
     }
 
-    @keyframes row-in {
-      from { opacity: 0; transform: translateY(8px); }
+    @keyframes fadeSlideIn {
+      from { opacity: 0; transform: translateY(12px); }
       to   { opacity: 1; transform: translateY(0); }
     }
 
-    .guess-row:hover { transform: translateY(-2px); }
+    .guess-row:hover { transform: translateY(-3px) scale(1.01); }
 
     .guess-flag {
-      width: 45px;
-      height: 30px;
+      width: 50px;
+      height: 34px;
       object-fit: cover;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      margin-right: 15px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      margin-right: 18px;
+      box-shadow: var(--shadow-sm);
     }
 
     .guess-info {
@@ -248,7 +339,7 @@
       align-items: center;
     }
 
-    .guess-name { font-weight: 500; }
+    .guess-name { font-weight: 600; }
 
     .guess-right {
       display: flex;
@@ -257,7 +348,7 @@
     }
 
     .guess-distance {
-      color: #555;
+      color: var(--warm-text);
       font-weight: bold;
       font-variant-numeric: tabular-nums;
     }
@@ -267,6 +358,7 @@
       height: 12px;
       border-radius: 50%;
       flex-shrink: 0;
+      box-shadow: 0 0 0 3px rgba(0,0,0,0.05);
     }
 
     /* =====================================================================
@@ -276,22 +368,73 @@
       display: none;
       position: fixed;
       inset: 0;
-      background: rgba(0,0,0,0.4);
-      backdrop-filter: blur(4px);
+      background: rgba(0,0,0,0.45);
+      backdrop-filter: blur(6px);
       z-index: 1000;
-      justify-content: center;
+      flex-direction: column;
       align-items: center;
+      overflow-y: auto;
+      padding: 50px 20px;
+      gap: 30px;
     }
 
+    .end-glow {
+      position: fixed;
+      width: 340px;
+      height: 340px;
+      background: var(--green);
+      opacity: 0.2;
+      filter: blur(110px);
+      border-radius: 50%;
+      animation: float 8s infinite alternate ease-in-out;
+      pointer-events: none;
+      transition: background 0.4s;
+    }
+
+    .end-glow1 { top: 8%; left: 10%; }
+    .end-glow2 { bottom: 8%; right: 10%; }
+
+    /* Loss state warms the ambient glow from green to a warm amber/red */
+    #end-screen-overlay.is-loss .end-glow {
+      background: var(--warm-loss);
+    }
+
+    /* Single unified rectangle: header (title/badge/flag) and the guess
+       history recap now live in one card instead of two stacked boxes. */
     .end-screen-modal {
-      background-color: rgba(255,255,255,0.97);
-      padding: 30px;
-      border-radius: 15px;
+      position: relative;
+      flex-shrink: 0;
+      background: linear-gradient(165deg, #fffdf7, #f3f9ec);
+      backdrop-filter: blur(14px);
+      padding: 45px 50px 40px;
+      border-radius: 28px;
       text-align: center;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
-      width: 300px;
-      border: 3px solid var(--green);
-      animation: modal-in 0.35s cubic-bezier(0.34,1.56,0.64,1) both;
+      box-shadow: 0 25px 60px rgba(0,0,0,0.3);
+      width: 640px;
+      max-width: 92vw;
+      max-height: 88vh;
+      overflow-y: auto;
+      animation: modal-in 0.4s cubic-bezier(0.34,1.56,0.64,1) both;
+      transition: background 0.4s;
+    }
+
+    .end-screen-modal.is-loss {
+      background: linear-gradient(165deg, #fdf1ea, #f6ded1);
+    }
+
+    .end-screen-badge {
+      font-size: 1.05em;
+      color: var(--green-dark);
+      font-weight: 700;
+      margin-bottom: 14px;
+    }
+
+    .end-screen-modal.is-loss .end-screen-badge { color: var(--warm-loss-dark); }
+
+    .end-screen-stat {
+      font-size: 0.95em;
+      color: var(--warm-text);
+      margin-bottom: 15px;
     }
 
     @keyframes modal-in {
@@ -300,79 +443,165 @@
     }
 
     #end-screen-title {
-      margin-top: 0;
-      font-family: var(--font-display);
-      font-size: 2em;
-      color: #333;
-      margin-bottom: 10px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      font-size: 32px;
+      color: var(--warm-text-dark);
+      margin-bottom: 15px;
+    }
+
+    #end-screen-title-text.is-win  { color: var(--green-dark); }
+    #end-screen-title-text.is-loss { color: var(--warm-loss-dark); }
+
+    .end-emoji {
+      display: inline-block;
+      font-size: 1em;
+      animation: bounce 1.5s infinite;
+    }
+
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50%      { transform: translateY(-8px); }
     }
 
     #end-screen-guesses {
-      font-size: 1.2em;
-      color: #555;
-      margin-bottom: 25px;
+      font-size: 1.15em;
+      color: var(--warm-text);
+      margin-bottom: 20px;
     }
 
     #end-screen-country { margin-bottom: 15px; }
 
     #end-screen-flag {
-      width: 120px;
-      border: 2px solid var(--green);
-      border-radius: 6px;
+      width: 160px;
+      border-radius: 12px;
       display: block;
-      margin: 0 auto 8px auto;
+      margin: 0 auto 12px auto;
+      box-shadow: var(--shadow-md);
+      animation: flagReveal 0.6s ease;
+    }
+
+    @keyframes flagReveal {
+      from { opacity: 0; transform: scale(0.8); }
+      to   { opacity: 1; transform: scale(1); }
     }
 
     #end-screen-country-name {
       margin: 0;
       font-size: 1.1em;
-      color: #333;
+      color: var(--warm-text-dark);
       font-weight: bold;
     }
 
     .end-screen-buttons {
       display: flex;
       justify-content: space-around;
-      gap: 10px;
+      gap: 12px;
+      margin-top: 10px;
     }
 
     .modal-btn {
-      padding: 10px 20px;
-      font-family: var(--font-body);
+      padding: 12px 26px;
       font-size: 1em;
       border: none;
-      border-radius: 8px;
+      border-radius: 12px;
       cursor: pointer;
       font-weight: bold;
-      background-color: var(--green);
-      color: white;
-      transition: background-color 0.2s, transform 0.1s;
+      transition: 0.3s;
     }
 
-    .modal-btn:hover { background-color: var(--green-dark); }
-    .modal-btn:active { transform: scale(0.95); }
+    .end-btn-primary {
+      background: linear-gradient(135deg, var(--green), var(--green-dark));
+      color: white;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+    }
+
+    .end-btn-primary:hover {
+      transform: translateY(-3px) scale(1.05);
+      box-shadow: 0 12px 25px rgba(0,0,0,0.35);
+    }
+
+    .end-btn-secondary {
+      background: white;
+      color: var(--green);
+      border: 2px solid var(--green);
+    }
+
+    .end-btn-secondary:hover {
+      background: #e8f7ee;
+      transform: translateY(-2px);
+    }
+
+    /* Guess history recap — now embedded inside the same rectangle as the
+       header, separated only by a divider. Reuses .guess-row from the live
+       sidebar so it visually matches the in-game list. */
+    .end-history {
+      position: relative;
+      margin-top: 28px;
+      padding-top: 24px;
+      border-top: 2px solid rgba(0,0,0,0.08);
+    }
+
+    .end-history h3 {
+      text-align: center;
+      color: var(--green-dark);
+      font-size: 22px;
+      margin-bottom: 15px;
+    }
+
+    .end-screen-modal.is-loss .end-history h3 { color: var(--warm-loss-dark); }
+
+    .end-history-scroll {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      max-height: 320px;
+      overflow-y: auto;
+      padding: 4px;
+    }
 
     /* =====================================================================
        RULES SIDE PANEL
     ===================================================================== */
     .rules-panel {
       height: 100%;
-      width: 0;
+      width: 400px;
+      max-width: 85vw;
       position: fixed;
       z-index: 200;
       top: 0;
       right: 0;
       background-color: #ffffff;
-      overflow-x: hidden;
-      transition: width 0.35s cubic-bezier(0.4,0,0.2,1);
+      overflow-y: auto;
+      transform: translateX(100%);
+      transition: transform 0.35s cubic-bezier(0.4,0,0.2,1);
       padding: 20px;
       box-shadow: -4px 0 8px rgba(0,0,0,0.2);
     }
 
-    .rules-inner { width: 400px; }
+    .rules-panel.open {
+      transform: translateX(0);
+    }
+
+    /* Dark backdrop behind the open drawer — click it (or Escape) to close */
+    .rules-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.35);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.35s ease;
+      z-index: 199;
+    }
+
+    .rules-backdrop.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
 
     .rules-panel h2 {
-      font-family: var(--font-display);
       margin-top: 0;
       color: var(--green);
     }
@@ -418,6 +647,10 @@
 </head>
 <body>
 
+<!-- Decorative background glow elements -->
+<div class="glow-circle glow1"></div>
+<div class="glow-circle glow2"></div>
+
 <h1>🌍 Globe Game</h1>
 
 <!--
@@ -438,8 +671,8 @@
     <button id="guessBtn">Guess</button>
   </div>
   <div class="right-buttons">
-    <button class="rules-btn" onclick="openRules()">RULES</button>
-    <button id="btn-give-up">Give Up</button>
+    <button class="secondary-btn" onclick="openRules()">RULES</button>
+    <button id="btn-give-up" class="secondary-btn">Give Up</button>
   </div>
 </div>
 
@@ -451,27 +684,47 @@
     </div>
   </div>
   <canvas id="globeCanvas"></canvas>
+  <div id="globeLoadingOverlay">
+    <div class="globe-spinner"></div>
+    <div class="globe-loading-text">Loading globe...</div>
+  </div>
 </div>
 
 <!-- GUESSES LIST -->
-<h2 class="guesses-title">Guesses List</h2>
+<h2 class="guesses-title">Your Guesses</h2>
 <div id="guessesContainer"></div>
 
 <!-- END SCREEN MODAL -->
 <div id="end-screen-overlay">
+  <div class="end-glow end-glow1"></div>
+  <div class="end-glow end-glow2"></div>
   <div class="end-screen-modal" id="end-screen-modal-box">
-    <h2 id="end-screen-title">Game Over</h2>
-    <p id="end-screen-guesses">Guesses: <span id="guess-count">0</span></p>
-    <div id="end-screen-country" style="display:none; margin-bottom:15px;">
+    <h2 id="end-screen-title">
+      <span id="end-screen-title-text">Game Over</span>
+      <span id="end-screen-emoji" class="end-emoji"></span>
+    </h2>
+    <p id="end-screen-badge" class="end-screen-badge" style="display:none;"></p>
+    <p id="end-screen-guesses">Attempts: <span id="guess-count">0</span></p>
+    <p id="end-screen-closest" class="end-screen-stat" style="display:none;"></p>
+    <div id="end-screen-country" style="display:none;">
       <img id="end-screen-flag" src="" alt="flag">
       <p id="end-screen-country-name"></p>
     </div>
+
+    <div class="end-history" id="end-history" style="display:none;">
+      <h3>Your Guesses</h3>
+      <div class="end-history-scroll" id="end-history-scroll"></div>
+    </div>
+
     <div class="end-screen-buttons">
-      <button id="btn-play-again" class="modal-btn">Play Again</button>
-      <button id="btn-home" class="modal-btn">Home</button>
+      <button id="btn-play-again" class="modal-btn end-btn-primary">Play Again</button>
+      <button id="btn-home" class="modal-btn end-btn-secondary">Home</button>
     </div>
   </div>
 </div>
+
+<!-- Backdrop behind the rules drawer — clicking it closes the panel -->
+<div id="rulesBackdrop" class="rules-backdrop" onclick="closeRules()"></div>
 
 <!-- RULES SIDE PANEL -->
 <div id="rulesPanel" class="rules-panel">
@@ -498,16 +751,35 @@
 </div>
 
 <!-- TopoJSON — must load before globe.js -->
-<script src="https://unpkg.com/topojson-client@3.1.0/dist/topojson-client.min.js"></script>
+<script src="/js/topojson-client.min.js?v=2"></script>
+
+<!-- Confetti library — celebration burst on a win, matching Flaggle's end screen -->
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
 <!-- GAME LOGIC -->
 <script type="module">
-  import { initGlobe, colorCountry, focusOnCountry } from '/js/globe.js?v=2036';
+  import { initGlobe, colorCountry, focusOnCountry } from '/js/globe.js?v=2047';
 
   let guessesArray   = [];
   let validCountries = [];
 
-  initGlobe();
+  initGlobe().finally(() => {
+    const overlay = document.getElementById('globeLoadingOverlay');
+    if (overlay) overlay.classList.add('hidden');
+  });
+
+  /* Confetti burst — colors matching the green theme, same pattern as Flaggle's end screen */
+  function launchConfetti() {
+    const duration = 3000;
+    const end = Date.now() + duration;
+    const colors = ['#4CAF50', '#66BB6A', '#81C784', '#A5D6A7'];
+
+    (function frame() {
+      confetti({ particleCount: 7, angle: 60,  spread: 70, origin: { x: 0 }, colors });
+      confetti({ particleCount: 7, angle: 120, spread: 70, origin: { x: 1 }, colors });
+      if (Date.now() < end) requestAnimationFrame(frame);
+    })();
+  }
 
   /* Load country list from server — passes gameId so the controller
      retrieves the correct ViewModel for this window */
@@ -527,6 +799,28 @@
     }
   }
 
+  /* Shared row markup for a single guess — used both by the live sidebar
+     list and the end-screen recap, so the two always stay visually
+     identical. */
+  function buildGuessRowHTML(guess) {
+    let fileName = guess.flagPath;
+    if (fileName && (fileName.includes('/') || fileName.includes('\\'))) {
+      fileName = fileName.split(/[/\\]/).pop();
+    }
+    const flagSrc = fileName ? `/DB/FlagsImages/${fileName}` : '';
+
+    return `
+      <img src="${flagSrc}" class="guess-flag" alt="${guess.name} flag" onerror="this.style.display='none'">
+      <div class="guess-info">
+        <span class="guess-name">${guess.name}</span>
+        <div class="guess-right">
+          <div class="guess-dot" style="background:${guess.colorHex || '#ccc'}"></div>
+          <span class="guess-distance">${Math.round(guess.distance).toLocaleString()} km</span>
+        </div>
+      </div>
+    `;
+  }
+
   /* Render all guesses sorted by distance (closest first) */
   function renderGuesses() {
     const container = document.getElementById('guessesContainer');
@@ -535,48 +829,91 @@
     guessesArray.forEach(guess => {
       const row = document.createElement('div');
       row.className = 'guess-row';
-
-      let fileName = guess.flagPath;
-      if (fileName && (fileName.includes('/') || fileName.includes('\\'))) {
-        fileName = fileName.split(/[/\\]/).pop();
-      }
-      const flagSrc = fileName ? `/DB/FlagsImages/${fileName}` : '';
-
-      row.innerHTML = `
-        <img src="${flagSrc}" class="guess-flag" alt="${guess.name} flag" onerror="this.style.display='none'">
-        <div class="guess-info">
-          <span class="guess-name">${guess.name}</span>
-          <div class="guess-right">
-            <div class="guess-dot" style="background:${guess.colorHex || '#ccc'}"></div>
-            <span class="guess-distance">${Math.round(guess.distance).toLocaleString()} km</span>
-          </div>
-        </div>
-      `;
+      row.innerHTML = buildGuessRowHTML(guess);
       container.appendChild(row);
     });
+  }
+
+  /* Render the end-screen guess-history recap — same data/order as the
+     live sidebar, staggered fade-in for a bit of polish. */
+  function renderEndScreenHistory() {
+    const panel  = document.getElementById('end-history');
+    const scroll = document.getElementById('end-history-scroll');
+
+    if (!guessesArray.length) {
+      panel.style.display = 'none';
+      return;
+    }
+
+    const sorted = [...guessesArray].sort((a, b) => a.distance - b.distance);
+    scroll.innerHTML = '';
+    sorted.forEach((guess, i) => {
+      const row = document.createElement('div');
+      row.className = 'guess-row';
+      row.style.animationDelay = `${i * 0.05}s`;
+      row.innerHTML = buildGuessRowHTML(guess);
+      scroll.appendChild(row);
+    });
+    panel.style.display = 'block';
+
+    const closestEl = document.getElementById('end-screen-closest');
+    const closest = sorted[0];
+    if (closest && closest.distance > 0) {
+      closestEl.textContent = `🎯 Closest guess: ${closest.name} (${Math.round(closest.distance).toLocaleString()} km)`;
+      closestEl.style.display = 'block';
+    } else {
+      closestEl.style.display = 'none';
+    }
   }
 
   /* Show the end screen modal (win or lose) */
   function showEndScreen(isWin, guessesCount, countryName = null, flagFileName = null) {
     const overlay   = document.getElementById('end-screen-overlay');
-    const title     = document.getElementById('end-screen-title');
+    const modalBox  = document.getElementById('end-screen-modal-box');
+    const titleText = document.getElementById('end-screen-title-text');
+    const emoji     = document.getElementById('end-screen-emoji');
     const countSpan = document.getElementById('guess-count');
+    const badgeEl   = document.getElementById('end-screen-badge');
+
+    modalBox.classList.remove('is-win', 'is-loss');
+    titleText.classList.remove('is-win', 'is-loss');
+    overlay.classList.remove('is-win', 'is-loss');
 
     if (isWin) {
-      title.textContent = "You Won! 🎉😎";
-      title.style.color = "#4CAF50";
+      titleText.textContent = "You Won!";
+      emoji.textContent     = "🎉";
+      modalBox.classList.add('is-win');
+      titleText.classList.add('is-win');
+      overlay.classList.add('is-win');
+      launchConfetti();
     } else {
-      title.textContent = "You Lost! 🤦‍♂️💀";
-      title.style.color = "#f44336";
+      titleText.textContent = "You Lost!";
+      emoji.textContent     = "😔";
+      modalBox.classList.add('is-loss');
+      titleText.classList.add('is-loss');
+      overlay.classList.add('is-loss');
     }
 
     countSpan.textContent = guessesCount;
 
+    if (isWin && guessesCount === 1) {
+      badgeEl.textContent   = "🥇 First guess! Incredible!";
+      badgeEl.style.display = 'block';
+    } else if (isWin && guessesCount <= 3) {
+      badgeEl.textContent   = "⭐ Great job!";
+      badgeEl.style.display = 'block';
+    } else {
+      badgeEl.style.display = 'none';
+    }
+
     if (countryName && flagFileName) {
-      document.getElementById('end-screen-country-name').textContent = "The answer was: " + countryName;
+      document.getElementById('end-screen-country-name').textContent =
+        (isWin ? "You found it: " : "The answer was: ") + countryName;
       document.getElementById('end-screen-flag').src = `/DB/FlagsImages/${flagFileName}`;
       document.getElementById('end-screen-country').style.display = 'block';
     }
+
+    renderEndScreenHistory();
 
     overlay.style.display = "flex";
 
@@ -631,7 +968,11 @@
         }
 
         if (result.isCorrect) {
-          setTimeout(() => showEndScreen(true, guessesArray.length), 1000);
+          let flagFileName = result.guessedCountry.flagPath;
+          if (flagFileName && (flagFileName.includes('/') || flagFileName.includes('\\'))) {
+            flagFileName = flagFileName.split(/[/\\]/).pop();
+          }
+          setTimeout(() => showEndScreen(true, guessesArray.length, result.guessedCountry.name, flagFileName), 1000);
         }
       } else {
         console.error("Data missing in server response:", result);
@@ -679,8 +1020,17 @@
 
 <!-- RULES PANEL OPEN / CLOSE -->
 <script>
-  function openRules()  { document.getElementById("rulesPanel").style.width = "400px"; }
-  function closeRules() { document.getElementById("rulesPanel").style.width = "0"; }
+  function openRules() {
+    document.getElementById("rulesPanel").classList.add("open");
+    document.getElementById("rulesBackdrop").classList.add("active");
+  }
+  function closeRules() {
+    document.getElementById("rulesPanel").classList.remove("open");
+    document.getElementById("rulesBackdrop").classList.remove("active");
+  }
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape") closeRules();
+  });
 </script>
 
 </body>

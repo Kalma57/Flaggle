@@ -2,6 +2,7 @@ package com.example.flagdemo.ViewModel.GlobeVM;
 
 import com.example.flagdemo.BusinessLayer.CountryBL;
 import com.example.flagdemo.BusinessLayer.GlobeBL.GuessResultGlobeBL;
+import com.example.flagdemo.DataAccessLayer.CountryController;
 import com.example.flagdemo.Model.GlobeModel.GlobeModel;
 
 import java.sql.SQLException;
@@ -21,8 +22,8 @@ public class GlobeViewModel implements java.io.Serializable {
 
     // -------------------- Constructor --------------------
 
-    public GlobeViewModel() throws SQLException {
-        gm = new GlobeModel();
+    public GlobeViewModel(CountryController cc) throws SQLException {
+        gm = new GlobeModel(cc);
     }
 
     // -------------------- Game Control --------------------

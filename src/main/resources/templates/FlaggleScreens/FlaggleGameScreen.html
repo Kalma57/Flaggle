@@ -5,6 +5,19 @@
     <title>Flaggle - Game</title>
 
     <style>
+        /* Shared type scale and shadow depths, used throughout this page for consistency */
+        :root {
+            --font-display: 60px;
+            --font-xl: 28px;
+            --font-lg: 20px;
+            --font-md: 18px;
+            --font-base: 16px;
+
+            --shadow-sm: 0 4px 12px rgba(0,0,0,0.08);
+            --shadow-md: 0 10px 25px rgba(0,0,0,0.15);
+            --shadow-lg: 0 12px 28px rgba(0,0,0,0.18);
+        }
+
         /* Reset browser default styles */
         * {
             margin: 0;
@@ -33,7 +46,7 @@
 
         /* Page title */
         h1 {
-            font-size: 60px;
+            font-size: var(--font-display);
             color: #4CAF50;
             margin-bottom: 30px;
             text-shadow: 0 8px 20px rgba(76,175,80,0.35);
@@ -49,12 +62,13 @@
         /* Country input field */
         input[type="text"] {
             padding: 12px;
-            font-size: 18px;
+            font-size: var(--font-md);
             width: 260px;
             text-align: center;
             border-radius: 10px;
             border: 2px solid #4CAF50;
             outline: none;
+            box-shadow: var(--shadow-sm);
             transition: 0.3s;
         }
 
@@ -65,7 +79,7 @@
         /* General button styling */
         button {
             padding: 12px 28px;
-            font-size: 17px;
+            font-size: var(--font-md);
             border-radius: 10px;
             cursor: pointer;
             border: none;
@@ -90,9 +104,14 @@
             background: white;
             color: #4CAF50;
             border: 2px solid #4CAF50;
+            box-shadow: var(--shadow-sm);
         }
 
-        .giveup-btn:hover { background: #e8f7ee; }
+        .giveup-btn:hover {
+            background: #e8f7ee;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
 
         /* Rules button — fixed top-right */
         .rules-btn {
@@ -102,9 +121,14 @@
             background: white;
             color: #4CAF50;
             border: 2px solid #4CAF50;
+            box-shadow: var(--shadow-sm);
         }
 
-        .rules-btn:hover { background: #e8f7ee; }
+        .rules-btn:hover {
+            background: #e8f7ee;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
 
         /* Guesses list container */
         .guesses {
@@ -114,6 +138,12 @@
             width: 100%;
             max-width: 900px;
             margin-top: 35px;
+        }
+
+        /* Entrance animation for newly rendered guess cards */
+        @keyframes fadeSlideIn {
+            from { opacity: 0; transform: translateY(16px); }
+            to   { opacity: 1; transform: translateY(0); }
         }
 
         /* Individual guess card */
@@ -126,8 +156,9 @@
             background: rgba(255,255,255,0.8);
             backdrop-filter: blur(8px);
             border-radius: 18px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            box-shadow: var(--shadow-md);
             transition: 0.3s;
+            animation: fadeSlideIn 0.45s ease-out;
         }
 
         .guess-row:hover { transform: scale(1.02); }
@@ -140,6 +171,7 @@
 
         .guess-label {
             margin-bottom: 8px;
+            font-size: var(--font-base);
             font-weight: bold;
             color: #2f7a34;
         }
@@ -147,24 +179,46 @@
         .flag img {
             width: 300px;
             height: 225px;
-            border: 3px solid #4CAF50;
             border-radius: 12px;
+            box-shadow: var(--shadow-lg);
             object-fit: cover;
         }
 
-        /* Rules side panel */
+        /* Rules side panel — off-canvas drawer, fully off-screen until opened */
         .rules-panel {
             height: 100%;
-            width: 0;
+            width: 380px;
+            max-width: 85vw;
             position: fixed;
-            z-index: 100;
+            z-index: 101;
             top: 0;
             right: 0;
             background: white;
-            overflow-x: hidden;
-            transition: 0.4s;
-            padding: 25px;
-            box-shadow: -5px 0 15px rgba(0,0,0,0.2);
+            overflow-y: auto;
+            transform: translateX(100%);
+            transition: transform 0.4s ease;
+            padding: 30px 25px;
+            box-shadow: -10px 0 30px rgba(0,0,0,0.25);
+        }
+
+        .rules-panel.open {
+            transform: translateX(0);
+        }
+
+        /* Dark backdrop behind the open drawer — click it (or Escape) to close */
+        .rules-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.35);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s ease;
+            z-index: 100;
+        }
+
+        .rules-backdrop.active {
+            opacity: 1;
+            pointer-events: auto;
         }
 
         .rules-panel h2 {
@@ -246,6 +300,9 @@
     </div>
 </div>
 
+<!-- Backdrop behind the rules drawer — clicking it closes the panel -->
+<div id="rulesBackdrop" class="rules-backdrop" onclick="closeRules()"></div>
+
 <!-- Rules side panel -->
 <div id="rulesPanel" class="rules-panel">
     <span class="close-rules" onclick="closeRules()">&times;</span>
@@ -257,8 +314,17 @@
 </div>
 
 <script>
-    function openRules()  { document.getElementById("rulesPanel").style.width = "400px"; }
-    function closeRules() { document.getElementById("rulesPanel").style.width = "0"; }
+    function openRules() {
+        document.getElementById("rulesPanel").classList.add("open");
+        document.getElementById("rulesBackdrop").classList.add("active");
+    }
+    function closeRules() {
+        document.getElementById("rulesPanel").classList.remove("open");
+        document.getElementById("rulesBackdrop").classList.remove("active");
+    }
+    document.addEventListener("keydown", function (e) {
+        if (e.key === "Escape") closeRules();
+    });
 </script>
 
 </body>

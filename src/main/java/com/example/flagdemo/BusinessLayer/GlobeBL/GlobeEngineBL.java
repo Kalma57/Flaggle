@@ -2,7 +2,6 @@ package com.example.flagdemo.BusinessLayer.GlobeBL;
 
 import com.example.flagdemo.BusinessLayer.CountryBL;
 import com.example.flagdemo.DataAccessLayer.CountryController;
-import com.example.flagdemo.DataAccessLayer.CountryRepository;
 
 import java.sql.SQLException;
 import java.util.List;
@@ -29,10 +28,10 @@ public class GlobeEngineBL implements java.io.Serializable {
 
     // -------------------- Constructor --------------------
 
-    public GlobeEngineBL() {
+    public GlobeEngineBL(CountryController cc) {
         this.attempts = 0;
         this.gameOver = false;
-        this.cc = new CountryController(new CountryRepository());
+        this.cc = cc;
     }
 
     // -------------------- Game Control --------------------

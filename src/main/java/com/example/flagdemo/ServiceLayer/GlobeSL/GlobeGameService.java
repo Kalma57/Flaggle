@@ -2,6 +2,7 @@ package com.example.flagdemo.ServiceLayer.GlobeSL;
 
 import com.example.flagdemo.BusinessLayer.GlobeBL.GlobeEngineBL;
 import com.example.flagdemo.BusinessLayer.GlobeBL.GuessResultGlobeBL;
+import com.example.flagdemo.DataAccessLayer.CountryController;
 
 import java.sql.SQLException;
 
@@ -16,8 +17,8 @@ public class GlobeGameService implements java.io.Serializable {
     private GlobeEngineBL geb;
 
     // -------------------- Constructor --------------------
-    public GlobeGameService() {
-        this.geb = new GlobeEngineBL();
+    public GlobeGameService(CountryController cc) {
+        this.geb = new GlobeEngineBL(cc);
     }
 
     // -------------------- Game Control --------------------

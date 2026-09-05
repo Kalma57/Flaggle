@@ -36,3 +36,9 @@ build/
 
 ### Mac OS ###
 .DS_Store
+
+### Claude Code (local tool config, not project source) ###
+.claude/
+
+### Node deps used only by offline build tooling ###
+tools/**/node_modules/

@@ -1,5 +1,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from '/controls/OrbitControls.js';
+import ThreeGlobe from 'three-globe';
+import { __setPrecomputedPolygonGeometry } from 'three-conic-polygon-geometry';
 
 // Country name mapping - critical for matching between DB and map
 const countryNameMapping = {
@@ -53,7 +55,11 @@ const countryNameMapping = {
     "Hong Kong SAR China": "Hong Kong"
 };
 
-// Small countries with precise coordinates - drawn as tiny polygons on the texture
+// Coordinates for micro-states that are too small to appear as their own
+// polygon in the world-atlas dataset. These are rendered as point markers
+// instead, but only for names actually missing from the loaded map data
+// (checked at runtime in initGlobe) — everything else is a real vector
+// polygon now, so it stays crisp and visible at any zoom level.
 const tinyCountriesExtras = {
     "Trinidad and Tobago": { lat: 10.69, lon: -61.22 },
     "St. Vin. and Gren.": { lat: 12.98, lon: -61.28 },
@@ -84,41 +90,91 @@ const tinyCountriesExtras = {
     "Tuvalu": { lat: -7.10, lon: 177.64 }
 };
 
-let scene, camera, renderer, globe, controls;
+const SKY_COLOR = 0xffffff;
+
+let scene, camera, renderer, controls, world;
 let countriesData = null;
 let guessedCountriesColors = {};
+let missingPolygonNames = new Set();
+let guessedPoints = [];
 
 export async function initGlobe() {
     const canvas = document.getElementById('globeCanvas');
     if (!canvas) return;
 
     scene = new THREE.Scene();
-    scene.background = new THREE.Color(0xffffff);
+    scene.background = new THREE.Color(SKY_COLOR);
 
-    camera = new THREE.PerspectiveCamera(45, canvas.clientWidth / canvas.clientHeight, 0.1, 1000);
-    camera.position.set(0, 0, 4);
+    camera = new THREE.PerspectiveCamera(50, canvas.clientWidth / canvas.clientHeight, 0.1, 2000);
+    camera.position.set(0, 0, 200);
 
     renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+    // Cap the pixel ratio — on 3x/4x-DPI screens rendering at the full
+    // native ratio multiplies the pixel count for little visible gain
+    // and was a real contributor to the frame-rate lag.
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     renderer.setSize(canvas.clientWidth, canvas.clientHeight);
 
-    const ambientLight = new THREE.AmbientLight(0xffffff, 1.2);
-    scene.add(ambientLight);
+    // Soft fill light + a "sun" so the sphere shows a realistic lit/shaded side
+    scene.add(new THREE.AmbientLight(0xffffff, 1.3));
+    const sun = new THREE.DirectionalLight(0xffffff, 1.1);
+    sun.position.set(-2, 1, 1);
+    scene.add(sun);
 
-    const geometry = new THREE.SphereGeometry(1.5, 64, 64);
-    const material = new THREE.MeshBasicMaterial({ color: 0xffffff });
-    globe = new THREE.Mesh(geometry, material);
-    scene.add(globe);
+    world = new ThreeGlobe()
+        .globeImageUrl('/assets/earth-day.jpg')
+        .showAtmosphere(true)
+        .atmosphereColor('#ffffff')
+        .atmosphereAltitude(0.18)
+        .polygonCapColor(capColorFor)
+        .polygonSideColor(sideColorFor)
+        .polygonStrokeColor(strokeColorFor)
+        .polygonAltitude(altitudeFor)
+        .polygonsTransitionDuration(200)
+        .pointLat('lat')
+        .pointLng('lng')
+        .pointColor('color')
+        .pointAltitude(0.012)
+        .pointRadius(0.45)
+        .pointResolution(24)
+        .pointsMerge(false)
+        .pointsData([]);
+
+    scene.add(world);
 
     controls = new OrbitControls(camera, renderer.domElement);
-    controls.enableDamping = true;
-    controls.rotateSpeed = 0.3;
+    controls.enableDamping = false;
+    controls.rotateSpeed = 0.25;
+    // GLOBE_RADIUS is hardcoded to 100 inside three-globe — going below
+    // that puts the camera inside the (backface-culled) sphere, which
+    // renders as a blank white screen. 118 keeps a safe margin outside
+    // the atmosphere shell (radius 100 * 1.18) while still allowing a
+    // close zoom on small countries.
+    controls.minDistance = 118;
+    controls.maxDistance = 480;
 
     try {
-        const response = await fetch('https://unpkg.com/world-atlas@2.0.2/countries-50m.json');
-        const topoData = await response.json();
-        countriesData = topojson.feature(topoData, topoData.objects.countries);
+        const [topoResponse, manifest, geometryBuffer] = await Promise.all([
+            fetch('/assets/countries-50m.json').then(r => r.json()),
+            fetch('/assets/polygon-geometry-manifest.json').then(r => r.json()),
+            fetch('/assets/polygon-geometry.bin').then(r => r.arrayBuffer())
+        ]);
+        countriesData = topojson.feature(topoResponse, topoResponse.objects.countries);
 
-        updateGlobeTexture();
+        // Only micro-states genuinely missing a polygon in this dataset need
+        // the point-marker fallback — everything else renders as a real,
+        // true-to-scale vector polygon.
+        const featureNames = new Set(countriesData.features.map(f => f.properties.name));
+        missingPolygonNames = new Set(
+            Object.keys(tinyCountriesExtras).filter(name => !featureNames.has(name))
+        );
+
+        // Supplies the precomputed cap/side triangulation for every country so
+        // the browser never has to build it live (~7.5s of blocking work for
+        // all 241 countries otherwise) — see tools/globe-geometry-build.
+        __setPrecomputedPolygonGeometry(manifest, geometryBuffer);
+
+        world.polygonsData(countriesData.features);
     } catch (error) {
         console.error("Globe Error:", error);
     }
@@ -126,138 +182,45 @@ export async function initGlobe() {
     animate();
 }
 
-// Draws a small irregular polygon centered at (cx, cy) with given size and color
-function drawTinyCountryPolygon(ctx, cx, cy, size, color) {
-    const offsets = [
-        { dx: 0,           dy: -size },
-        { dx:  size,       dy: -size * 0.3 },
-        { dx:  size * 0.7, dy:  size },
-        { dx: -size * 0.5, dy:  size },
-        { dx: -size,       dy:  size * 0.1 }
-    ];
-
-    ctx.beginPath();
-    ctx.moveTo(cx + offsets[0].dx, cy + offsets[0].dy);
-    for (let i = 1; i < offsets.length; i++) {
-        ctx.lineTo(cx + offsets[i].dx, cy + offsets[i].dy);
-    }
-    ctx.closePath();
-
-    ctx.fillStyle = color;
-    ctx.fill();
-    ctx.strokeStyle = '#333333';
-    ctx.lineWidth = 0.5;
-    ctx.stroke();
+function capColorFor(feat) {
+    return guessedCountriesColors[feat.properties.name] || 'rgba(0,0,0,0)';
 }
 
-function updateGlobeTexture() {
-    if (!countriesData) return;
-
-    const canvas = document.createElement('canvas');
-    canvas.width = 2048;
-    canvas.height = 1024;
-    const ctx = canvas.getContext('2d');
-
-    // Ocean background
-    ctx.fillStyle = '#87CEEB';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    // --- ANTARCTICA HOLE FIX (SEAMLESS) ---
-    const antarcticaColor = guessedCountriesColors["Antarctica"] || '#D3D3D3';
-    ctx.fillStyle = antarcticaColor;
-    ctx.fillRect(0, canvas.height - 40, canvas.width, 40);
-    // --------------------------------------
-
-    // Draw all countries from TopoJSON
-    countriesData.features.forEach(country => {
-        const name = country.properties.name;
-        const color = guessedCountriesColors[name] || '#D3D3D3';
-
-        ctx.fillStyle = color;
-        ctx.strokeStyle = '#333333';
-        ctx.lineWidth = 0.5;
-
-        // Create a reusable function to draw the country path
-        const drawCountryPath = () => {
-            ctx.beginPath();
-            const coords = country.geometry.coordinates;
-            if (country.geometry.type === "Polygon") {
-                renderRings(ctx, coords, canvas.width, canvas.height);
-            } else {
-                coords.forEach(poly => renderRings(ctx, poly, canvas.width, canvas.height));
-            }
-            ctx.fill('evenodd');
-            ctx.stroke();
-        };
-
-        // 1. Draw normally (Center)
-        drawCountryPath();
-
-        // 2. Draw shifted left (Fixes parts extending past the right edge)
-        ctx.save();
-        ctx.translate(-canvas.width, 0);
-        drawCountryPath();
-        ctx.restore();
-
-        // 3. Draw shifted right (Fixes parts extending past the left edge)
-        ctx.save();
-        ctx.translate(canvas.width, 0);
-        drawCountryPath();
-        ctx.restore();
-    });
-
-    // Draw tiny countries
-    Object.entries(tinyCountriesExtras).forEach(([name, extra]) => {
-        const color = guessedCountriesColors[name];
-        if (!color) return;
-
-        const cx = (extra.lon + 180) * (canvas.width / 360);
-        const cy = (90 - extra.lat) * (canvas.height / 180);
-
-        drawTinyCountryPolygon(ctx, cx, cy, 3, color);
-    });
-
-    const texture = new THREE.CanvasTexture(canvas);
-    if (globe.material.map) globe.material.map.dispose();
-    globe.material.map = texture;
-    globe.material.needsUpdate = true;
+function sideColorFor(feat) {
+    return guessedCountriesColors[feat.properties.name] ? 'rgba(0,0,0,0.25)' : 'rgba(0,0,0,0)';
 }
 
-function renderRings(ctx, rings, width, height) {
-    rings.forEach(ring => {
-        if (ring.length === 0) return;
+function strokeColorFor(feat) {
+    return guessedCountriesColors[feat.properties.name] ? '#222222' : 'rgba(0,0,0,0)';
+}
 
-        // Start the shape
-        let currentLon = ring[0][0];
-        const startX = (currentLon + 180) * (width / 360);
-        const startY = (90 - ring[0][1]) * (height / 180);
-        ctx.moveTo(startX, startY);
-
-        for (let i = 1; i < ring.length; i++) {
-            let [lon, lat] = ring[i];
-
-            // --- ANTI-MERIDIAN FIX ---
-            // If the distance between the previous point and this point is huge,
-            // it means we crossed the 180 line. Instead of jumping across the screen,
-            // we adjust the longitude to keep drawing continuously outside the canvas.
-            while (lon - currentLon > 180) lon -= 360;
-            while (currentLon - lon > 180) lon += 360;
-
-            currentLon = lon;
-
-            const x = (lon + 180) * (width / 360);
-            const y = (90 - lat) * (height / 180);
-            ctx.lineTo(x, y);
-        }
-    });
+function altitudeFor(feat) {
+    return guessedCountriesColors[feat.properties.name] ? 0.006 : 0;
 }
 
 export function colorCountry(dbCountryName, hexColor) {
-    if (!countriesData) return;
+    if (!world || !countriesData) return;
+
     const cleanName = dbCountryName.trim();
     const mapName = countryNameMapping[cleanName] || cleanName;
     guessedCountriesColors[mapName] = hexColor;
-    updateGlobeTexture();
+
+    if (missingPolygonNames.has(mapName)) {
+        const coords = tinyCountriesExtras[mapName];
+        if (coords) {
+            const existing = guessedPoints.find(p => p.name === mapName);
+            if (existing) {
+                existing.color = hexColor;
+            } else {
+                guessedPoints.push({ name: mapName, lat: coords.lat, lng: coords.lon, color: hexColor });
+            }
+            world.pointsData(guessedPoints);
+        }
+    }
+
+    // Re-run the polygon layer's digest so the cap/side/stroke/altitude
+    // accessors above are re-evaluated with the freshly updated colors
+    world.polygonsData(countriesData.features);
 }
 
 function animate() {
@@ -267,13 +230,13 @@ function animate() {
 }
 
 export function focusOnCountry(lat, lon) {
-    const phi = (90 - lat) * (Math.PI / 180);
-    const theta = (lon + 90) * (Math.PI / 180);
-    const radius = 4;
-    camera.position.set(
-        radius * Math.sin(phi) * Math.sin(theta),
-        radius * Math.cos(phi),
-        radius * Math.sin(phi) * Math.cos(theta)
-    );
+    if (!world || !camera) return;
+
+    // getCoords(lat, lng, altitude) returns the point on the globe's surface
+    // scaled out by (1 + altitude) globe-radii — reused directly as a close-up
+    // camera position so tiny countries fill much more of the screen.
+    const { x, y, z } = world.getCoords(lat, lon, 0.9);
+    camera.position.set(x, y, z);
     camera.lookAt(0, 0, 0);
+    if (controls) controls.update();
 }
