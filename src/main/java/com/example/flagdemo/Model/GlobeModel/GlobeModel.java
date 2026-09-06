@@ -27,6 +27,7 @@ public class GlobeModel implements java.io.Serializable {
     private List<CountryBL> allCountries;
     private List<GuessResultGlobeBL> guesses;
     private int attempts;
+    private int hintsUsed;
 
     // -------------------- Constructor --------------------
     public GlobeModel(CountryController cc) throws SQLException {
@@ -48,6 +49,7 @@ public class GlobeModel implements java.io.Serializable {
         this.targetCountry = gs.getEngine().getTargetCountry();
         this.guesses.clear();
         this.attempts = 0;
+        this.hintsUsed = 0;
     }
 
     /**
@@ -64,6 +66,17 @@ public class GlobeModel implements java.io.Serializable {
         return gr;
     }
 
+    /**
+     * Reveals one more letter of the target country's name.
+     *
+     * @return the target name with unrevealed letters masked as '_'
+     */
+    public String useHint() {
+        String masked = gs.useHint();
+        this.hintsUsed = gs.getHintsUsed();
+        return masked;
+    }
+
     // -------------------- Getters --------------------
 
     public GlobeGameService getGs() {
@@ -72,6 +85,10 @@ public class GlobeModel implements java.io.Serializable {
 
     public int getAttempts() {
         return this.attempts;
+    }
+
+    public int getHintsUsed() {
+        return this.hintsUsed;
     }
 
     public List<CountryBL> getAllCountries() {
@@ -85,6 +102,7 @@ public class GlobeModel implements java.io.Serializable {
     public void resetGuesses() {
         this.guesses = new ArrayList<>();
         this.attempts = 0;
+        this.hintsUsed = 0;
     }
 
     public CountryBL getTargetCountry() {

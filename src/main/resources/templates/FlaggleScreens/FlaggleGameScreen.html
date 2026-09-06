@@ -4,14 +4,19 @@
     <meta charset="UTF-8">
     <title>Flaggle - Game</title>
 
+    <!-- Custom font pairing: Baloo 2 for bold display titles, Nunito for everything else -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+
     <style>
         /* Shared type scale and shadow depths, used throughout this page for consistency */
         :root {
-            --font-display: 60px;
-            --font-xl: 28px;
-            --font-lg: 20px;
-            --font-md: 18px;
-            --font-base: 16px;
+            --font-display: 76px;
+            --font-xl: 34px;
+            --font-lg: 24px;
+            --font-md: 20px;
+            --font-base: 18px;
 
             --shadow-sm: 0 4px 12px rgba(0,0,0,0.08);
             --shadow-md: 0 10px 25px rgba(0,0,0,0.15);
@@ -23,7 +28,11 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Nunito', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        h1, h2 {
+            font-family: 'Baloo 2', 'Nunito', sans-serif;
         }
 
         /* Animated gradient background */
@@ -111,6 +120,39 @@
             background: #e8f7ee;
             transform: translateY(-2px);
             box-shadow: var(--shadow-md);
+        }
+
+        /* Difficulty badge — fixed top-left, mirrors the rules button on the right */
+        .difficulty-badge {
+            position: fixed;
+            top: 40px;
+            left: 40px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 22px;
+            border-radius: 999px;
+            font-size: var(--font-base);
+            font-weight: bold;
+            box-shadow: var(--shadow-sm);
+            animation: badgeGlow 3s ease-in-out infinite;
+        }
+
+        @keyframes badgeGlow {
+            0%, 100% { box-shadow: var(--shadow-sm); }
+            50%      { box-shadow: var(--shadow-md); }
+        }
+
+        .difficulty-badge.easy {
+            background: linear-gradient(135deg, #e3f2fd, #ffffff);
+            color: #1565c0;
+            border: 2px solid #42a5f5;
+        }
+
+        .difficulty-badge.hard {
+            background: linear-gradient(135deg, #fdeaea, #ffffff);
+            color: #c62828;
+            border: 2px solid #ef5350;
         }
 
         /* Rules button — fixed top-right */
@@ -243,6 +285,12 @@
 
 <h1>Flaggle</h1>
 
+<!-- Shows the difficulty this game round is locked to (set on the Start screen) -->
+<div class="difficulty-badge"
+     th:classappend="${difficulty.name() eq 'EASY'} ? 'easy' : 'hard'">
+    <span th:text="${difficulty.name() eq 'EASY'} ? '🟢 EASY MODE' : '🔴 HARD MODE'">HARD MODE</span>
+</div>
+
 <!--
     FIX: gameId is embedded as a hidden field in every form.
     This tells the controller which ViewModel belongs to this window,
@@ -309,7 +357,10 @@
     <h2>Flaggle Rules</h2>
     <p>Can you identify the country by its flag?</p>
     <p>Enter a country name and press <strong>GUESS</strong>. After each attempt you will see feedback comparing your guess to the correct flag.</p>
-    <p>Use the hints to get closer to the correct answer.</p>
+    <p>
+        <span th:if="${difficulty.name() eq 'EASY'}">🟢 <strong>Easy mode:</strong> the correct flag starts out black. Every area you match gets permanently revealed in its true color, building up across all your guesses — use those revealed areas as hints to narrow down your next guess.</span>
+        <span th:unless="${difficulty.name() eq 'EASY'}">🔴 <strong>Hard mode:</strong> areas that don't match are shown in black — only matches are revealed, and nothing carries over between guesses, so use each guess's matches as your only hint before it resets.</span>
+    </p>
     <p>Guess correctly to win or press <strong>GIVE UP</strong> to reveal the answer.</p>
 </div>
 

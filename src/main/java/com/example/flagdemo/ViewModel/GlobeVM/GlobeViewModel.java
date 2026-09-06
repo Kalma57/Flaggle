@@ -50,6 +50,15 @@ public class GlobeViewModel implements java.io.Serializable {
         return gm.Guess(guessedCountryName);
     }
 
+    /**
+     * Reveals one more letter of the target country's name.
+     *
+     * @return the target name with unrevealed letters masked as '_'
+     */
+    public String useHint() {
+        return gm.useHint();
+    }
+
     // -------------------- Getters --------------------
 
     /**
@@ -64,6 +73,13 @@ public class GlobeViewModel implements java.io.Serializable {
      */
     public int GetAttempts() {
         return this.gm.getAttempts();
+    }
+
+    /**
+     * Returns the number of hints used so far in the current game.
+     */
+    public int getHintsUsed() {
+        return this.gm.getHintsUsed();
     }
 
     /**

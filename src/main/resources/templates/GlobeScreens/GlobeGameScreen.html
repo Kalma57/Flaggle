@@ -181,6 +181,54 @@
     }
 
     /* =====================================================================
+       HINT PANEL — sits right above the globe box's top-left corner,
+       hidden until the player clicks "Hint" for the first time.
+    ===================================================================== */
+    .globe-wrap {
+      position: relative;
+      z-index: 1;
+    }
+
+    #hintPanel {
+      display: none;
+      position: absolute;
+      left: -160px;
+      bottom: calc(100% + 12px);
+      z-index: 5;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      background: rgba(255,255,255,0.95);
+      backdrop-filter: blur(8px);
+      padding: 20px 22px;
+      border-radius: var(--radius);
+      border: 2px solid var(--green);
+      box-shadow: var(--shadow-md);
+      max-width: 340px;
+    }
+
+    #hintPanel .hint-title {
+      color: var(--green-dark);
+      font-weight: 700;
+      font-size: 16px;
+    }
+
+    #hintReveal {
+      font-family: 'Consolas', monospace;
+      font-size: 27px;
+      font-weight: 700;
+      letter-spacing: 4px;
+      color: var(--warm-text-dark);
+      word-break: break-word;
+      text-align: center;
+    }
+
+    #hintPanel .hint-used {
+      font-size: 14px;
+      color: var(--warm-text);
+    }
+
+    /* =====================================================================
        GLOBE CONTAINER
     ===================================================================== */
     #globeContainer {
@@ -672,21 +720,33 @@
   </div>
   <div class="right-buttons">
     <button class="secondary-btn" onclick="openRules()">RULES</button>
+    <button id="btn-hint" class="secondary-btn">💡 Hint</button>
     <button id="btn-give-up" class="secondary-btn">Give Up</button>
   </div>
 </div>
 
-<!-- GLOBE CONTAINER -->
-<div id="globeContainer">
-  <div id="notificationArea">
-    <div id="neighbor-toast" class="neighbor-toast">
-      The country that you chose is a neighbor of the target country
-    </div>
+<!-- GLOBE WRAP — positions the hint panel relative to the globe box below it -->
+<div class="globe-wrap">
+  <!-- HINT PANEL — appears above the globe box, snug to its top-left corner,
+       once the player requests the first hint -->
+  <div id="hintPanel">
+    <div class="hint-title">💡 Hint</div>
+    <div id="hintReveal"></div>
+    <div class="hint-used">Hints used: <span id="hintCount">0</span></div>
   </div>
-  <canvas id="globeCanvas"></canvas>
-  <div id="globeLoadingOverlay">
-    <div class="globe-spinner"></div>
-    <div class="globe-loading-text">Loading globe...</div>
+
+  <!-- GLOBE CONTAINER -->
+  <div id="globeContainer">
+    <div id="notificationArea">
+      <div id="neighbor-toast" class="neighbor-toast">
+        The country that you chose is a neighbor of the target country
+      </div>
+    </div>
+    <canvas id="globeCanvas"></canvas>
+    <div id="globeLoadingOverlay">
+      <div class="globe-spinner"></div>
+      <div class="globe-loading-text">Loading globe...</div>
+    </div>
   </div>
 </div>
 
@@ -705,6 +765,7 @@
     </h2>
     <p id="end-screen-badge" class="end-screen-badge" style="display:none;"></p>
     <p id="end-screen-guesses">Attempts: <span id="guess-count">0</span></p>
+    <p id="end-screen-hints" class="end-screen-stat">Hints used: <span id="end-hint-count">0</span></p>
     <p id="end-screen-closest" class="end-screen-stat" style="display:none;"></p>
     <div id="end-screen-country" style="display:none;">
       <img id="end-screen-flag" src="" alt="flag">
@@ -735,6 +796,7 @@
     <p>Type a country name and press <strong>Guess</strong>. After each guess, the country will be colored on the globe based on how close it is to the target.</p>
     <p>You also get the distance in km between your guess and the target country.</p>
     <p>If your guess shares a border with the target, you'll get a special notification.</p>
+    <p>💡 Stuck? Press <strong>Hint</strong> to reveal one more letter of the country's name each time. But careful — if every letter gets revealed, you lose the round without ever guessing it!</p>
     <p>Press <strong>Give Up</strong> to reveal the answer.</p>
     <p><strong>Color guide:</strong></p>
     <div class="proximity-legend">
@@ -762,6 +824,7 @@
 
   let guessesArray   = [];
   let validCountries = [];
+  let hintsUsedCount = 0;
 
   initGlobe().finally(() => {
     const overlay = document.getElementById('globeLoadingOverlay');
@@ -895,6 +958,7 @@
     }
 
     countSpan.textContent = guessesCount;
+    document.getElementById('end-hint-count').textContent = hintsUsedCount;
 
     if (isWin && guessesCount === 1) {
       badgeEl.textContent   = "🥇 First guess! Incredible!";
@@ -920,6 +984,7 @@
     document.getElementById("countryInput").disabled = true;
     document.getElementById("guessBtn").disabled     = true;
     document.getElementById("btn-give-up").disabled  = true;
+    document.getElementById("btn-hint").disabled     = true;
   }
 
   /* Submit a guess — gameId is appended to the request body */
@@ -1012,8 +1077,42 @@
     }
   });
 
+  /* Hint — reveals one more letter of the target country's name each click.
+     gameId is sent in the request body, same pattern as guess/give-up. */
+  document.getElementById("btn-hint").addEventListener('click', async function() {
+    try {
+      const response = await fetch("/Globe/hint/ajax", {
+        method:  "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body:    "gameId=" + encodeURIComponent(GAME_ID)
+      });
+      const data = await response.json();
+      if (!data || data.revealed === undefined) return;
+
+      hintsUsedCount = data.hintsUsed;
+      document.getElementById('hintPanel').style.display = 'flex';
+      document.getElementById('hintReveal').textContent  = data.revealed;
+      document.getElementById('hintCount').textContent   = hintsUsedCount;
+
+      /* Every letter has been revealed — the player never actually guessed
+         it, so this is a loss. Reveal the country on the globe and show
+         the loss screen, same as giving up. */
+      if (data.fullyRevealed) {
+        document.getElementById("btn-hint").disabled = true;
+        colorCountry(data.countryName, '#25C267');
+        focusOnCountry(data.latitude, data.longitude);
+
+        setTimeout(() => {
+          showEndScreen(false, guessesArray.length, data.countryName, data.flagFileName);
+        }, 800);
+      }
+    } catch (error) {
+      console.error("Hint error:", error);
+    }
+  });
+
   document.getElementById("btn-play-again").addEventListener('click', () => window.location.reload());
-  document.getElementById("btn-home").addEventListener('click',       () => window.location.href = '/Flaggle');
+  document.getElementById("btn-home").addEventListener('click',       () => window.location.href = '/');
 
   loadCountries();
 </script>

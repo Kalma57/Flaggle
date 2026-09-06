@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Globe - Play</title>
+
+  <!-- Custom font pairing: Baloo 2 for bold display titles, Nunito for everything else -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+
+    /* Reset browser styles */
+    *{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:'Nunito', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    h1, h2, .mode-title{
+    font-family:'Baloo 2', 'Nunito', sans-serif;
+    }
+
+    /* Animated gradient background */
+    body{
+
+    min-height:100vh;
+
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    gap:10px;
+    padding:60px 20px;
+
+    background:linear-gradient(-45deg,#e6f3ff,#f9f9f9,#dff0ff,#eef8ff);
+    background-size:400% 400%;
+
+    animation:gradientMove 12s ease infinite;
+
+    overflow-x:hidden;
+
+    }
+
+    @keyframes gradientMove{
+
+    0%{background-position:0% 50%;}
+    50%{background-position:100% 50%;}
+    100%{background-position:0% 50%;}
+
+    }
+
+    /* Floating glow decorations */
+    .glow{
+
+    position:fixed;
+
+    width:350px;
+    height:350px;
+
+    background:#2196F3;
+
+    opacity:0.15;
+
+    filter:blur(120px);
+
+    border-radius:50%;
+
+    animation:float 8s infinite alternate ease-in-out;
+
+    pointer-events:none;
+
+    }
+
+    .glow1{
+    top:5%;
+    left:10%;
+    }
+
+    .glow2{
+    bottom:5%;
+    right:10%;
+    }
+
+    @keyframes float{
+
+    from{
+    transform:translateY(0px);
+    }
+
+    to{
+    transform:translateY(-60px);
+    }
+
+    }
+
+    /* Small link back to the game hub */
+    .back-link{
+
+    position:fixed;
+    top:30px;
+    left:30px;
+    z-index:2;
+
+    display:flex;
+    align-items:center;
+    gap:8px;
+
+    font-size:17px;
+    font-weight:bold;
+
+    color:#2196F3;
+
+    text-decoration:none;
+
+    padding:10px 18px;
+
+    background:rgba(255,255,255,0.85);
+
+    border-radius:999px;
+
+    box-shadow:0 6px 16px rgba(0,0,0,0.12);
+
+    transition:0.3s;
+
+    }
+
+    .back-link:hover{
+
+    transform:translateX(-3px);
+
+    box-shadow:0 8px 20px rgba(0,0,0,0.18);
+
+    }
+
+    /* Page header */
+    .lobby-header{
+
+    position:relative;
+    z-index:1;
+
+    text-align:center;
+
+    margin-bottom:10px;
+
+    }
+
+    h1{
+
+    font-size:72px;
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    gap:14px;
+
+    color:#2196F3;
+
+    text-shadow:0 8px 20px rgba(33,150,243,0.35);
+
+    }
+
+    .lobby-subtitle{
+
+    font-size:21px;
+
+    color:#4a4a4a;
+
+    margin-top:10px;
+
+    }
+
+    /* Grid of mode options — currently a single mode, but the grid already
+       auto-wraps so more modes can be added later without touching the layout */
+    .modes-grid{
+
+    position:relative;
+    z-index:1;
+
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));
+    gap:30px;
+
+    width:100%;
+    max-width:320px;
+
+    margin-top:25px;
+
+    }
+
+    /* One card per mode — the whole card is the clickable target */
+    .mode-card{
+
+    position:relative;
+
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    text-align:center;
+    gap:12px;
+
+    padding:34px 24px 28px;
+
+    text-decoration:none;
+
+    background:rgba(255,255,255,0.85);
+
+    backdrop-filter:blur(12px);
+
+    border-radius:22px;
+
+    border:2px solid transparent;
+
+    box-shadow:0 15px 35px rgba(0,0,0,0.12);
+
+    transition:all 0.35s ease;
+
+    animation:fadeIn 1s ease;
+
+    }
+
+    @keyframes fadeIn{
+
+    from{
+    transform:translateY(30px);
+    opacity:0;
+    }
+
+    to{
+    transform:translateY(0);
+    opacity:1;
+    }
+
+    }
+
+    .mode-card:hover{
+
+    transform:translateY(-8px) scale(1.03);
+
+    border-color:#2196F3;
+
+    box-shadow:0 22px 45px rgba(0,0,0,0.2);
+
+    }
+
+    .mode-icon{
+
+    font-size:44px;
+
+    }
+
+    .mode-title{
+
+    font-size:26px;
+    letter-spacing:1px;
+
+    color:#2c2c2c;
+
+    }
+
+    .mode-desc{
+
+    font-size:15px;
+
+    color:#666;
+
+    min-height:34px;
+
+    }
+
+    .mode-cta{
+
+    margin-top:4px;
+
+    padding:9px 26px;
+
+    font-size:16px;
+    font-weight:bold;
+    letter-spacing:1px;
+
+    color:white;
+
+    border-radius:999px;
+
+    background:linear-gradient(135deg, #2196F3, #1769aa);
+
+    box-shadow:0 8px 18px rgba(0,0,0,0.2);
+
+    transition:0.3s;
+
+    }
+
+    .mode-card:hover .mode-cta{
+
+    transform:translateY(-2px);
+
+    box-shadow:0 12px 24px rgba(0,0,0,0.3);
+
+    }
+
+  </style>
+</head>
+
+<body>
+
+<!-- Decorative background glow -->
+<div class="glow glow1"></div>
+<div class="glow glow2"></div>
+
+<a class="back-link" href="/">← All games</a>
+
+<div class="lobby-header">
+  <h1><span>🌍</span> Globe</h1>
+  <p class="lobby-subtitle">Guess the country on the map</p>
+</div>
+
+<div class="modes-grid">
+
+  <a class="mode-card" href="/Globe/start">
+    <div class="mode-icon">▶️</div>
+    <h2 class="mode-title">PLAY</h2>
+    <p class="mode-desc">Find each country on the globe using the hints you're given</p>
+    <span class="mode-cta">START</span>
+  </a>
+
+</div>
+
+</body>
+</html>

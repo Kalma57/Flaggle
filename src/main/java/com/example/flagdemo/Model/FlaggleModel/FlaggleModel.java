@@ -1,6 +1,7 @@
 package com.example.flagdemo.Model.FlaggleModel;
 
 import com.example.flagdemo.BusinessLayer.CountryBL;
+import com.example.flagdemo.BusinessLayer.FlaggleBL.DifficultyLevel;
 import com.example.flagdemo.BusinessLayer.FlaggleBL.GuessResultBL;
 import com.example.flagdemo.DataAccessLayer.CountryController;
 import com.example.flagdemo.ServiceLayer.FlaggleSL.GameService;
@@ -51,13 +52,35 @@ public class FlaggleModel implements java.io.Serializable {
     }
 
     /**
-     * Starts a new game by resetting the engine and selecting a new target country.
+     * Starts a new game by resetting the engine and selecting a new target country,
+     * using {@link DifficultyLevel#HARD} (the original behavior).
      *
      * @throws SQLException if there is a database error
      */
     public void StartNewGame() throws SQLException {
         gs.StartNewGame();
         this.targetCountry = gs.getEngine().getTargetCountry();
+    }
+
+    /**
+     * Starts a new game with the given difficulty level, resetting the engine
+     * and selecting a new target country.
+     *
+     * @param difficulty the difficulty level to play this round with
+     * @throws SQLException if there is a database error
+     */
+    public void StartNewGame(DifficultyLevel difficulty) throws SQLException {
+        gs.StartNewGame(difficulty);
+        this.targetCountry = gs.getEngine().getTargetCountry();
+    }
+
+    /**
+     * Returns the difficulty level of the current game round.
+     *
+     * @return the current difficulty level
+     */
+    public DifficultyLevel getDifficulty() {
+        return gs.getDifficulty();
     }
 
     /**

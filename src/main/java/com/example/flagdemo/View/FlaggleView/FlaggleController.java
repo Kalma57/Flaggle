@@ -1,6 +1,7 @@
 package com.example.flagdemo.View.FlaggleView;
 
 import com.example.flagdemo.BusinessLayer.CountryBL;
+import com.example.flagdemo.BusinessLayer.FlaggleBL.DifficultyLevel;
 import com.example.flagdemo.BusinessLayer.FlaggleBL.GuessResultBL;
 import com.example.flagdemo.DataAccessLayer.CountryController;
 import com.example.flagdemo.ViewModel.FlaggleVM.FlaggleViewModel;
@@ -29,9 +30,17 @@ public class FlaggleController {
         this.countryController = countryController;
     }
 
+    /*
+     * FIX: Dedicated per-game lobby.
+     *
+     * /Flaggle used to render the site-wide game hub (StartScreen). Now that
+     * the hub lives at "/" (see HomeController), this route is Flaggle's own
+     * lobby page: it only shows Flaggle's mode options (Easy/Hard today, more
+     * later) and is reachable straight from the hub's Flaggle card.
+     */
     @GetMapping({""})
-    public String showStartPage() {
-        return "StartScreen";
+    public String showLobby() {
+        return "FlaggleScreens/FlaggleLobbyScreen";
     }
 
     /*
@@ -46,14 +55,17 @@ public class FlaggleController {
      * in every form, so every subsequent request carries it back.
      */
     @GetMapping("/start")
-    public String startGame(Model model, HttpSession session) throws SQLException {
+    public String startGame(
+            @RequestParam(name = "difficulty", defaultValue = "HARD") DifficultyLevel difficulty,
+            Model model,
+            HttpSession session) throws SQLException {
 
         // Generate a unique ID for this specific game window
         String gameId = UUID.randomUUID().toString();
 
         // Create a fresh ViewModel for this game instance
         FlaggleViewModel viewModel = new FlaggleViewModel(countryController);
-        viewModel.StartNewGame();
+        viewModel.StartNewGame(difficulty);
 
         // Store under a unique key — prevents windows from overwriting each other
         session.setAttribute("flaggleVM_" + gameId, viewModel);
@@ -61,6 +73,7 @@ public class FlaggleController {
         // Pass gameId to Thymeleaf so it can embed it in the forms
         model.addAttribute("gameId", gameId);
         model.addAttribute("viewModel", viewModel);
+        model.addAttribute("difficulty", difficulty);
 
         return "FlaggleScreens/FlaggleGameScreen";
     }
@@ -92,6 +105,7 @@ public class FlaggleController {
             model.addAttribute("countryName",  targetCountry.getName());
             model.addAttribute("countryImage", countryImage);
             model.addAttribute("guesses",      buildGuessList(viewModel));
+            model.addAttribute("difficulty",   viewModel.getDifficulty());
 
             // Game is over — release the ViewModel (and its guess/image history) from the session
             session.removeAttribute("flaggleVM_" + gameId);
@@ -101,6 +115,7 @@ public class FlaggleController {
 
         model.addAttribute("guesses",   buildGuessList(viewModel));
         model.addAttribute("viewModel", viewModel);
+        model.addAttribute("difficulty", viewModel.getDifficulty());
 
         // Pass gameId back so the next form submission also carries it
         model.addAttribute("gameId", gameId);
@@ -130,6 +145,7 @@ public class FlaggleController {
         model.addAttribute("countryName",  targetCountry.getName());
         model.addAttribute("countryImage", countryImage);
         model.addAttribute("guesses",      buildGuessList(viewModel));
+        model.addAttribute("difficulty",   viewModel.getDifficulty());
 
         // Game is over — release the ViewModel (and its guess/image history) from the session
         session.removeAttribute("flaggleVM_" + gameId);

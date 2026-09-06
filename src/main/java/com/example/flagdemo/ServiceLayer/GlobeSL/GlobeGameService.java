@@ -43,6 +43,22 @@ public class GlobeGameService implements java.io.Serializable {
         return geb.Guess(countryName);
     }
 
+    /**
+     * Reveals one more letter of the target country's name.
+     *
+     * @return the target name with unrevealed letters masked as '_'
+     */
+    public String useHint() {
+        return geb.useHint();
+    }
+
+    /**
+     * Returns the number of hints used so far in the current game.
+     */
+    public int getHintsUsed() {
+        return geb.GetHintsUsed();
+    }
+
     // -------------------- Getter --------------------
 
     /**
