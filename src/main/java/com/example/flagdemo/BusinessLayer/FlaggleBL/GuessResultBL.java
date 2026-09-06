@@ -16,10 +16,21 @@ import java.util.Base64;
  * This class compares the guessed country's flag with the target country's flag
  * and generates an image highlighting the differences between them.
  *
- * The comparison works pixel-by-pixel and produces an output image where:
- * - Green pixels represent similar colors
- * - Black pixels represent different colors
- * - White pixels represent background or frame areas
+ * The comparison works pixel-by-pixel. The resulting image depends on the
+ * {@link DifficultyLevel}:
+ *
+ * - HARD: a fresh image is produced for every guess. Green pixels represent
+ *   similar colors, white pixels represent background/frame areas, and every
+ *   other pixel is plain black — no information about the target flag's real
+ *   colors is ever leaked.
+ *
+ * - EASY: the image accumulates across every guess made during the round.
+ *   It starts out solid black (white for background/frame areas). Whenever a
+ *   pixel matches the target for the first time (in this guess or an earlier
+ *   one), it is permanently revealed using the target flag's true, raw color
+ *   (not the normalized/bucketed color used only to decide whether it's a
+ *   match) — so the revealed shade is exactly what the target flag actually
+ *   looks like there. Once revealed, a pixel never reverts to black.
  */
 public class GuessResultBL implements java.io.Serializable {
 
@@ -72,23 +83,62 @@ public class GuessResultBL implements java.io.Serializable {
 
     /**
      * Creates a GuessResultBL object and computes the visual difference
-     * between the guessed country's flag and the target country's flag.
+     * between the guessed country's flag and the target country's flag,
+     * using {@link DifficultyLevel#HARD} (the original behavior).
      *
      * @param guessedCountry the country guessed by the user
      * @param targetCountry the correct country
      */
     public GuessResultBL(CountryBL guessedCountry, CountryBL targetCountry) {
+        this(guessedCountry, targetCountry, DifficultyLevel.HARD);
+    }
+
+    /**
+     * Creates a GuessResultBL object and computes the visual difference
+     * between the guessed country's flag and the target country's flag,
+     * using {@link DifficultyLevel#HARD} rules if difficulty is HARD, or a
+     * fresh (non-accumulating) EASY reveal otherwise.
+     *
+     * @param guessedCountry the country guessed by the user
+     * @param targetCountry the correct country
+     * @param difficulty controls which comparison algorithm is used
+     */
+    public GuessResultBL(CountryBL guessedCountry, CountryBL targetCountry, DifficultyLevel difficulty) {
+        this(guessedCountry, targetCountry, difficulty, null);
+    }
+
+    /**
+     * Creates a GuessResultBL object and computes the visual difference
+     * between the guessed country's flag and the target country's flag.
+     *
+     * @param guessedCountry the country guessed by the user
+     * @param targetCountry the correct country
+     * @param difficulty controls which comparison algorithm is used
+     * @param previousEasyReveal only relevant on {@link DifficultyLevel#EASY}: the
+     *                           accumulated reveal image from the previous guess this
+     *                           round (or null if this is the first guess of the round).
+     *                           Ignored on HARD.
+     */
+    public GuessResultBL(CountryBL guessedCountry, CountryBL targetCountry, DifficultyLevel difficulty, BufferedImage previousEasyReveal) {
         this.guessedCountry = guessedCountry;
         this.targetCountry = targetCountry;
 
         // Determine if the guess is correct
         this.isCorrect = guessedCountry.equals(targetCountry);
 
-        // Calculate the flag difference image
-        this.flagDifferences = calculateFlagDifferences(
-                guessedCountry.getFlagImage(),
-                targetCountry.getFlagImage()
-        );
+        // Calculate the flag difference/reveal image
+        if (difficulty == DifficultyLevel.EASY) {
+            this.flagDifferences = calculateAccumulatedEasyReveal(
+                    previousEasyReveal,
+                    guessedCountry.getFlagImage(),
+                    targetCountry.getFlagImage()
+            );
+        } else {
+            this.flagDifferences = calculateFlagDifferences(
+                    guessedCountry.getFlagImage(),
+                    targetCountry.getFlagImage()
+            );
+        }
 
         // Encode both images to base64 once, up front, instead of on every subsequent render
         this.guessedFlagBase64 = encodeToBase64(guessedCountry.getFlagImage());
@@ -175,12 +225,16 @@ public class GuessResultBL implements java.io.Serializable {
     }
 
     /**
-     * Generates an image that highlights the differences between two flags.
+     * Generates an image that highlights the differences between two flags,
+     * using {@link DifficultyLevel#HARD} rules (the original behavior).
      *
      * Pixel comparison rules:
      * - Green pixel: colors are similar
-     * - Black pixel: colors are different
      * - White pixel: background or frame
+     * - Every other pixel: plain black — no color information is ever leaked
+     *
+     * This is a fresh, non-accumulating computation: it depends only on the
+     * current guess, not on any earlier guesses made this round.
      *
      * @param guessed the guessed flag image
      * @param target the target flag image
@@ -207,10 +261,78 @@ public class GuessResultBL implements java.io.Serializable {
                     continue;
                 }
 
-                // If colors are similar -> green
                 if (areColorsSimilar(guessedColor, targetColor)) {
+                    // Colors match -> green
                     result.setRGB(x, y, new Color(0x4CAF50).getRGB());
-                } else { // Otherwise -> black
+                } else {
+                    // No match -> plain black, no color information leaked
+                    result.setRGB(x, y, BLACK.getRGB());
+                }
+            }
+        }
+
+        return result;
+    }
+
+    /**
+     * Generates (or extends) the accumulated EASY-mode reveal image for this game round.
+     *
+     * Unlike {@link #calculateFlagDifferences(BufferedImage, BufferedImage)}, this method's
+     * output builds on top of the round's previous reveal image instead of being recomputed
+     * from scratch on every guess:
+     *
+     * - Background/frame areas (determined from the target flag alone) are always white.
+     * - Any pixel that was already revealed by an earlier guess this round is copied forward
+     *   unchanged — once revealed, a pixel never reverts back to black.
+     * - Any pixel not yet revealed is compared (using the same normalized/bucketed color
+     *   matching as HARD mode): if it matches, it is revealed using the target flag's true,
+     *   raw color (not the flattened bucket color) — so the visible shade is exactly what the
+     *   target flag really looks like there. If it still doesn't match, it stays black.
+     *
+     * @param previousReveal the accumulated reveal image from the previous guess this round,
+     *                        or null if this is the first guess of the round
+     * @param guessed the guessed flag image
+     * @param target the target flag image
+     * @return the updated accumulated reveal image
+     */
+    private static BufferedImage calculateAccumulatedEasyReveal(BufferedImage previousReveal, BufferedImage guessed, BufferedImage target) {
+
+        int width = Math.min(guessed.getWidth(), target.getWidth());
+        int height = Math.min(guessed.getHeight(), target.getHeight());
+
+        BufferedImage result = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+
+                // Raw (non-normalized) target color — used when actually revealing a pixel
+                Color rawTargetColor = new Color(target.getRGB(x, y), true);
+
+                // Normalized colors — used only to decide background/frame and match/no-match
+                Color normalizedTargetColor = normalizeColor(rawTargetColor);
+
+                // Background/frame areas are always white, regardless of any previous reveal
+                if (isFrameOrBackground(normalizedTargetColor)) {
+                    result.setRGB(x, y, BACKGROUND_COLOR.getRGB());
+                    continue;
+                }
+
+                // If this pixel was already revealed by an earlier guess, keep it revealed
+                if (previousReveal != null
+                        && x < previousReveal.getWidth() && y < previousReveal.getHeight()
+                        && previousReveal.getRGB(x, y) != BLACK.getRGB()) {
+                    result.setRGB(x, y, previousReveal.getRGB(x, y));
+                    continue;
+                }
+
+                // Not yet revealed -> check if this guess reveals it now
+                Color normalizedGuessedColor = normalizeColor(new Color(guessed.getRGB(x, y), true));
+
+                if (areColorsSimilar(normalizedGuessedColor, normalizedTargetColor)) {
+                    // Match -> permanently reveal the target's true (raw) color
+                    result.setRGB(x, y, rawTargetColor.getRGB());
+                } else {
+                    // Still no match -> stays hidden behind black
                     result.setRGB(x, y, BLACK.getRGB());
                 }
             }

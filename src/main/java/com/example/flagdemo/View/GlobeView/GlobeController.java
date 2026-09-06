@@ -38,6 +38,17 @@ public class GlobeController {
         this.countryController = countryController;
     }
 
+    /*
+     * Globe's own dedicated lobby page, reachable from the hub's Globe card.
+     * Currently there's just one way to play, but this gives Globe a home of
+     * its own so future modes/options can be added here without touching the
+     * site-wide hub.
+     */
+    @GetMapping({""})
+    public String showLobby() {
+        return "GlobeScreens/GlobeLobbyScreen";
+    }
+
     @GetMapping("/start")
     public String startGame(Model model, HttpSession session) throws SQLException {
 
@@ -104,6 +115,48 @@ public class GlobeController {
         data.put("flagFileName", flagFileName);
         data.put("latitude",    targetCountry.getLatitude());
         data.put("longitude",   targetCountry.getLongitude());
+
+        return data;
+    }
+
+    /*
+     * Reveals one more letter of the target country's name.
+     *
+     * If the reveal ends up spelling out the whole name (no more masked
+     * letters left), the player never actually guessed the country — that
+     * counts as a loss, so the response includes the same reveal-answer
+     * fields as /giveup/ajax so the frontend can show the loss screen.
+     */
+    @PostMapping("/hint/ajax")
+    @ResponseBody
+    public Map<String, Object> hintAjax(
+            @RequestParam("gameId") String gameId,
+            HttpSession session) {
+
+        GlobeViewModel viewModel =
+                (GlobeViewModel) session.getAttribute("globeVM_" + gameId);
+
+        if (viewModel == null) return Collections.emptyMap();
+
+        String revealed = viewModel.useHint();
+        boolean fullyRevealed = revealed != null && !revealed.contains("_");
+
+        Map<String, Object> data = new HashMap<>();
+        data.put("revealed", revealed);
+        data.put("hintsUsed", viewModel.getHintsUsed());
+        data.put("fullyRevealed", fullyRevealed);
+
+        if (fullyRevealed) {
+            CountryBL targetCountry = viewModel.getTargetCountry();
+            String flagPath = targetCountry.getFlagPath();
+            String flagFileName = Paths.get(flagPath).getFileName().toString();
+
+            data.put("attempts", viewModel.GetAttempts());
+            data.put("countryName", targetCountry.getName());
+            data.put("flagFileName", flagFileName);
+            data.put("latitude", targetCountry.getLatitude());
+            data.put("longitude", targetCountry.getLongitude());
+        }
 
         return data;
     }

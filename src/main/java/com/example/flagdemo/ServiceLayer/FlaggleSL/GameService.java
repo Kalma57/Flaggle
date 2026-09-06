@@ -1,5 +1,6 @@
 package com.example.flagdemo.ServiceLayer.FlaggleSL;
 
+import com.example.flagdemo.BusinessLayer.FlaggleBL.DifficultyLevel;
 import com.example.flagdemo.BusinessLayer.FlaggleBL.GameEngineBL;
 import com.example.flagdemo.BusinessLayer.FlaggleBL.GuessResultBL;
 import com.example.flagdemo.DataAccessLayer.CountryController;
@@ -14,12 +15,31 @@ public class GameService implements java.io.Serializable {
     }
 
     /**
-     * Starts a new globe game.
+     * Starts a new game using {@link DifficultyLevel#HARD} (the original behavior).
      *
      * @throws SQLException if database access fails
      */
     public void StartNewGame() throws SQLException {
         geb.StartNewGame();
+    }
+
+    /**
+     * Starts a new game with the given difficulty level.
+     *
+     * @param difficulty the difficulty level to play this round with
+     * @throws SQLException if database access fails
+     */
+    public void StartNewGame(DifficultyLevel difficulty) throws SQLException {
+        geb.StartNewGame(difficulty);
+    }
+
+    /**
+     * Returns the difficulty level of the current game round.
+     *
+     * @return the current difficulty level
+     */
+    public DifficultyLevel getDifficulty() {
+        return geb.getDifficulty();
     }
 
     /**

@@ -25,6 +25,7 @@ public class GlobeEngineBL implements java.io.Serializable {
     private int attempts;
     private boolean gameOver;
     private CountryController cc;
+    private int hintsUsed;
 
     // -------------------- Constructor --------------------
 
@@ -32,6 +33,7 @@ public class GlobeEngineBL implements java.io.Serializable {
         this.attempts = 0;
         this.gameOver = false;
         this.cc = cc;
+        this.hintsUsed = 0;
     }
 
     // -------------------- Game Control --------------------
@@ -44,6 +46,7 @@ public class GlobeEngineBL implements java.io.Serializable {
         this.targetCountry = SelectRandomCountry();
         this.attempts = 0;
         this.gameOver = false;
+        this.hintsUsed = 0;
     }
 
     /**
@@ -87,6 +90,67 @@ public class GlobeEngineBL implements java.io.Serializable {
      */
     public int GetAttempts() {
         return attempts;
+    }
+
+    // -------------------- Hints --------------------
+
+    /**
+     * Reveals one more letter of the target country's name, in order.
+     * Non-letter characters (spaces, hyphens, apostrophes) are always shown.
+     *
+     * Once every letter has been revealed, the word is fully spelled out —
+     * this counts as a loss, since the player never actually guessed it.
+     *
+     * @return the target name with unrevealed letters masked as '_'
+     */
+    public String useHint() {
+        if (targetCountry == null) {
+            return "";
+        }
+
+        String name = targetCountry.getName();
+        int totalLetters = countRevealableLetters(name);
+
+        if (hintsUsed < totalLetters) {
+            hintsUsed++;
+        }
+
+        return maskName(name, hintsUsed);
+    }
+
+    /**
+     * Returns the number of hints used so far in the current game.
+     */
+    public int GetHintsUsed() {
+        return hintsUsed;
+    }
+
+    private int countRevealableLetters(String name) {
+        int count = 0;
+        for (char c : name.toCharArray()) {
+            if (Character.isLetter(c)) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    private String maskName(String name, int revealCount) {
+        StringBuilder sb = new StringBuilder();
+        int revealed = 0;
+        for (char c : name.toCharArray()) {
+            if (Character.isLetter(c)) {
+                if (revealed < revealCount) {
+                    sb.append(c);
+                } else {
+                    sb.append('_');
+                }
+                revealed++;
+            } else {
+                sb.append(c);
+            }
+        }
+        return sb.toString();
     }
 
     // -------------------- Country Selection & Filtering --------------------

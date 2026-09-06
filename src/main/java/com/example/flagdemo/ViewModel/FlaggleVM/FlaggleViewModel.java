@@ -1,6 +1,7 @@
 package com.example.flagdemo.ViewModel.FlaggleVM;
 
 import com.example.flagdemo.BusinessLayer.CountryBL;
+import com.example.flagdemo.BusinessLayer.FlaggleBL.DifficultyLevel;
 import com.example.flagdemo.BusinessLayer.FlaggleBL.GuessResultBL;
 import com.example.flagdemo.DataAccessLayer.CountryController;
 import com.example.flagdemo.Model.FlaggleModel.FlaggleModel;
@@ -31,7 +32,7 @@ public class FlaggleViewModel {
     }
 
     /**
-     * Starts a new game.
+     * Starts a new game using {@link DifficultyLevel#HARD} (the original behavior).
      *
      * This resets the current guesses and generates a new target country.
      *
@@ -40,6 +41,28 @@ public class FlaggleViewModel {
     public void StartNewGame() throws SQLException {
         fm.StartNewGame();
         fm.resetGuesses();
+    }
+
+    /**
+     * Starts a new game with the given difficulty level.
+     *
+     * This resets the current guesses and generates a new target country.
+     *
+     * @param difficulty the difficulty level to play this round with
+     * @throws SQLException if a database error occurs
+     */
+    public void StartNewGame(DifficultyLevel difficulty) throws SQLException {
+        fm.StartNewGame(difficulty);
+        fm.resetGuesses();
+    }
+
+    /**
+     * Returns the difficulty level of the current game round.
+     *
+     * @return the current difficulty level
+     */
+    public DifficultyLevel getDifficulty() {
+        return fm.getDifficulty();
     }
 
     /**
