@@ -714,7 +714,7 @@
 <!-- GUESS SECTION -->
 <div id="guessSection">
   <div class="guess-controls">
-    <input list="countriesList" id="countryInput" placeholder="Guess a country..." autocomplete="off">
+    <input list="countriesList" id="countryInput" placeholder="Guess a country..." autocomplete="off" autofocus>
     <datalist id="countriesList"></datalist>
     <button id="guessBtn">Guess</button>
   </div>
@@ -792,11 +792,11 @@
   <div class="rules-inner">
     <span class="close-rules" onclick="closeRules()">&times;</span>
     <h2>Globe Rules</h2>
-    <p>A random country is chosen — can you guess which one it is?</p>
+    <p>A random country is chosen - can you guess which one it is?</p>
     <p>Type a country name and press <strong>Guess</strong>. After each guess, the country will be colored on the globe based on how close it is to the target.</p>
     <p>You also get the distance in km between your guess and the target country.</p>
     <p>If your guess shares a border with the target, you'll get a special notification.</p>
-    <p>💡 Stuck? Press <strong>Hint</strong> to reveal one more letter of the country's name each time. But careful — if every letter gets revealed, you lose the round without ever guessing it!</p>
+    <p>💡 Stuck? Press <strong>Hint</strong> to reveal one more letter of the country's name each time. But careful - if every letter gets revealed, you lose the round without ever guessing it!</p>
     <p>Press <strong>Give Up</strong> to reveal the answer.</p>
     <p><strong>Color guide:</strong></p>
     <div class="proximity-legend">
@@ -1052,6 +1052,30 @@
 
   document.getElementById("countryInput").addEventListener("keypress", function(e) {
     if (e.key === "Enter") { e.preventDefault(); window.sendGuess(); }
+  });
+
+  // Global keyboard support so the mouse is never required mid-game:
+  //  - Enter triggers "Play Again" once the end screen is showing.
+  //  - Any other printable key (or Backspace) jumps focus into the guess input, even if the
+  //    user hasn't clicked it — as long as it isn't currently disabled (e.g. once the game is over).
+  document.addEventListener('keydown', function (e) {
+    const input = document.getElementById('countryInput');
+    const endOverlay = document.getElementById('end-screen-overlay');
+
+    if (e.key === 'Enter') {
+      if (endOverlay.style.display === 'flex') {
+        e.preventDefault();
+        document.getElementById('btn-play-again').click();
+      }
+      return;
+    }
+
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    const activeTag = document.activeElement ? document.activeElement.tagName : '';
+    if (activeTag === 'INPUT' || activeTag === 'TEXTAREA' || (document.activeElement && document.activeElement.isContentEditable)) return;
+    if (!input.disabled && (e.key.length === 1 || e.key === 'Backspace')) {
+      input.focus();
+    }
   });
 
   /* Give up — gameId is sent in the request body */
