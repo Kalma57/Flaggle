@@ -5,6 +5,7 @@ import com.example.flagdemo.DataAccessLayer.CountryController;
 
 import java.awt.image.BufferedImage;
 import java.sql.SQLException;
+import java.util.List;
 import java.util.Random;
 
 public class GameEngineBL implements java.io.Serializable {
@@ -116,14 +117,18 @@ public class GameEngineBL implements java.io.Serializable {
     /**
      * Selects a random country from the available countries list.
      *
+     * Picks directly from the loaded country list rather than a random ID in
+     * [1, count]: DB row IDs are not guaranteed to be a contiguous 1..count range
+     * (e.g. duplicate-flag territories have been removed from the table, leaving
+     * gaps), so looking up a random ID could silently return null and crash —
+     * mirrors the same fix already applied to the Best-of-N and Blitz match engines.
+     *
      * @return a randomly selected CountryBL object
      */
     private CountryBL selectRandomCountry() throws SQLException {
-        int numOfCountries = cc.getNumberOfAllCountries();
+        List<CountryBL> allCountries = cc.getAllCountries();
         Random rand = new Random();
-        int randomID = rand.nextInt(numOfCountries) + 1;
-        CountryBL randomCountry = cc.getCountryById(randomID);
-        return randomCountry;
+        return allCountries.get(rand.nextInt(allCountries.size()));
     }
 
     public CountryBL getTargetCountry(){

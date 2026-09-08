@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Flaggle - 1v1 vs Friend</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --font-display: 54px;
+            --font-xl: 30px;
+            --font-lg: 22px;
+            --font-md: 19px;
+            --font-base: 17px;
+
+            --shadow-sm: 0 4px 12px rgba(0,0,0,0.08);
+            --shadow-md: 0 10px 25px rgba(0,0,0,0.15);
+            --shadow-lg: 0 12px 28px rgba(0,0,0,0.18);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Nunito', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        h1, h2 { font-family: 'Baloo 2', 'Nunito', sans-serif; }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px 60px;
+            background: linear-gradient(-45deg, #e8f7ee, #f9f9f9, #e1f5e6, #f0fff3);
+            background-size: 400% 400%;
+            animation: gradientMove 12s ease infinite;
+        }
+
+        @keyframes gradientMove {
+            0%   { background-position: 0% 50%; }
+            50%  { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        h1 {
+            font-size: var(--font-display);
+            color: #4CAF50;
+            margin-bottom: 6px;
+            text-shadow: 0 8px 20px rgba(76,175,80,0.35);
+        }
+
+        /* -------------------- Top badges -------------------- */
+
+        .badge-stack {
+            position: fixed;
+            top: 40px;
+            left: 40px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 5;
+        }
+
+        .badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 9px 20px;
+            border-radius: 999px;
+            font-size: 19px;
+            font-weight: bold;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .badge.easy   { background: linear-gradient(135deg, #e3f2fd, #ffffff); color: #1565c0; border: 2px solid #42a5f5; }
+        .badge.hard   { background: linear-gradient(135deg, #fdeaea, #ffffff); color: #c62828; border: 2px solid #ef5350; }
+        .badge.room   { background: linear-gradient(135deg, #f3e5f5, #ffffff); color: #6a1b9a; border: 2px solid #ab47bc; }
+        .badge.format { background: linear-gradient(135deg, #e0f2f1, #ffffff); color: #00695c; border: 2px solid #26a69a; }
+
+        .top-right-actions {
+            position: fixed;
+            top: 40px;
+            right: 40px;
+            display: flex;
+            gap: 14px;
+            z-index: 5;
+        }
+
+        .rules-btn, .pause-btn {
+            padding: 12px 28px;
+            font-size: var(--font-md);
+            border-radius: 10px;
+            cursor: pointer;
+            border: 2px solid #4CAF50;
+            background: white;
+            color: #4CAF50;
+            box-shadow: var(--shadow-sm);
+            transition: 0.3s;
+        }
+
+        .pause-btn { border-color: #ffa726; color: #ef6c00; }
+
+        .rules-btn:hover { background: #e8f7ee; transform: translateY(-2px); box-shadow: var(--shadow-md); }
+        .pause-btn:hover { background: #fff3e0; transform: translateY(-2px); box-shadow: var(--shadow-md); }
+        .pause-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* -------------------- Scoreboard -------------------- */
+
+        .scoreboard {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 30px;
+        }
+
+        .round-indicator { font-size: var(--font-base); color: #4a4a4a; font-weight: 700; }
+
+        .score-line {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            font-size: var(--font-xl);
+            font-weight: 800;
+            color: #2c2c2c;
+        }
+
+        .score-you  { color: #2f7a34; }
+        .score-ai   { color: #c62828; }
+        .score-sep  { color: #999; font-weight: 400; font-size: var(--font-md); }
+
+        .match-clock {
+            font-family: 'Consolas', monospace;
+            font-size: 20px;
+            font-weight: 700;
+            color: #4a4a4a;
+            background: rgba(255,255,255,0.75);
+            padding: 4px 16px;
+            border-radius: 999px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        /* -------------------- Two-column layout -------------------- */
+
+        .match-columns {
+            display: flex;
+            gap: 40px;
+            width: 100%;
+            max-width: 1150px;
+            align-items: flex-start;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .column {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .column.your-column {
+            flex: 2 1 700px;
+            min-width: 700px;
+        }
+
+        .column.opponent-column {
+            flex: 1 1 280px;
+            min-width: 280px;
+            max-width: 320px;
+        }
+
+        .column-title {
+            font-size: var(--font-lg);
+            font-weight: 800;
+            color: #2c2c2c;
+        }
+
+        /* -------------------- Your guess form -------------------- */
+
+        .guess-form {
+            display: flex;
+            gap: 12px;
+        }
+
+        input[type="text"] {
+            padding: 12px;
+            font-size: var(--font-md);
+            width: 40ch;
+            text-align: center;
+            border-radius: 10px;
+            border: 2px solid #4CAF50;
+            outline: none;
+            box-shadow: var(--shadow-sm);
+            transition: 0.3s;
+        }
+
+        input[type="text"]:focus { box-shadow: 0 0 10px rgba(76,175,80,0.4); }
+        input[type="text"]:disabled { opacity: 0.6; }
+
+        button { border: none; cursor: pointer; transition: 0.3s; border-radius: 10px; }
+
+        .guess-btn {
+            padding: 12px 24px;
+            font-size: var(--font-md);
+            background: linear-gradient(135deg, #4CAF50, #3f9142);
+            color: white;
+            box-shadow: 0 8px 18px rgba(0,0,0,0.25);
+        }
+
+        .guess-btn:hover:not(:disabled) { transform: translateY(-3px) scale(1.05); box-shadow: 0 12px 22px rgba(0,0,0,0.35); }
+        .guess-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .giveup-btn {
+            padding: 10px 22px;
+            font-size: 15px;
+            background: white;
+            color: #4CAF50;
+            border: 2px solid #4CAF50;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .giveup-btn:hover:not(:disabled) { background: #e8f7ee; transform: translateY(-2px); box-shadow: var(--shadow-md); }
+        .giveup-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .attempts-text { font-size: 18px; color: #666; }
+
+        /* -------------------- Guess history -------------------- */
+
+        .guesses {
+            display: flex;
+            flex-direction: column-reverse;
+            gap: 16px;
+            width: 100%;
+        }
+
+        @keyframes fadeSlideIn {
+            from { opacity: 0; transform: translateY(16px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .guess-row {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 32px;
+            padding: 20px;
+            background: rgba(255,255,255,0.8);
+            backdrop-filter: blur(8px);
+            border-radius: 16px;
+            box-shadow: var(--shadow-md);
+            animation: fadeSlideIn 0.45s ease-out;
+        }
+
+        .flag { display: flex; flex-direction: column; align-items: center; }
+
+        .guess-label { margin-bottom: 8px; font-size: 19px; font-weight: bold; color: #2f7a34; }
+
+        .flag img {
+            width: 300px;
+            height: 225px;
+            border-radius: 12px;
+            box-shadow: var(--shadow-md);
+            object-fit: cover;
+        }
+
+        /* -------------------- Opponent panel -------------------- */
+
+        .opponent-panel {
+            width: 100%;
+            max-width: 320px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 14px;
+            padding: 26px 22px;
+            background: rgba(255,255,255,0.85);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: var(--shadow-md);
+        }
+
+        .opponent-percent {
+            font-family: 'Consolas', monospace;
+            font-size: 46px;
+            font-weight: 800;
+            color: #2c2c2c;
+        }
+
+        .opponent-percent-label {
+            margin-top: -10px;
+            font-size: 17px;
+            font-weight: 700;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .progress-track {
+            width: 100%;
+            height: 18px;
+            border-radius: 999px;
+            background: #eee;
+            overflow: hidden;
+            box-shadow: inset 0 2px 6px rgba(0,0,0,0.1);
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            border-radius: 999px;
+            background: linear-gradient(135deg, #ef5350, #e53935);
+            transition: width 0.6s ease;
+        }
+
+        .opponent-status { font-size: var(--font-base); font-weight: 700; color: #4a4a4a; }
+        .opponent-attempts { font-size: 18px; color: #888; }
+
+        /* -------------------- Overlays -------------------- */
+
+        .overlay-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 200;
+        }
+
+        .overlay-backdrop.active { display: flex; }
+
+        .overlay-panel {
+            background: white;
+            border-radius: 22px;
+            padding: 40px 44px;
+            max-width: 460px;
+            width: 90%;
+            text-align: center;
+            box-shadow: var(--shadow-lg);
+            animation: fadeSlideIn 0.35s ease-out;
+        }
+
+        .overlay-panel h2 { font-size: 30px; color: #4CAF50; margin-bottom: 14px; }
+        .overlay-panel.lost h2 { color: #c62828; }
+        .overlay-panel.wide { max-width: 640px; }
+
+        .match-recap {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 100%;
+            margin: 22px 0;
+            text-align: left;
+        }
+
+        .recap-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            padding: 10px 18px;
+            border-radius: 12px;
+            background: #f5f5f5;
+            font-size: 15px;
+            font-weight: 700;
+            color: #555;
+        }
+
+        .recap-row.won  { background: #e8f7ee; color: #2f7a34; }
+        .recap-row.lost { background: #fdeaea; color: #c62828; }
+
+        .recap-round-num { color: #999; font-weight: 700; min-width: 70px; }
+        .recap-country-info { flex: 1; display: flex; align-items: center; justify-content: center; gap: 12px; }
+        .recap-country   { text-align: center; }
+        .recap-result    { min-width: 70px; text-align: right; }
+
+        .recap-flag img {
+            width: 56px;
+            height: 42px;
+            object-fit: cover;
+            border-radius: 6px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .overlay-flag img {
+            width: 220px;
+            height: 165px;
+            object-fit: cover;
+            border-radius: 12px;
+            box-shadow: var(--shadow-md);
+            margin: 16px 0;
+        }
+
+        .overlay-sub { font-size: var(--font-md); color: #444; margin-bottom: 6px; }
+        .overlay-note { font-size: 14px; color: #888; margin-top: 10px; }
+
+        .overlay-actions {
+            display: flex;
+            gap: 14px;
+            justify-content: center;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .overlay-btn {
+            padding: 12px 26px;
+            font-size: var(--font-base);
+            font-weight: bold;
+            border-radius: 999px;
+        }
+
+        .overlay-btn.primary {
+            background: linear-gradient(135deg, #4CAF50, #3f9142);
+            color: white;
+            box-shadow: 0 8px 18px rgba(0,0,0,0.25);
+        }
+
+        .overlay-btn.secondary {
+            background: white;
+            color: #4CAF50;
+            border: 2px solid #4CAF50;
+        }
+
+        .overlay-btn.primary:hover, .overlay-btn.secondary:hover { transform: translateY(-2px); }
+
+        /* -------------------- Rules panel -------------------- */
+
+        .rules-panel {
+            height: 100%;
+            width: 380px;
+            max-width: 85vw;
+            position: fixed;
+            z-index: 101;
+            top: 0;
+            right: 0;
+            background: white;
+            overflow-y: auto;
+            transform: translateX(100%);
+            transition: transform 0.4s ease;
+            padding: 30px 25px;
+            box-shadow: -10px 0 30px rgba(0,0,0,0.25);
+        }
+
+        .rules-panel.open { transform: translateX(0); }
+
+        .rules-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.35);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s ease;
+            z-index: 100;
+        }
+
+        .rules-backdrop.active { opacity: 1; pointer-events: auto; }
+
+        .rules-panel h2 { color: #4CAF50; margin-bottom: 15px; }
+        .rules-panel p { margin: 10px 0; color: #333; }
+
+        .close-rules {
+            position: absolute;
+            top: 15px;
+            right: 25px;
+            font-size: 32px;
+            cursor: pointer;
+            color: #4CAF50;
+        }
+    </style>
+</head>
+
+<body th:attr="data-room-code=${roomCode},data-player-token=${playerToken}">
+
+<div class="badge-stack">
+    <div class="badge" th:classappend="${difficulty.name() eq 'EASY'} ? 'easy' : 'hard'">
+        <span th:text="${difficulty.name() eq 'EASY'} ? '🟢 EASY FLAGS' : '🔴 HARD FLAGS'">HARD FLAGS</span>
+    </div>
+    <div class="badge room">
+        <span th:text="'🔑 ROOM: ' + ${roomCode}">ROOM: ABC123</span>
+    </div>
+    <div class="badge format">
+        <span th:text="'🎯 BEST OF ' + ${bestOf}">BEST OF 3</span>
+    </div>
+</div>
+
+<div class="top-right-actions">
+    <button class="pause-btn" id="pauseBtn">⏸ PAUSE</button>
+    <button class="rules-btn" onclick="openRules()">RULES</button>
+</div>
+
+<h1>⚔️👥 1v1 vs Friend</h1>
+
+<div class="scoreboard">
+    <div class="round-indicator" id="roundIndicator"
+         th:text="'Round 1 of ' + ${bestOf} + ' (first to ' + ${pointsToWin} + ')'">Round 1 of 3 (first to 2)</div>
+    <div class="score-line">
+        <span class="score-you" id="humanScoreText">0</span>
+        <span class="score-sep">YOU - OPPONENT</span>
+        <span class="score-ai" id="aiScoreText">0</span>
+    </div>
+    <div class="match-clock" id="matchClock">00:00</div>
+</div>
+
+<div class="match-columns">
+
+    <div class="column your-column">
+        <div class="column-title">🙋 You</div>
+
+        <form class="guess-form" id="guessForm" autocomplete="off">
+            <input type="text" id="countryInput" placeholder="Enter country name" required list="countries">
+            <datalist id="countries">
+                <option th:each="c : ${allCountries}" th:value="${c.name}"/>
+            </datalist>
+            <button type="submit" class="guess-btn" id="guessBtn">GUESS</button>
+        </form>
+
+        <div class="attempts-text">Attempts this round: <span id="humanAttemptsText">0</span></div>
+
+        <button class="giveup-btn" id="giveupBtn">GIVE UP ROUND</button>
+
+        <div class="guesses" id="guessesList"></div>
+    </div>
+
+    <div class="column opponent-column">
+        <div class="column-title">👤 Opponent</div>
+
+        <div class="opponent-panel">
+            <div class="opponent-percent"><span id="aiPercent">0</span>%</div>
+            <div class="opponent-percent-label">of the flag matched</div>
+            <div class="progress-track"><div class="progress-fill" id="aiProgressBar"></div></div>
+            <div class="opponent-status" id="aiStatusText">🤔 Thinking...</div>
+            <div class="opponent-attempts">Attempts: <span id="aiAttemptsText">0</span></div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Pause overlay -->
+<div class="overlay-backdrop" id="pauseOverlay">
+    <div class="overlay-panel" id="pauseOverlayPanel">
+        <h2>⏸ Match Paused</h2>
+        <div class="overlay-sub" id="pauseOverlaySub">The clock is frozen for both of you - pick up whenever you're ready.</div>
+        <div class="overlay-note" id="pauseCountdownText">Auto-resumes in 60s if nobody resumes first.</div>
+        <div class="overlay-actions">
+            <a class="overlay-btn secondary" href="/">🏠 HOME</a>
+            <button class="overlay-btn primary" id="resumeBtn">▶ RESUME</button>
+        </div>
+    </div>
+</div>
+
+<!-- Round-over overlay -->
+<div class="overlay-backdrop" id="roundOverlay">
+    <div class="overlay-panel" id="roundOverlayPanel">
+        <h2 id="roundOverlayTitle">Round Over!</h2>
+        <div class="overlay-flag"><img id="roundOverlayFlag" src="" alt="Correct Flag"></div>
+        <div class="overlay-sub" id="roundOverlaySub">It was ...</div>
+        <div class="overlay-note">Next round starting soon...</div>
+        <div class="overlay-actions">
+            <button class="overlay-btn primary" id="continueBtn">CONTINUE ▶</button>
+        </div>
+    </div>
+</div>
+
+<!-- Match-over overlay -->
+<div class="overlay-backdrop" id="matchOverlay">
+    <div class="overlay-panel wide" id="matchOverlayPanel">
+        <h2 id="matchOverlayTitle">🏆 You Win the Match!</h2>
+        <div class="overlay-sub" id="matchOverlaySub">Final score: 2 - 1</div>
+        <div class="match-recap" id="matchRecap"></div>
+        <div class="overlay-actions">
+            <a class="overlay-btn secondary" href="/">HOME</a>
+            <a class="overlay-btn secondary" href="/Flaggle">FLAGGLE</a>
+            <a class="overlay-btn primary" href="/Flaggle/match/pvp/lobby">NEW GAME</a>
+        </div>
+    </div>
+</div>
+
+<!-- Rules backdrop + panel -->
+<div id="rulesBackdrop" class="rules-backdrop" onclick="closeRules()"></div>
+<div id="rulesPanel" class="rules-panel">
+    <span class="close-rules" onclick="closeRules()">&times;</span>
+    <h2>1v1 vs Friend Rules</h2>
+    <p>You and your friend both try to guess the <strong>exact same flag</strong>, every round. Whoever guesses it correctly first wins the round.</p>
+    <p>You can't see your opponent's actual guesses - only a live <strong>progress percentage</strong> and attempt count, so you know roughly how close they are without ever seeing their flags.</p>
+    <p><strong th:text="'Best of ' + ${bestOf} + ':'">Best of 3:</strong>
+        <span th:text="'first side to win ' + ${pointsToWin} + ' rounds wins the match.'">first side to win 2 rounds wins the match.</span></p>
+    <p>A running clock shows the total time elapsed in the match, just for reference - there's no time limit on this format.</p>
+    <p>You can press <strong>GIVE UP ROUND</strong> to concede a round you're stuck on - your opponent is credited with the win and you both move straight to the next round.</p>
+    <p>Either of you can hit <strong>PAUSE</strong> to freeze the match for up to 60 seconds - each player gets one pause for the whole match, and it auto-resumes if nobody hits resume first.</p>
+</div>
+
+<script th:inline="none">
+    const ROOM_CODE    = document.body.getAttribute('data-room-code');
+    const PLAYER_TOKEN = document.body.getAttribute('data-player-token');
+
+    const guessForm       = document.getElementById('guessForm');
+    const countryInput    = document.getElementById('countryInput');
+    const guessBtn        = document.getElementById('guessBtn');
+    const giveupBtn       = document.getElementById('giveupBtn');
+    const guessesList     = document.getElementById('guessesList');
+    const pauseBtn        = document.getElementById('pauseBtn');
+    const resumeBtn       = document.getElementById('resumeBtn');
+    const pauseOverlay    = document.getElementById('pauseOverlay');
+    const pauseOverlaySub = document.getElementById('pauseOverlaySub');
+    const pauseCountdownText = document.getElementById('pauseCountdownText');
+
+    const roundIndicator     = document.getElementById('roundIndicator');
+    const humanScoreText     = document.getElementById('humanScoreText');
+    const aiScoreText        = document.getElementById('aiScoreText');
+    const matchClock         = document.getElementById('matchClock');
+    const humanAttemptsText  = document.getElementById('humanAttemptsText');
+
+    const aiPercent      = document.getElementById('aiPercent');
+    const aiProgressBar  = document.getElementById('aiProgressBar');
+    const aiStatusText   = document.getElementById('aiStatusText');
+    const aiAttemptsText = document.getElementById('aiAttemptsText');
+
+    const roundOverlay      = document.getElementById('roundOverlay');
+    const roundOverlayPanel = document.getElementById('roundOverlayPanel');
+    const roundOverlayTitle = document.getElementById('roundOverlayTitle');
+    const roundOverlayFlag  = document.getElementById('roundOverlayFlag');
+    const roundOverlaySub   = document.getElementById('roundOverlaySub');
+    const continueBtn       = document.getElementById('continueBtn');
+
+    const matchOverlay      = document.getElementById('matchOverlay');
+    const matchOverlayPanel = document.getElementById('matchOverlayPanel');
+    const matchOverlayTitle = document.getElementById('matchOverlayTitle');
+    const matchOverlaySub   = document.getElementById('matchOverlaySub');
+    const matchRecap        = document.getElementById('matchRecap');
+
+    let busy = false;              // true while a fetch is in-flight
+    let roundOverHandled = false;  // guards against re-triggering the round overlay/advance repeatedly
+    let matchIsOver = false;
+    let isPaused = false;
+    let statusPollTimer = null;
+    let autoAdvanceTimer = null;
+
+    function formatClock(totalSeconds) {
+        const s = Math.max(0, Math.floor(totalSeconds));
+        const mm = String(Math.floor(s / 60)).padStart(2, '0');
+        const ss = String(s % 60).padStart(2, '0');
+        return mm + ':' + ss;
+    }
+
+    function aiStatusLabel(pct) {
+        if (pct >= 100) return '✅ Solved it!';
+        if (pct >= 70)  return '🔥 Very close!';
+        if (pct >= 30)  return '🔍 Getting warmer...';
+        return '🤔 Thinking...';
+    }
+
+    function addGuessCard(name, guessedImg, resultImg) {
+        const row = document.createElement('div');
+        row.className = 'guess-row';
+        row.innerHTML =
+            '<div class="flag">' +
+                '<div class="guess-label">' + name + '</div>' +
+                '<img src="data:image/png;base64,' + guessedImg + '" alt="Guessed Flag">' +
+            '</div>' +
+            '<div class="flag">' +
+                '<div class="guess-label">result</div>' +
+                '<img src="data:image/png;base64,' + resultImg + '" alt="Result Flag">' +
+            '</div>';
+        guessesList.appendChild(row);
+    }
+
+    function setGuessingEnabled(enabled) {
+        countryInput.disabled = !enabled;
+        guessBtn.disabled = !enabled;
+        giveupBtn.disabled = !enabled;
+    }
+
+    function updatePauseButton(data) {
+        pauseBtn.disabled = data.pauseUsedByMe || data.paused || roundOverHandled || matchIsOver;
+        pauseBtn.textContent = data.pauseUsedByMe ? '⏸ PAUSE USED' : '⏸ PAUSE';
+    }
+
+    function handlePauseState(data) {
+        if (data.paused && !isPaused) {
+            isPaused = true;
+            setGuessingEnabled(false);
+            pauseOverlay.classList.add('active');
+        } else if (!data.paused && isPaused) {
+            isPaused = false;
+            pauseOverlay.classList.remove('active');
+            if (!roundOverHandled && !matchIsOver) setGuessingEnabled(true);
+        }
+
+        if (data.paused) {
+            pauseOverlaySub.textContent = data.pausedByMe
+                ? "You paused the match - your opponent can see this too."
+                : "Your opponent paused the match.";
+            pauseCountdownText.textContent = 'Auto-resumes in ' + data.pauseRemainingSeconds + 's if nobody resumes first.';
+        }
+
+        updatePauseButton(data);
+    }
+
+    function applyState(data) {
+        if (!data || data.humanScore === undefined) return;
+
+        humanScoreText.textContent = data.humanScore;
+        aiScoreText.textContent = data.aiScore;
+        roundIndicator.textContent = 'Round ' + data.roundNumber + ' of ' + data.bestOf + ' (first to ' + data.pointsToWin + ')';
+        matchClock.textContent = formatClock(data.matchElapsedSeconds);
+        humanAttemptsText.textContent = data.humanAttempts;
+
+        aiPercent.textContent = data.aiProgressPercent;
+        aiProgressBar.style.width = data.aiProgressPercent + '%';
+        aiStatusText.textContent = aiStatusLabel(data.aiProgressPercent);
+        aiAttemptsText.textContent = data.aiAttempts;
+
+        handlePauseState(data);
+
+        if (data.guessedName) {
+            addGuessCard(data.guessedName, data.guessedFlagBase64, data.resultFlagBase64);
+        }
+
+        if (data.matchOver && !matchIsOver) {
+            matchIsOver = true;
+            showMatchOverlay(data);
+            return;
+        }
+
+        if (data.roundOver && !roundOverHandled && !data.matchOver) {
+            roundOverHandled = true;
+            showRoundOverlay(data);
+        }
+    }
+
+    function showRoundOverlay(data) {
+        setGuessingEnabled(false);
+        clearInterval(statusPollTimer);
+
+        const wonRound = data.roundWinner === 'HUMAN';
+        roundOverlayPanel.classList.toggle('lost', !wonRound);
+        roundOverlayTitle.textContent = wonRound ? '🎉 You won the round!' : '😬 Your opponent got it first!';
+        roundOverlaySub.textContent = 'It was ' + data.targetCountryName;
+        roundOverlayFlag.src = 'data:image/png;base64,' + data.targetFlagBase64;
+        roundOverlay.classList.add('active');
+
+        autoAdvanceTimer = setTimeout(nextRound, 3500);
+    }
+
+    function renderMatchRecap(history) {
+        matchRecap.innerHTML = '';
+        if (!history) return;
+        history.forEach(function (r) {
+            const won = r.winner === 'HUMAN';
+            const row = document.createElement('div');
+            row.className = 'recap-row ' + (won ? 'won' : 'lost');
+            const flagImg = r.targetFlagBase64
+                ? '<div class="recap-flag"><img src="data:image/png;base64,' + r.targetFlagBase64 + '" alt="' + r.targetCountryName + '"></div>'
+                : '';
+            row.innerHTML =
+                '<span class="recap-round-num">Round ' + r.roundNumber + '</span>' +
+                '<span class="recap-country-info">' + flagImg + '<span class="recap-country">' + r.targetCountryName + '</span></span>' +
+                '<span class="recap-result">' + (won ? '🎉 You' : '👤 Opponent') + '</span>';
+            matchRecap.appendChild(row);
+        });
+    }
+
+    function showMatchOverlay(data) {
+        setGuessingEnabled(false);
+        clearInterval(statusPollTimer);
+        clearTimeout(autoAdvanceTimer);
+        roundOverlay.classList.remove('active');
+
+        const won = data.matchWinner === 'HUMAN';
+        matchOverlayPanel.classList.toggle('lost', !won);
+        matchOverlayTitle.textContent = won ? '🏆 You Win the Match!' : '😬 Your Opponent Wins the Match';
+        matchOverlaySub.textContent = 'Final score: ' + data.humanScore + ' - ' + data.aiScore;
+        renderMatchRecap(data.roundHistory);
+        matchOverlay.classList.add('active');
+    }
+
+    async function postForm(url, params) {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: params
+        });
+        return response.json();
+    }
+
+    function roomParams() {
+        return 'roomCode=' + encodeURIComponent(ROOM_CODE) + '&playerToken=' + encodeURIComponent(PLAYER_TOKEN);
+    }
+
+    async function nextRound() {
+        clearTimeout(autoAdvanceTimer);
+        try {
+            const data = await postForm('/Flaggle/match/pvp/nextRound/ajax', roomParams());
+            roundOverlay.classList.remove('active');
+            guessesList.innerHTML = '';
+            roundOverHandled = false;
+            setGuessingEnabled(true);
+            countryInput.value = '';
+            applyState(data);
+            startPolling();
+        } catch (e) {
+            console.error('Next round error:', e);
+        }
+    }
+
+    continueBtn.addEventListener('click', nextRound);
+
+    guessForm.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        if (busy || roundOverHandled || matchIsOver || isPaused) return;
+
+        const countryName = countryInput.value.trim();
+        if (!countryName) return;
+
+        busy = true;
+        try {
+            const data = await postForm(
+                '/Flaggle/match/pvp/guess/ajax',
+                roomParams() + '&countryName=' + encodeURIComponent(countryName)
+            );
+            countryInput.value = '';
+            applyState(data);
+        } catch (err) {
+            console.error('Guess error:', err);
+        } finally {
+            busy = false;
+        }
+    });
+
+    giveupBtn.addEventListener('click', async function () {
+        if (busy || roundOverHandled || matchIsOver || isPaused) return;
+        busy = true;
+        try {
+            const data = await postForm('/Flaggle/match/pvp/giveup/ajax', roomParams());
+            applyState(data);
+        } catch (err) {
+            console.error('Give up error:', err);
+        } finally {
+            busy = false;
+        }
+    });
+
+    pauseBtn.addEventListener('click', async function () {
+        if (busy || pauseBtn.disabled) return;
+        busy = true;
+        try {
+            const data = await postForm('/Flaggle/match/pvp/pause/ajax', roomParams());
+            applyState(data);
+        } catch (err) {
+            console.error('Pause error:', err);
+        } finally {
+            busy = false;
+        }
+    });
+
+    resumeBtn.addEventListener('click', async function () {
+        if (busy) return;
+        busy = true;
+        try {
+            const data = await postForm('/Flaggle/match/pvp/resume/ajax', roomParams());
+            applyState(data);
+        } catch (err) {
+            console.error('Resume error:', err);
+        } finally {
+            busy = false;
+        }
+    });
+
+    async function pollStatus() {
+        if (roundOverHandled || matchIsOver) return;
+        try {
+            const response = await fetch('/Flaggle/match/pvp/status/ajax?' + roomParams());
+            const data = await response.json();
+            applyState(data);
+        } catch (err) {
+            console.error('Status poll error:', err);
+        }
+    }
+
+    function startPolling() {
+        clearInterval(statusPollTimer);
+        statusPollTimer = setInterval(pollStatus, 1000);
+    }
+
+    function openRules() {
+        document.getElementById('rulesPanel').classList.add('open');
+        document.getElementById('rulesBackdrop').classList.add('active');
+    }
+    function closeRules() {
+        document.getElementById('rulesPanel').classList.remove('open');
+        document.getElementById('rulesBackdrop').classList.remove('active');
+    }
+
+    // Global keyboard support so the mouse is never required mid-match:
+    //  - Enter triggers whichever overlay's primary button is currently showing
+    //    (continue past a finished round, play again once the match is over).
+    //  - Any other printable key (or Backspace) jumps focus into the guess input, even if the
+    //    user hasn't clicked it - as long as it isn't currently disabled (e.g. during an overlay).
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') { closeRules(); return; }
+
+        if (e.key === 'Enter') {
+            if (pauseOverlay.classList.contains('active')) { e.preventDefault(); resumeBtn.click(); return; }
+            if (roundOverlay.classList.contains('active')) { e.preventDefault(); continueBtn.click(); return; }
+            if (matchOverlay.classList.contains('active')) {
+                e.preventDefault();
+                const playAgainLink = matchOverlayPanel.querySelector('.overlay-btn.primary');
+                if (playAgainLink) playAgainLink.click();
+            }
+            return;
+        }
+
+        if (e.ctrlKey || e.metaKey || e.altKey) return;
+        const activeTag = document.activeElement ? document.activeElement.tagName : '';
+        if (activeTag === 'INPUT' || activeTag === 'TEXTAREA' || (document.activeElement && document.activeElement.isContentEditable)) return;
+        if (!countryInput.disabled && (e.key.length === 1 || e.key === 'Backspace')) {
+            countryInput.focus();
+        }
+    });
+
+    countryInput.focus();
+
+    // Kick off the first poll immediately, then every second after that
+    pollStatus();
+    startPolling();
+</script>
+
+</body>
+</html>

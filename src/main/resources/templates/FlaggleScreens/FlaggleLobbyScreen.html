@@ -108,7 +108,7 @@
     align-items:center;
     gap:8px;
 
-    font-size:17px;
+    font-size:21px;
     font-weight:bold;
 
     color:#4CAF50;
@@ -149,7 +149,7 @@
 
     h1{
 
-    font-size:72px;
+    font-size:64px;
 
     display:flex;
     justify-content:center;
@@ -164,7 +164,7 @@
 
     .lobby-subtitle{
 
-    font-size:21px;
+    font-size:23px;
 
     color:#4a4a4a;
 
@@ -180,11 +180,11 @@
     z-index:1;
 
     display:grid;
-    grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));
+    grid-template-columns:repeat(4, minmax(230px, 1fr));
     gap:30px;
 
     width:100%;
-    max-width:560px;
+    max-width:1280px;
 
     margin-top:25px;
 
@@ -247,7 +247,7 @@
 
     .mode-icon{
 
-    font-size:44px;
+    font-size:40px;
 
     }
 
@@ -262,7 +262,7 @@
 
     .mode-desc{
 
-    font-size:15px;
+    font-size:23px;
 
     color:#666;
 
@@ -276,7 +276,7 @@
 
     padding:9px 26px;
 
-    font-size:16px;
+    font-size:20px;
     font-weight:bold;
     letter-spacing:1px;
 
@@ -311,6 +311,16 @@
     --accent-dark:#c62828;
     }
 
+    .mode-card.match{
+    --accent:#ab47bc;
+    --accent-dark:#8e24aa;
+    }
+
+    .mode-card.friend{
+    --accent:#26a69a;
+    --accent-dark:#00695c;
+    }
+
   </style>
 </head>
 
@@ -339,7 +349,21 @@
   <a class="mode-card hard" href="/Flaggle/start?difficulty=HARD">
     <div class="mode-icon">🔴</div>
     <h2 class="mode-title">HARD</h2>
-    <p class="mode-desc">Only matches are marked in green — no other colors are revealed</p>
+    <p class="mode-desc">Only matches are marked in green - no other colors are revealed</p>
+    <span class="mode-cta">PLAY</span>
+  </a>
+
+  <a class="mode-card match" href="/Flaggle/match">
+    <div class="mode-icon">⚔️</div>
+    <h2 class="mode-title">1v1 VS COMPUTER</h2>
+    <p class="mode-desc">Race the AI to guess the same flag first</p>
+    <span class="mode-cta">PLAY</span>
+  </a>
+
+  <a class="mode-card friend" href="/Flaggle/match/pvp/lobby">
+    <div class="mode-icon">⚔️👥</div>
+    <h2 class="mode-title">1v1 VS FRIEND</h2>
+    <p class="mode-desc">Create a room, share the code, and race a real friend to guess the same flag first</p>
     <span class="mode-cta">PLAY</span>
   </a>
 

@@ -72,7 +72,7 @@
         input[type="text"] {
             padding: 12px;
             font-size: var(--font-md);
-            width: 260px;
+            width: 40ch;
             text-align: center;
             border-radius: 10px;
             border: 2px solid #4CAF50;
@@ -307,6 +307,7 @@
            name="countryName"
            placeholder="Enter country name"
            required
+           autofocus
            list="countries">
 
     <datalist id="countries">
@@ -358,8 +359,8 @@
     <p>Can you identify the country by its flag?</p>
     <p>Enter a country name and press <strong>GUESS</strong>. After each attempt you will see feedback comparing your guess to the correct flag.</p>
     <p>
-        <span th:if="${difficulty.name() eq 'EASY'}">🟢 <strong>Easy mode:</strong> the correct flag starts out black. Every area you match gets permanently revealed in its true color, building up across all your guesses — use those revealed areas as hints to narrow down your next guess.</span>
-        <span th:unless="${difficulty.name() eq 'EASY'}">🔴 <strong>Hard mode:</strong> areas that don't match are shown in black — only matches are revealed, and nothing carries over between guesses, so use each guess's matches as your only hint before it resets.</span>
+        <span th:if="${difficulty.name() eq 'EASY'}">🟢 <strong>Easy mode:</strong> the correct flag starts out black. Every area you match gets permanently revealed in its true color, building up across all your guesses - use those revealed areas as hints to narrow down your next guess.</span>
+        <span th:unless="${difficulty.name() eq 'EASY'}">🔴 <strong>Hard mode:</strong> areas that don't match are shown in black - only matches are revealed, and nothing carries over between guesses, so use each guess's matches as your only hint before it resets.</span>
     </p>
     <p>Guess correctly to win or press <strong>GIVE UP</strong> to reveal the answer.</p>
 </div>
@@ -375,6 +376,17 @@
     }
     document.addEventListener("keydown", function (e) {
         if (e.key === "Escape") closeRules();
+    });
+
+    // Global keyboard support: any printable key (or Backspace) jumps focus into the guess
+    // input, even if the user hasn't clicked it yet — so the mouse is never required to keep typing.
+    document.addEventListener("keydown", function (e) {
+        if (e.ctrlKey || e.metaKey || e.altKey) return;
+        const activeTag = document.activeElement ? document.activeElement.tagName : "";
+        if (activeTag === "INPUT" || activeTag === "TEXTAREA" || (document.activeElement && document.activeElement.isContentEditable)) return;
+        if (e.key.length === 1 || e.key === "Backspace") {
+            document.querySelector('input[name="countryName"]').focus();
+        }
     });
 </script>
 

@@ -342,6 +342,49 @@ public class GuessResultBL implements java.io.Serializable {
     }
 
     /**
+     * Computes what fraction of the flag's meaningful (non-background/frame) area
+     * is "matched" in a given diff image — used by the 1v1 Match AI opponent to
+     * display a live "% of the flag" progress indicator without ever exposing its
+     * actual guesses to the human player.
+     *
+     * @param diffImage a diff image produced by {@link #calculateFlagDifferences} (HARD)
+     *                  or the EASY accumulated-reveal algorithm
+     * @param easyMode  true if diffImage came from the EASY accumulated-reveal algorithm
+     *                  (matched = any non-black, non-background pixel), false if it came
+     *                  from the HARD algorithm (matched = exactly the green match color)
+     * @return a 0-100 percentage of the flag's relevant area that is matched/revealed
+     */
+    public static int calculateMatchPercentage(BufferedImage diffImage, boolean easyMode) {
+        int width = diffImage.getWidth();
+        int height = diffImage.getHeight();
+
+        int whiteRgb = BACKGROUND_COLOR.getRGB();
+        int blackRgb = BLACK.getRGB();
+        int greenRgb = new Color(0x4CAF50).getRGB();
+
+        long relevant = 0;
+        long matched = 0;
+
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                int rgb = diffImage.getRGB(x, y) | 0xFF000000;
+
+                if (rgb == whiteRgb) continue; // background/frame, ignore
+
+                relevant++;
+                if (easyMode) {
+                    if (rgb != blackRgb) matched++;
+                } else {
+                    if (rgb == greenRgb) matched++;
+                }
+            }
+        }
+
+        if (relevant == 0) return 0;
+        return (int) Math.round((matched * 100.0) / relevant);
+    }
+
+    /**
      * Maps a given color to the closest predefined base color.
      *
      * This helps reduce noise when comparing pixels between two flags.

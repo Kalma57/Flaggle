@@ -405,7 +405,7 @@
          changing difficulty requires going back to the Flaggle lobby instead -->
     <form th:action="@{/Flaggle/start}" method="get">
       <input type="hidden" name="difficulty" th:value="${difficulty.name()}">
-      <button type="submit">Play Again</button>
+      <button type="submit" autofocus>Play Again</button>
     </form>
 
     <button type="button"
