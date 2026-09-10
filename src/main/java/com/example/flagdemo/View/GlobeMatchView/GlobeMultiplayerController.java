@@ -1,61 +1,55 @@
-package com.example.flagdemo.View.MatchView;
+package com.example.flagdemo.View.GlobeMatchView;
 
 import com.example.flagdemo.BusinessLayer.CountryBL;
-import com.example.flagdemo.BusinessLayer.FlaggleBL.DifficultyLevel;
-import com.example.flagdemo.BusinessLayer.FlaggleBL.GuessResultBL;
+import com.example.flagdemo.BusinessLayer.GlobeBL.GuessResultGlobeBL;
+import com.example.flagdemo.BusinessLayer.GlobeBL.ProximityLevel;
+import com.example.flagdemo.BusinessLayer.GlobeMatchBL.GlobePvpMatchRoom;
+import com.example.flagdemo.BusinessLayer.GlobeMatchBL.GlobeRoomRegistryBL;
+import com.example.flagdemo.BusinessLayer.GlobeMatchBL.PvpGlobeBlitzEngineBL;
+import com.example.flagdemo.BusinessLayer.GlobeMatchBL.PvpGlobeMatchEngineBL;
 import com.example.flagdemo.BusinessLayer.MatchBL.BlitzFlagResult;
-import com.example.flagdemo.BusinessLayer.MatchBL.GameRoomRegistryBL;
-import com.example.flagdemo.BusinessLayer.MatchBL.PvpBlitzEngineBL;
 import com.example.flagdemo.BusinessLayer.MatchBL.PvpGameMode;
-import com.example.flagdemo.BusinessLayer.MatchBL.PvpMatchEngineBL;
-import com.example.flagdemo.BusinessLayer.MatchBL.PvpMatchRoom;
 import com.example.flagdemo.BusinessLayer.MatchBL.PvpRoomStatus;
 import com.example.flagdemo.BusinessLayer.MatchBL.PvpRoundResult;
 import com.example.flagdemo.BusinessLayer.MatchBL.PvpRoundWinner;
 import com.example.flagdemo.DataAccessLayer.CountryController;
-import com.example.flagdemo.ViewModel.MatchVM.PvpBlitzViewModel;
-import com.example.flagdemo.ViewModel.MatchVM.PvpMatchViewModel;
+import com.example.flagdemo.ViewModel.GlobeMatchVM.PvpGlobeBlitzViewModel;
+import com.example.flagdemo.ViewModel.GlobeMatchVM.PvpGlobeMatchViewModel;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.sql.SQLException;
 import java.util.*;
 
 /**
- * View layer for the real 1v1 "vs Friend" Flaggle Match modes ("Best of N" and Blitz).
+ * View layer for the real 1v1 "vs Friend" Globe Match modes ("Best of N" and Blitz).
  *
- * Unlike {@link FlaggleMatchController}/{@link FlaggleBlitzController} (vs an AI
- * opponent, state lives entirely in one browser's {@code HttpSession}), here TWO real
- * browsers act on the SAME shared {@link PvpMatchRoom} held by {@link GameRoomRegistryBL}
- * - each browser only stores its own opaque player token in its own session (so a
- * refresh doesn't lose identity), never the match state itself. A room hosts EITHER a
- * "Best of N" match or a Blitz match, decided at creation time.
+ * Mirrors {@link com.example.flagdemo.View.MatchView.FlaggleMultiplayerController} exactly:
+ * TWO real browsers act on the SAME shared {@link GlobePvpMatchRoom} held by
+ * {@link GlobeRoomRegistryBL} - each browser only stores its own opaque player token in its
+ * own session, never the match state itself. A room hosts EITHER a "Best of N" match or a
+ * Blitz match, decided at creation time. There is no difficulty level (Globe has none), and
+ * flag-image fields are replaced by Globe's location-based ones (colorHex/distance/
+ * proximityLevel/lat-lon).
  *
  * The JSON shape returned by the AJAX endpoints intentionally mirrors the vs-Computer
  * controllers' as closely as possible (humanScore/aiScore, humanAttempts/aiAttempts,
- * aiProgressPercent, roundOver/matchOver, roundWinner as HUMAN/AI, etc.) from the
- * CALLING player's own point of view, so the vs-Computer screens' frontend JS could be
- * adapted with minimal changes: "human" always means "the player who owns this
- * browser's token", "ai" always means "the other real player".
+ * aiProgressLevel, roundOver/matchOver, roundWinner as HUMAN/AI, etc.) from the CALLING
+ * player's own point of view: "human" always means "the player who owns this browser's
+ * token", "ai" always means "the other real player".
  */
 @Controller
-@RequestMapping("/Flaggle/match/pvp")
-public class FlaggleMultiplayerController {
+@RequestMapping("/Globe/match/pvp")
+public class GlobeMultiplayerController {
 
     private static final Set<Integer> VALID_BEST_OF = Set.of(3, 5, 7);
     private static final Set<Integer> VALID_DURATIONS_SECONDS = Set.of(60, 120);
 
     private final CountryController countryController;
-    private final GameRoomRegistryBL registry;
+    private final GlobeRoomRegistryBL registry;
 
-    public FlaggleMultiplayerController(CountryController countryController, GameRoomRegistryBL registry) {
+    public GlobeMultiplayerController(CountryController countryController, GlobeRoomRegistryBL registry) {
         this.countryController = countryController;
         this.registry = registry;
     }
@@ -63,13 +57,12 @@ public class FlaggleMultiplayerController {
     /** Create-a-game / join-a-game landing screen. */
     @GetMapping("/lobby")
     public String lobby() {
-        return "FlaggleScreens/FlaggleMultiplayerLobbyScreen";
+        return "GlobeScreens/GlobeMultiplayerLobbyScreen";
     }
 
     /** Player 1 creates a new "Best of N" room and lands on the "waiting for opponent" screen. */
     @PostMapping("/create")
     public String create(
-            @RequestParam(name = "difficulty", defaultValue = "HARD") DifficultyLevel difficulty,
             @RequestParam(name = "bestOf", defaultValue = "3") int bestOf,
             Model model,
             HttpSession session) {
@@ -77,19 +70,18 @@ public class FlaggleMultiplayerController {
         bestOf = normalizeBestOf(bestOf);
 
         String token = UUID.randomUUID().toString();
-        PvpMatchRoom room = registry.createRoom(difficulty, bestOf, token);
-        session.setAttribute("pvpToken_" + room.getRoomCode(), token);
+        GlobePvpMatchRoom room = registry.createRoom(bestOf, token);
+        session.setAttribute("pvpGlobeToken_" + room.getRoomCode(), token);
 
         model.addAttribute("roomCode", room.getRoomCode());
         model.addAttribute("playerToken", token);
 
-        return "FlaggleScreens/FlaggleMultiplayerWaitingScreen";
+        return "GlobeScreens/GlobeMultiplayerWaitingScreen";
     }
 
     /** Player 1 creates a new Blitz room and lands on the "waiting for opponent" screen. */
     @PostMapping("/blitz/create")
     public String createBlitz(
-            @RequestParam(name = "difficulty", defaultValue = "HARD") DifficultyLevel difficulty,
             @RequestParam(name = "durationSeconds", defaultValue = "60") int durationSeconds,
             Model model,
             HttpSession session) {
@@ -97,13 +89,13 @@ public class FlaggleMultiplayerController {
         durationSeconds = normalizeDuration(durationSeconds);
 
         String token = UUID.randomUUID().toString();
-        PvpMatchRoom room = registry.createBlitzRoom(difficulty, durationSeconds, token);
-        session.setAttribute("pvpToken_" + room.getRoomCode(), token);
+        GlobePvpMatchRoom room = registry.createBlitzRoom(durationSeconds, token);
+        session.setAttribute("pvpGlobeToken_" + room.getRoomCode(), token);
 
         model.addAttribute("roomCode", room.getRoomCode());
         model.addAttribute("playerToken", token);
 
-        return "FlaggleScreens/FlaggleMultiplayerWaitingScreen";
+        return "GlobeScreens/GlobeMultiplayerWaitingScreen";
     }
 
     /** Player 2 joins an existing room by code and lands straight on the match screen. */
@@ -111,22 +103,22 @@ public class FlaggleMultiplayerController {
     public String join(
             @RequestParam("roomCode") String roomCode,
             Model model,
-            HttpSession session) throws SQLException {
+            HttpSession session) {
 
-        PvpMatchRoom room = registry.getRoom(roomCode);
+        GlobePvpMatchRoom room = registry.getRoom(roomCode);
         if (room == null) {
             model.addAttribute("joinError", "Room not found - double check the code and try again.");
-            return "FlaggleScreens/FlaggleMultiplayerLobbyScreen";
+            return "GlobeScreens/GlobeMultiplayerLobbyScreen";
         }
 
         String token = UUID.randomUUID().toString();
         boolean joined = room.joinPlayer2(token);
         if (!joined) {
             model.addAttribute("joinError", "That room is already full or the match is already over.");
-            return "FlaggleScreens/FlaggleMultiplayerLobbyScreen";
+            return "GlobeScreens/GlobeMultiplayerLobbyScreen";
         }
 
-        session.setAttribute("pvpToken_" + room.getRoomCode(), token);
+        session.setAttribute("pvpGlobeToken_" + room.getRoomCode(), token);
         return renderMatchScreen(room, 2, model);
     }
 
@@ -141,45 +133,44 @@ public class FlaggleMultiplayerController {
             Model model,
             HttpSession session) {
 
-        PvpMatchRoom room = registry.getRoom(roomCode);
+        GlobePvpMatchRoom room = registry.getRoom(roomCode);
         if (room == null) {
             model.addAttribute("joinError", "That room no longer exists - it may have expired.");
-            return "FlaggleScreens/FlaggleMultiplayerLobbyScreen";
+            return "GlobeScreens/GlobeMultiplayerLobbyScreen";
         }
 
-        String token = (String) session.getAttribute("pvpToken_" + room.getRoomCode());
+        String token = (String) session.getAttribute("pvpGlobeToken_" + room.getRoomCode());
         int slot = room.slotForToken(token);
         if (slot == 0) {
             model.addAttribute("joinError", "You're not part of that room from this browser.");
-            return "FlaggleScreens/FlaggleMultiplayerLobbyScreen";
+            return "GlobeScreens/GlobeMultiplayerLobbyScreen";
         }
 
         if (room.getStatus() == PvpRoomStatus.WAITING_FOR_OPPONENT) {
             model.addAttribute("roomCode", room.getRoomCode());
             model.addAttribute("playerToken", token);
-            return "FlaggleScreens/FlaggleMultiplayerWaitingScreen";
+            return "GlobeScreens/GlobeMultiplayerWaitingScreen";
         }
 
         room.touch();
         return renderMatchScreen(room, slot, model);
     }
 
-    private String renderMatchScreen(PvpMatchRoom room, int slot, Model model) {
+    private String renderMatchScreen(GlobePvpMatchRoom room, int slot, Model model) {
         model.addAttribute("roomCode", room.getRoomCode());
         model.addAttribute("playerToken", slot == 1 ? room.getPlayer1Token() : room.getPlayer2Token());
         model.addAttribute("mySlot", slot);
-        model.addAttribute("difficulty", room.getDifficulty());
         model.addAttribute("allCountries", countryController.getAllCountries());
 
         if (room.getGameMode() == PvpGameMode.BLITZ) {
             model.addAttribute("durationSeconds", room.getDurationSeconds());
             model.addAttribute("durationMinutes", room.getDurationSeconds() / 60);
-            return "FlaggleScreens/FlagglePvpBlitzScreen";
+            return "GlobeScreens/GlobePvpBlitzScreen";
         }
 
         model.addAttribute("bestOf", room.getBestOf());
         model.addAttribute("pointsToWin", room.getPointsToWin());
-        return "FlaggleScreens/FlagglePvpMatchScreen";
+        return "GlobeScreens/GlobePvpMatchScreen";
     }
 
     private int normalizeBestOf(int bestOf) {
@@ -199,15 +190,15 @@ public class FlaggleMultiplayerController {
             @RequestParam("playerToken") String playerToken,
             @RequestParam("countryName") String countryName) {
 
-        PvpMatchRoom room = registry.getRoom(roomCode);
+        GlobePvpMatchRoom room = registry.getRoom(roomCode);
         if (room == null || room.getEngine() == null) return Collections.emptyMap();
 
         int slot = room.slotForToken(playerToken);
         if (slot == 0) return Collections.emptyMap();
 
         room.touch();
-        PvpMatchViewModel viewModel = new PvpMatchViewModel(room, slot);
-        GuessResultBL result = viewModel.submitGuess(countryName);
+        PvpGlobeMatchViewModel viewModel = new PvpGlobeMatchViewModel(room, slot);
+        GuessResultGlobeBL result = viewModel.submitGuess(countryName);
         return buildStatePayload(viewModel, result);
     }
 
@@ -217,14 +208,14 @@ public class FlaggleMultiplayerController {
             @RequestParam("roomCode") String roomCode,
             @RequestParam("playerToken") String playerToken) {
 
-        PvpMatchRoom room = registry.getRoom(roomCode);
+        GlobePvpMatchRoom room = registry.getRoom(roomCode);
         if (room == null || room.getEngine() == null) return Collections.emptyMap();
 
         int slot = room.slotForToken(playerToken);
         if (slot == 0) return Collections.emptyMap();
 
         room.touch();
-        PvpMatchViewModel viewModel = new PvpMatchViewModel(room, slot);
+        PvpGlobeMatchViewModel viewModel = new PvpGlobeMatchViewModel(room, slot);
         viewModel.giveUpRound();
         return buildStatePayload(viewModel, null);
     }
@@ -233,24 +224,46 @@ public class FlaggleMultiplayerController {
      * Marks the calling player "ready" for the next round, then advances the round if
      * that was enough (both players ready, or the ready-up grace window already elapsed).
      * Kept at its original URL for minimal frontend churn, even though it no longer
-     * unconditionally advances the round on its own - see {@link PvpMatchEngineBL#markReady(int)}.
+     * unconditionally advances the round on its own - see {@link PvpGlobeMatchEngineBL#markReady(int)}.
      */
     @PostMapping("/nextRound/ajax")
     @ResponseBody
     public Map<String, Object> nextRoundAjax(
             @RequestParam("roomCode") String roomCode,
-            @RequestParam("playerToken") String playerToken) throws SQLException {
+            @RequestParam("playerToken") String playerToken) {
 
-        PvpMatchRoom room = registry.getRoom(roomCode);
+        GlobePvpMatchRoom room = registry.getRoom(roomCode);
         if (room == null || room.getEngine() == null) return Collections.emptyMap();
 
         int slot = room.slotForToken(playerToken);
         if (slot == 0) return Collections.emptyMap();
 
         room.touch();
-        PvpMatchViewModel viewModel = new PvpMatchViewModel(room, slot);
+        PvpGlobeMatchViewModel viewModel = new PvpGlobeMatchViewModel(room, slot);
         viewModel.markReady();
         viewModel.advanceToNextRound();
+        return buildStatePayload(viewModel, null);
+    }
+
+    /**
+     * Reveals one more letter of the target's name to the calling player only - costs them
+     * a guessing lockout, see {@link PvpGlobeMatchEngineBL#useHint(int)}.
+     */
+    @PostMapping("/hint/ajax")
+    @ResponseBody
+    public Map<String, Object> hintAjax(
+            @RequestParam("roomCode") String roomCode,
+            @RequestParam("playerToken") String playerToken) {
+
+        GlobePvpMatchRoom room = registry.getRoom(roomCode);
+        if (room == null || room.getEngine() == null) return Collections.emptyMap();
+
+        int slot = room.slotForToken(playerToken);
+        if (slot == 0) return Collections.emptyMap();
+
+        room.touch();
+        PvpGlobeMatchViewModel viewModel = new PvpGlobeMatchViewModel(room, slot);
+        viewModel.useHint();
         return buildStatePayload(viewModel, null);
     }
 
@@ -264,9 +277,9 @@ public class FlaggleMultiplayerController {
     @ResponseBody
     public Map<String, Object> statusAjax(
             @RequestParam("roomCode") String roomCode,
-            @RequestParam("playerToken") String playerToken) throws SQLException {
+            @RequestParam("playerToken") String playerToken) {
 
-        PvpMatchRoom room = registry.getRoom(roomCode);
+        GlobePvpMatchRoom room = registry.getRoom(roomCode);
         if (room == null) {
             Map<String, Object> data = new HashMap<>();
             data.put("roomStatus", "NOT_FOUND");
@@ -290,14 +303,14 @@ public class FlaggleMultiplayerController {
         // clicks Ready - both browsers poll this every second, so whichever one hits it
         // first (or either, once both are ready) starts the next round for both of them.
         room.getEngine().advanceToNextRound();
-        PvpMatchViewModel viewModel = new PvpMatchViewModel(room, slot);
+        PvpGlobeMatchViewModel viewModel = new PvpGlobeMatchViewModel(room, slot);
         return buildStatePayload(viewModel, null);
     }
 
     /**
      * Either real player can pause - each gets exactly one pause for the whole match
-     * (see {@link PvpMatchEngineBL#pauseMatch(int)}). Both browsers pick up the paused
-     * state on their next status poll, since the clock is shared.
+     * (see {@link PvpGlobeMatchEngineBL#pauseMatch(int)}). Both browsers pick up the
+     * paused state on their next status poll, since the clock is shared.
      */
     @PostMapping("/pause/ajax")
     @ResponseBody
@@ -305,7 +318,7 @@ public class FlaggleMultiplayerController {
             @RequestParam("roomCode") String roomCode,
             @RequestParam("playerToken") String playerToken) {
 
-        PvpMatchRoom room = registry.getRoom(roomCode);
+        GlobePvpMatchRoom room = registry.getRoom(roomCode);
         if (room == null || room.getEngine() == null) return Collections.emptyMap();
 
         int slot = room.slotForToken(playerToken);
@@ -313,7 +326,7 @@ public class FlaggleMultiplayerController {
 
         room.touch();
         room.getEngine().pauseMatch(slot);
-        PvpMatchViewModel viewModel = new PvpMatchViewModel(room, slot);
+        PvpGlobeMatchViewModel viewModel = new PvpGlobeMatchViewModel(room, slot);
         return buildStatePayload(viewModel, null);
     }
 
@@ -324,7 +337,7 @@ public class FlaggleMultiplayerController {
             @RequestParam("roomCode") String roomCode,
             @RequestParam("playerToken") String playerToken) {
 
-        PvpMatchRoom room = registry.getRoom(roomCode);
+        GlobePvpMatchRoom room = registry.getRoom(roomCode);
         if (room == null || room.getEngine() == null) return Collections.emptyMap();
 
         int slot = room.slotForToken(playerToken);
@@ -332,7 +345,7 @@ public class FlaggleMultiplayerController {
 
         room.touch();
         room.getEngine().resumeMatch();
-        PvpMatchViewModel viewModel = new PvpMatchViewModel(room, slot);
+        PvpGlobeMatchViewModel viewModel = new PvpGlobeMatchViewModel(room, slot);
         return buildStatePayload(viewModel, null);
     }
 
@@ -343,8 +356,8 @@ public class FlaggleMultiplayerController {
      * no changes to drive this screen's identical layout off real opponent data instead
      * of a simulated AI.
      */
-    private Map<String, Object> buildStatePayload(PvpMatchViewModel viewModel, GuessResultBL lastGuess) {
-        PvpMatchEngineBL engine = viewModel.getEngine();
+    private Map<String, Object> buildStatePayload(PvpGlobeMatchViewModel viewModel, GuessResultGlobeBL lastGuess) {
+        PvpGlobeMatchEngineBL engine = viewModel.getEngine();
         int mySlot = viewModel.getMySlot();
         int opponentSlot = mySlot == 1 ? 2 : 1;
 
@@ -361,6 +374,15 @@ public class FlaggleMultiplayerController {
         data.put("humanAttempts", engine.getAttempts(mySlot));
         data.put("matchElapsedSeconds", engine.getMatchElapsedSeconds());
         data.put("roundElapsedSeconds", engine.getRoundElapsedSeconds());
+        data.put("hintMask", engine.getHintMaskedName(mySlot));
+        data.put("hintsUsed", engine.getHintsUsedThisRound(mySlot));
+        // Opponent's hint count is visible live too - it's what the grace-period math is based on.
+        data.put("aiHintsUsed", engine.getHintsUsedThisRound(opponentSlot));
+        data.put("lastRoundDurationSeconds", engine.getLastRoundDurationSeconds());
+        // Provisional win / grace period - see PvpGlobeMatchEngineBL#submitGuess. Only
+        // meaningful while roundOver is still false (a real, decided round-over always wins).
+        data.put("provisionalWinner", mapWinner(engine.getProvisionalWinner(), mySlot));
+        data.put("graceRemainingSeconds", (int) Math.ceil(engine.getGraceRemainingSeconds()));
 
         boolean paused = engine.isPaused();
         data.put("paused", paused);
@@ -369,9 +391,11 @@ public class FlaggleMultiplayerController {
         data.put("pauseUsedByOpponent", engine.hasUsedPause(opponentSlot));
         data.put("pauseRemainingSeconds", paused ? (int) Math.ceil(engine.getPauseRemainingMillis() / 1000.0) : 0);
 
-        // Opponent progress - percentage/attempt-count only, never real guesses
+        // Opponent progress - best proximity band reached so far, never the real guesses
         data.put("aiAttempts", engine.getAttempts(opponentSlot));
-        data.put("aiProgressPercent", engine.getProgressPercent(opponentSlot));
+        ProximityLevel aiProgressLevel = engine.getProgressLevel(opponentSlot);
+        data.put("aiProgressLevel", aiProgressLevel != null ? aiProgressLevel.name() : null);
+        data.put("aiProgressColorHex", aiProgressLevel != null ? aiProgressLevel.getColorHex() : null);
 
         boolean roundOver = engine.isRoundOver();
         data.put("roundOver", roundOver);
@@ -396,7 +420,8 @@ public class FlaggleMultiplayerController {
 
                 CountryBL roundTarget = countryController.getCountryByName(round.getTargetCountryName());
                 if (roundTarget != null) {
-                    roundData.put("targetFlagBase64", encodeToBase64(roundTarget.getFlagImage()));
+                    roundData.put("targetLat", roundTarget.getLatitude());
+                    roundData.put("targetLon", roundTarget.getLongitude());
                 }
 
                 history.add(roundData);
@@ -406,15 +431,20 @@ public class FlaggleMultiplayerController {
 
         if (lastGuess != null) {
             data.put("guessedName", lastGuess.getGuessedCountry().getName());
-            data.put("guessedFlagBase64", lastGuess.getGuessedFlagBase64());
-            data.put("resultFlagBase64", lastGuess.getFlagDifferencesBase64());
             data.put("correct", lastGuess.isCorrect());
+            data.put("colorHex", lastGuess.getColorHex());
+            data.put("distance", lastGuess.getDistance());
+            data.put("proximityLevel", lastGuess.getProximityLevel().name());
+            data.put("lat", lastGuess.getGuessedCountry().getLatitude());
+            data.put("lon", lastGuess.getGuessedCountry().getLongitude());
+            data.put("flagPath", lastGuess.getGuessedCountry().getFlagPath());
         }
 
         if (roundOver) {
             CountryBL target = engine.getCurrentTarget();
             data.put("targetCountryName", target.getName());
-            data.put("targetFlagBase64", encodeToBase64(target.getFlagImage()));
+            data.put("targetLat", target.getLatitude());
+            data.put("targetLon", target.getLongitude());
         }
 
         return data;
@@ -429,33 +459,33 @@ public class FlaggleMultiplayerController {
             @RequestParam("playerToken") String playerToken,
             @RequestParam("countryName") String countryName) {
 
-        PvpMatchRoom room = registry.getRoom(roomCode);
+        GlobePvpMatchRoom room = registry.getRoom(roomCode);
         if (room == null || room.getBlitzEngine() == null) return Collections.emptyMap();
 
         int slot = room.slotForToken(playerToken);
         if (slot == 0) return Collections.emptyMap();
 
         room.touch();
-        PvpBlitzViewModel viewModel = new PvpBlitzViewModel(room, slot);
-        GuessResultBL result = viewModel.submitGuess(countryName);
+        PvpGlobeBlitzViewModel viewModel = new PvpGlobeBlitzViewModel(room, slot);
+        GuessResultGlobeBL result = viewModel.submitGuess(countryName);
         return buildBlitzStatePayload(viewModel, result, null);
     }
 
-    /** Gives up on the CURRENT flag (not a round - Blitz has no rounds). */
+    /** Gives up on the CURRENT country (not a round - Blitz has no rounds). */
     @PostMapping("/blitz/giveup/ajax")
     @ResponseBody
     public Map<String, Object> blitzGiveUpAjax(
             @RequestParam("roomCode") String roomCode,
             @RequestParam("playerToken") String playerToken) {
 
-        PvpMatchRoom room = registry.getRoom(roomCode);
+        GlobePvpMatchRoom room = registry.getRoom(roomCode);
         if (room == null || room.getBlitzEngine() == null) return Collections.emptyMap();
 
         int slot = room.slotForToken(playerToken);
         if (slot == 0) return Collections.emptyMap();
 
         room.touch();
-        PvpBlitzViewModel viewModel = new PvpBlitzViewModel(room, slot);
+        PvpGlobeBlitzViewModel viewModel = new PvpGlobeBlitzViewModel(room, slot);
         String givenUpName = viewModel.giveUpFlag();
         return buildBlitzStatePayload(viewModel, null, givenUpName);
     }
@@ -466,7 +496,7 @@ public class FlaggleMultiplayerController {
             @RequestParam("roomCode") String roomCode,
             @RequestParam("playerToken") String playerToken) {
 
-        PvpMatchRoom room = registry.getRoom(roomCode);
+        GlobePvpMatchRoom room = registry.getRoom(roomCode);
         if (room == null) {
             Map<String, Object> data = new HashMap<>();
             data.put("roomStatus", "NOT_FOUND");
@@ -486,7 +516,7 @@ public class FlaggleMultiplayerController {
         }
 
         room.getBlitzEngine().refreshState();
-        PvpBlitzViewModel viewModel = new PvpBlitzViewModel(room, slot);
+        PvpGlobeBlitzViewModel viewModel = new PvpGlobeBlitzViewModel(room, slot);
         return buildBlitzStatePayload(viewModel, null, null);
     }
 
@@ -497,7 +527,7 @@ public class FlaggleMultiplayerController {
             @RequestParam("roomCode") String roomCode,
             @RequestParam("playerToken") String playerToken) {
 
-        PvpMatchRoom room = registry.getRoom(roomCode);
+        GlobePvpMatchRoom room = registry.getRoom(roomCode);
         if (room == null || room.getBlitzEngine() == null) return Collections.emptyMap();
 
         int slot = room.slotForToken(playerToken);
@@ -505,7 +535,7 @@ public class FlaggleMultiplayerController {
 
         room.touch();
         room.getBlitzEngine().pauseMatch(slot);
-        PvpBlitzViewModel viewModel = new PvpBlitzViewModel(room, slot);
+        PvpGlobeBlitzViewModel viewModel = new PvpGlobeBlitzViewModel(room, slot);
         return buildBlitzStatePayload(viewModel, null, null);
     }
 
@@ -516,7 +546,7 @@ public class FlaggleMultiplayerController {
             @RequestParam("roomCode") String roomCode,
             @RequestParam("playerToken") String playerToken) {
 
-        PvpMatchRoom room = registry.getRoom(roomCode);
+        GlobePvpMatchRoom room = registry.getRoom(roomCode);
         if (room == null || room.getBlitzEngine() == null) return Collections.emptyMap();
 
         int slot = room.slotForToken(playerToken);
@@ -524,17 +554,17 @@ public class FlaggleMultiplayerController {
 
         room.touch();
         room.getBlitzEngine().resumeMatch();
-        PvpBlitzViewModel viewModel = new PvpBlitzViewModel(room, slot);
+        PvpGlobeBlitzViewModel viewModel = new PvpGlobeBlitzViewModel(room, slot);
         return buildBlitzStatePayload(viewModel, null, null);
     }
 
     /**
      * Builds the JSON payload sent to the frontend after any Blitz action, from the
      * calling player's own point of view - mirrors {@link #buildStatePayload} and the
-     * vs-Computer {@code FlaggleBlitzController}'s payload shape.
+     * vs-Computer {@code GlobeBlitzController}'s payload shape.
      */
-    private Map<String, Object> buildBlitzStatePayload(PvpBlitzViewModel viewModel, GuessResultBL lastGuess, String givenUpName) {
-        PvpBlitzEngineBL engine = viewModel.getEngine();
+    private Map<String, Object> buildBlitzStatePayload(PvpGlobeBlitzViewModel viewModel, GuessResultGlobeBL lastGuess, String givenUpName) {
+        PvpGlobeBlitzEngineBL engine = viewModel.getEngine();
         int mySlot = viewModel.getMySlot();
         int opponentSlot = mySlot == 1 ? 2 : 1;
 
@@ -557,9 +587,11 @@ public class FlaggleMultiplayerController {
         data.put("pauseUsedByOpponent", engine.hasUsedPause(opponentSlot));
         data.put("pauseRemainingSeconds", paused ? (int) Math.ceil(engine.getPauseRemainingMillis() / 1000.0) : 0);
 
-        // Opponent progress - percentage/attempt-count only, never real guesses
+        // Opponent progress - best proximity band reached so far, never the real guesses
         data.put("aiAttempts", engine.getAttemptsThisFlag(opponentSlot));
-        data.put("aiProgressPercent", engine.getProgressPercent(opponentSlot));
+        ProximityLevel aiProgressLevel = engine.getProgressLevel(opponentSlot);
+        data.put("aiProgressLevel", aiProgressLevel != null ? aiProgressLevel.name() : null);
+        data.put("aiProgressColorHex", aiProgressLevel != null ? aiProgressLevel.getColorHex() : null);
 
         boolean matchOver = engine.isMatchOver();
         data.put("matchOver", matchOver);
@@ -569,8 +601,8 @@ public class FlaggleMultiplayerController {
             List<BlitzFlagResult> myHistory = engine.getHistory(mySlot);
             List<BlitzFlagResult> oppHistory = engine.getHistory(opponentSlot);
 
-            // Stats-only totals: every guess attempt made, across every flag, win or lose -
-            // includes whatever partial attempts were in progress on the flag each side was
+            // Stats-only totals: every guess attempt made, across every country, win or lose -
+            // includes whatever partial attempts were in progress on the country each side was
             // still stuck on when the clock ran out.
             int totalHumanGuesses = myHistory.stream().mapToInt(BlitzFlagResult::getAttempts).sum()
                     + engine.getAttemptsThisFlag(mySlot);
@@ -580,8 +612,8 @@ public class FlaggleMultiplayerController {
             data.put("totalAiGuesses", totalAiGuesses);
 
             // Both sides raced through the exact same shared queue in the exact same order,
-            // so index k in each history always refers to the same flag - merge them into
-            // one row per flag so the recap can show how each side fared on it side-by-side.
+            // so index k in each history always refers to the same country - merge them into
+            // one row per country so the recap can show how each side fared on it side-by-side.
             int rowCount = Math.max(myHistory.size(), oppHistory.size());
             List<Map<String, Object>> history = new ArrayList<>();
             for (int i = 0; i < rowCount; i++) {
@@ -611,7 +643,8 @@ public class FlaggleMultiplayerController {
 
                 CountryBL country = countryController.getCountryByName(countryName);
                 if (country != null) {
-                    flagData.put("flagBase64", encodeToBase64(country.getFlagImage()));
+                    flagData.put("lat", country.getLatitude());
+                    flagData.put("lon", country.getLongitude());
                 }
 
                 history.add(flagData);
@@ -621,16 +654,22 @@ public class FlaggleMultiplayerController {
 
         if (lastGuess != null) {
             data.put("guessedName", lastGuess.getGuessedCountry().getName());
-            data.put("guessedFlagBase64", lastGuess.getGuessedFlagBase64());
-            data.put("resultFlagBase64", lastGuess.getFlagDifferencesBase64());
             data.put("correct", lastGuess.isCorrect());
+            data.put("colorHex", lastGuess.getColorHex());
+            data.put("distance", lastGuess.getDistance());
+            data.put("proximityLevel", lastGuess.getProximityLevel().name());
+            data.put("lat", lastGuess.getGuessedCountry().getLatitude());
+            data.put("lon", lastGuess.getGuessedCountry().getLongitude());
+            data.put("flagPath", lastGuess.getGuessedCountry().getFlagPath());
         }
 
         if (givenUpName != null) {
             data.put("givenUpName", givenUpName);
             CountryBL givenUpCountry = countryController.getCountryByName(givenUpName);
             if (givenUpCountry != null) {
-                data.put("givenUpFlagBase64", encodeToBase64(givenUpCountry.getFlagImage()));
+                data.put("givenUpLat", givenUpCountry.getLatitude());
+                data.put("givenUpLon", givenUpCountry.getLongitude());
+                data.put("givenUpFlagPath", givenUpCountry.getFlagPath());
             }
         }
 
@@ -645,15 +684,5 @@ public class FlaggleMultiplayerController {
         if (winner == PvpRoundWinner.DRAW) return "DRAW";
         int winnerSlot = (winner == PvpRoundWinner.PLAYER1) ? 1 : 2;
         return winnerSlot == viewerSlot ? "HUMAN" : "AI";
-    }
-
-    private String encodeToBase64(BufferedImage image) {
-        try {
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            ImageIO.write(image, "png", baos);
-            return Base64.getEncoder().encodeToString(baos.toByteArray());
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
     }
 }

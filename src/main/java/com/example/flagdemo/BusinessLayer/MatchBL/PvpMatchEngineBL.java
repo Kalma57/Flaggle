@@ -63,6 +63,18 @@ public class PvpMatchEngineBL implements java.io.Serializable {
     private boolean pause1Used;
     private boolean pause2Used;
 
+    // -------------------- Ready-up state (between rounds) --------------------
+    // Once a round ends, neither player is thrown straight into the next one anymore -
+    // both browsers show a "ready up" prompt so everyone gets a moment to see the round
+    // recap. The next round starts as soon as BOTH players have confirmed ready, or after
+    // READY_MAX_MILLIS elapses, whichever comes first (so one AFK player can't stall the
+    // match forever).
+    private static final long READY_MAX_MILLIS = 7_000;
+
+    private boolean ready1;
+    private boolean ready2;
+    private long roundOverAtMillis;
+
     private CountryBL currentTarget;
     private int attempts1;
     private int attempts2;
@@ -113,6 +125,7 @@ public class PvpMatchEngineBL implements java.io.Serializable {
         refreshPauseTimeout();
         if (matchOver || paused) return;
         if (currentRoundWinner == PvpRoundWinner.NONE) return; // round still in progress
+        if (!(ready1 && ready2) && !readyDeadlinePassed()) return; // waiting on a player, and still within the grace window
         startNextRound();
     }
 
@@ -128,6 +141,8 @@ public class PvpMatchEngineBL implements java.io.Serializable {
         currentRoundWinner = PvpRoundWinner.NONE;
         roundStartTimeMillis = System.currentTimeMillis();
         pausedMillisThisRound = 0;
+        ready1 = false;
+        ready2 = false;
     }
 
     private CountryBL selectRandomCountry() throws SQLException {
@@ -209,6 +224,36 @@ public class PvpMatchEngineBL implements java.io.Serializable {
         if (score1 >= pointsToWin || score2 >= pointsToWin) {
             matchOver = true;
         }
+
+        ready1 = false;
+        ready2 = false;
+        roundOverAtMillis = System.currentTimeMillis();
+    }
+
+    // -------------------- Ready-up (between rounds) --------------------
+
+    /**
+     * Marks the given player as ready to start the next round. Only takes effect while
+     * a round has actually just ended (does nothing before that, or once the match is
+     * over) - doesn't advance the round itself, {@link #advanceToNextRound()} still owns
+     * that decision (both ready, or the grace window has elapsed).
+     */
+    public synchronized boolean markReady(int slot) {
+        if (matchOver || currentRoundWinner == PvpRoundWinner.NONE) return false;
+        if (slot == 1) ready1 = true; else ready2 = true;
+        return true;
+    }
+
+    public boolean isReady(int slot) { return slot == 1 ? ready1 : ready2; }
+
+    private boolean readyDeadlinePassed() {
+        return System.currentTimeMillis() - roundOverAtMillis >= READY_MAX_MILLIS;
+    }
+
+    /** Milliseconds left in the ready-up grace window, 0 once it's expired or no round has ended yet. */
+    public long getReadyRemainingMillis() {
+        if (currentRoundWinner == PvpRoundWinner.NONE) return 0;
+        return Math.max(0, READY_MAX_MILLIS - (System.currentTimeMillis() - roundOverAtMillis));
     }
 
     // -------------------- Pause / Resume --------------------

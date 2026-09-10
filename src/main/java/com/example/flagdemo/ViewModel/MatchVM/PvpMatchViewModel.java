@@ -40,4 +40,9 @@ public class PvpMatchViewModel implements java.io.Serializable {
     public void advanceToNextRound() throws SQLException {
         room.getEngine().advanceToNextRound();
     }
+
+    /** Marks this player ready for the next round - see {@link PvpMatchEngineBL#markReady(int)}. */
+    public void markReady() {
+        room.getEngine().markReady(mySlot);
+    }
 }

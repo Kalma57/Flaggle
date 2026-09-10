@@ -4,8 +4,10 @@ import com.example.flagdemo.BusinessLayer.CountryBL;
 import com.example.flagdemo.DataAccessLayer.CountryController;
 
 import java.sql.SQLException;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -26,6 +28,7 @@ public class GlobeEngineBL implements java.io.Serializable {
     private boolean gameOver;
     private CountryController cc;
     private int hintsUsed;
+    private final Set<Integer> revealedLetterPositions = new HashSet<>();
 
     // -------------------- Constructor --------------------
 
@@ -47,6 +50,7 @@ public class GlobeEngineBL implements java.io.Serializable {
         this.attempts = 0;
         this.gameOver = false;
         this.hintsUsed = 0;
+        this.revealedLetterPositions.clear();
     }
 
     /**
@@ -95,8 +99,9 @@ public class GlobeEngineBL implements java.io.Serializable {
     // -------------------- Hints --------------------
 
     /**
-     * Reveals one more letter of the target country's name, in order.
-     * Non-letter characters (spaces, hyphens, apostrophes) are always shown.
+     * Reveals one more letter of the target country's name, at a random not-yet-revealed
+     * position (not left-to-right, so an early hint can't give away short names by exposing
+     * an easy prefix). Non-letter characters (spaces, hyphens, apostrophes) are always shown.
      *
      * Once every letter has been revealed, the word is fully spelled out —
      * this counts as a loss, since the player never actually guessed it.
@@ -109,13 +114,14 @@ public class GlobeEngineBL implements java.io.Serializable {
         }
 
         String name = targetCountry.getName();
-        int totalLetters = countRevealableLetters(name);
+        int totalLetters = CountryNameHintUtil.countRevealableLetters(name);
 
-        if (hintsUsed < totalLetters) {
+        if (revealedLetterPositions.size() < totalLetters) {
+            CountryNameHintUtil.revealRandomLetter(name, revealedLetterPositions);
             hintsUsed++;
         }
 
-        return maskName(name, hintsUsed);
+        return CountryNameHintUtil.maskName(name, revealedLetterPositions);
     }
 
     /**
@@ -123,34 +129,6 @@ public class GlobeEngineBL implements java.io.Serializable {
      */
     public int GetHintsUsed() {
         return hintsUsed;
-    }
-
-    private int countRevealableLetters(String name) {
-        int count = 0;
-        for (char c : name.toCharArray()) {
-            if (Character.isLetter(c)) {
-                count++;
-            }
-        }
-        return count;
-    }
-
-    private String maskName(String name, int revealCount) {
-        StringBuilder sb = new StringBuilder();
-        int revealed = 0;
-        for (char c : name.toCharArray()) {
-            if (Character.isLetter(c)) {
-                if (revealed < revealCount) {
-                    sb.append(c);
-                } else {
-                    sb.append('_');
-                }
-                revealed++;
-            } else {
-                sb.append(c);
-            }
-        }
-        return sb.toString();
     }
 
     // -------------------- Country Selection & Filtering --------------------
