@@ -2,11 +2,20 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Flaggle - 1v1 vs Computer</title>
+    <title>Globe - 1v1 vs Computer</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+    <script type="importmap">
+        { "imports": {
+            "three": "/three/three.module.js?v=2",
+            "three/": "/three/",
+            "three-globe": "https://esm.sh/three-globe@2.41.11?external=three,three-conic-polygon-geometry&bundle",
+            "three-conic-polygon-geometry": "/js/conic-polygon-geometry-cache.js?v=1"
+        } }
+    </script>
 
     <style>
         :root {
@@ -35,8 +44,8 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 40px 20px 60px;
-            background: linear-gradient(-45deg, #e8f7ee, #f9f9f9, #e1f5e6, #f0fff3);
+            padding: 18px 20px 30px;
+            background: linear-gradient(-45deg, #e6f3ff, #f9f9f9, #dff0ff, #eef8ff);
             background-size: 400% 400%;
             animation: gradientMove 12s ease infinite;
         }
@@ -48,10 +57,10 @@
         }
 
         h1 {
-            font-size: var(--font-display);
-            color: #4CAF50;
-            margin-bottom: 6px;
-            text-shadow: 0 8px 20px rgba(76,175,80,0.35);
+            font-size: 32px;
+            color: #2196F3;
+            margin-bottom: 2px;
+            text-shadow: 0 8px 20px rgba(33,150,243,0.35);
         }
 
         /* -------------------- Top badges -------------------- */
@@ -80,7 +89,7 @@
         .badge.easy   { background: linear-gradient(135deg, #e3f2fd, #ffffff); color: #1565c0; border: 2px solid #42a5f5; }
         .badge.hard   { background: linear-gradient(135deg, #fdeaea, #ffffff); color: #c62828; border: 2px solid #ef5350; }
         .badge.medium { background: linear-gradient(135deg, #fff3e0, #ffffff); color: #ef6c00; border: 2px solid #ffa726; }
-        .badge.format { background: linear-gradient(135deg, #f3e5f5, #ffffff); color: #6a1b9a; border: 2px solid #ab47bc; }
+        .badge.format { background: linear-gradient(135deg, #e3f2fd, #ffffff); color: #1565c0; border: 2px solid #2196F3; }
 
         .top-right-actions {
             position: fixed;
@@ -96,16 +105,16 @@
             font-size: var(--font-md);
             border-radius: 10px;
             cursor: pointer;
-            border: 2px solid #4CAF50;
+            border: 2px solid #2196F3;
             background: white;
-            color: #4CAF50;
+            color: #2196F3;
             box-shadow: var(--shadow-sm);
             transition: 0.3s;
         }
 
         .pause-btn { border-color: #ffa726; color: #ef6c00; }
 
-        .rules-btn:hover { background: #e8f7ee; transform: translateY(-2px); box-shadow: var(--shadow-md); }
+        .rules-btn:hover { background: #e3f2fd; transform: translateY(-2px); box-shadow: var(--shadow-md); }
         .pause-btn:hover { background: #fff3e0; transform: translateY(-2px); box-shadow: var(--shadow-md); }
         .pause-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
@@ -113,30 +122,32 @@
 
         .scoreboard {
             display: flex;
-            flex-direction: column;
+            flex-direction: row;
             align-items: center;
-            gap: 6px;
-            margin-bottom: 30px;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
         }
 
-        .round-indicator { font-size: var(--font-base); color: #4a4a4a; font-weight: 700; }
+        .round-indicator { font-size: 15px; color: #4a4a4a; font-weight: 700; }
 
         .score-line {
             display: flex;
             align-items: center;
-            gap: 18px;
-            font-size: var(--font-xl);
+            gap: 12px;
+            font-size: 22px;
             font-weight: 800;
             color: #2c2c2c;
         }
 
-        .score-you  { color: #2f7a34; }
+        .score-you  { color: #1565c0; }
         .score-ai   { color: #c62828; }
-        .score-sep  { color: #999; font-weight: 400; font-size: var(--font-md); }
+        .score-sep  { color: #999; font-weight: 400; font-size: 15px; }
 
         .match-clock {
             font-family: 'Consolas', monospace;
-            font-size: 20px;
+            font-size: 17px;
             font-weight: 700;
             color: #4a4a4a;
             background: rgba(255,255,255,0.75);
@@ -151,7 +162,7 @@
             display: flex;
             gap: 40px;
             width: 100%;
-            max-width: 1150px;
+            max-width: 1900px;
             align-items: flex-start;
             justify-content: center;
             flex-wrap: wrap;
@@ -161,18 +172,18 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 20px;
+            gap: 12px;
         }
 
         .column.your-column {
-            flex: 2 1 700px;
-            min-width: 700px;
+            flex: 1 1 1100px;
+            min-width: 1100px;
         }
 
         .column.opponent-column {
-            flex: 1 1 280px;
-            min-width: 280px;
-            max-width: 320px;
+            flex: 0 0 380px;
+            min-width: 380px;
+            max-width: 380px;
         }
 
         .column-title {
@@ -182,6 +193,15 @@
         }
 
         /* -------------------- Your guess form -------------------- */
+
+        .controls-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+            flex-wrap: wrap;
+            width: 100%;
+        }
 
         .guess-form {
             display: flex;
@@ -194,13 +214,13 @@
             width: 40ch;
             text-align: center;
             border-radius: 10px;
-            border: 2px solid #4CAF50;
+            border: 2px solid #2196F3;
             outline: none;
             box-shadow: var(--shadow-sm);
             transition: 0.3s;
         }
 
-        input[type="text"]:focus { box-shadow: 0 0 10px rgba(76,175,80,0.4); }
+        input[type="text"]:focus { box-shadow: 0 0 10px rgba(33,150,243,0.4); }
         input[type="text"]:disabled { opacity: 0.6; }
 
         button { border: none; cursor: pointer; transition: 0.3s; border-radius: 10px; }
@@ -208,7 +228,7 @@
         .guess-btn {
             padding: 12px 24px;
             font-size: var(--font-md);
-            background: linear-gradient(135deg, #4CAF50, #3f9142);
+            background: linear-gradient(135deg, #2196F3, #1769aa);
             color: white;
             box-shadow: 0 8px 18px rgba(0,0,0,0.25);
         }
@@ -217,26 +237,177 @@
         .guess-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
         .giveup-btn {
-            padding: 10px 22px;
-            font-size: 15px;
+            padding: 10px 18px;
+            font-size: 14px;
             background: white;
-            color: #4CAF50;
-            border: 2px solid #4CAF50;
+            color: #2196F3;
+            border: 2px solid #2196F3;
             box-shadow: var(--shadow-sm);
+            white-space: nowrap;
         }
 
-        .giveup-btn:hover:not(:disabled) { background: #e8f7ee; transform: translateY(-2px); box-shadow: var(--shadow-md); }
+        .giveup-btn:hover:not(:disabled) { background: #e3f2fd; transform: translateY(-2px); box-shadow: var(--shadow-md); }
         .giveup-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-        .attempts-text { font-size: 18px; color: #666; }
+        .hint-btn {
+            padding: 10px 18px;
+            font-size: 14px;
+            background: white;
+            color: #ef6c00;
+            border: 2px solid #ffa726;
+            box-shadow: var(--shadow-sm);
+            white-space: nowrap;
+        }
+
+        .hint-btn:hover:not(:disabled) { background: #fff3e0; transform: translateY(-2px); box-shadow: var(--shadow-md); }
+        .hint-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .attempts-text { font-size: 15px; color: #666; white-space: nowrap; }
+
+        .hint-reveal {
+            font-family: 'Consolas', monospace;
+            font-size: 20px;
+            font-weight: 800;
+            letter-spacing: 3px;
+            color: #ef6c00;
+            display: none;
+        }
+
+        .hint-reveal.shown { display: block; }
+
+        .grace-banner {
+            width: 100%;
+            text-align: center;
+            padding: 12px 20px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #fff3e0, #ffffff);
+            border: 2px solid #ffa726;
+            font-size: 16px;
+            font-weight: 800;
+            color: #ef6c00;
+            display: none;
+        }
+
+        .grace-banner.shown { display: block; }
+
+        /* -------------------- Proximity banner -------------------- */
+
+        .proximity-banner {
+            width: 100%;
+            text-align: center;
+            padding: 10px 20px;
+            border-radius: 14px;
+            background: #f0f0f0;
+            font-size: 18px;
+            font-weight: 800;
+            color: #555;
+            box-shadow: var(--shadow-sm);
+            transition: background 0.3s ease, color 0.3s ease;
+        }
+
+        .proximity-banner.pulse { animation: bannerPulse 0.5s ease; }
+
+        @keyframes bannerPulse {
+            0%   { transform: scale(1); }
+            35%  { transform: scale(1.035); }
+            100% { transform: scale(1); }
+        }
+
+        /* -------------------- Neighbor toast -------------------- */
+
+        #notificationArea {
+            height: 46px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #ffffff;
+            z-index: 10;
+        }
+
+        .neighbor-toast {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(135deg, #2196F3, #1769aa);
+            color: white;
+            padding: 8px 22px;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: bold;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.3s ease;
+            transform: translateY(4px);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.25);
+        }
+
+        .neighbor-toast.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        /* -------------------- Globe -------------------- */
+
+        #globeContainer {
+            position: relative;
+            width: 100%;
+            height: 640px;
+            border: 3px solid rgba(33,150,243,0.35);
+            border-radius: 20px;
+            background-color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: var(--shadow-md);
+        }
+
+        #globeLoadingOverlay {
+            position: absolute;
+            inset: 0;
+            z-index: 20;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+            background-color: #ffffff;
+            transition: opacity 0.3s ease;
+        }
+
+        #globeLoadingOverlay.hidden { opacity: 0; pointer-events: none; }
+
+        .globe-spinner {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: 5px solid #d9ebfa;
+            border-top-color: #2196F3;
+            animation: globeSpin 0.9s linear infinite;
+        }
+
+        @keyframes globeSpin { to { transform: rotate(360deg); } }
+
+        .globe-loading-text { color: #2196F3; font-weight: 600; font-size: 15px; }
+
+        #globeCanvas {
+            width: 100%;
+            flex: 1;
+            display: block;
+            outline: none;
+            background-color: #ffffff;
+        }
 
         /* -------------------- Guess history -------------------- */
 
         .guesses {
             display: flex;
-            flex-direction: column-reverse;
-            gap: 16px;
+            flex-direction: column;
+            gap: 8px;
             width: 100%;
+            max-height: 420px;
+            overflow-y: auto;
+            padding-right: 2px;
         }
 
         @keyframes fadeSlideIn {
@@ -246,80 +417,95 @@
 
         .guess-row {
             display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 32px;
-            padding: 20px;
+            flex-direction: column;
+            gap: 5px;
+            padding: 8px 12px;
             background: rgba(255,255,255,0.8);
             backdrop-filter: blur(8px);
-            border-radius: 16px;
-            box-shadow: var(--shadow-md);
-            animation: fadeSlideIn 0.45s ease-out;
-        }
-
-        .flag { display: flex; flex-direction: column; align-items: center; }
-
-        .guess-label { margin-bottom: 8px; font-size: 19px; font-weight: bold; color: #2f7a34; }
-
-        .flag img {
-            width: 300px;
-            height: 225px;
             border-radius: 12px;
-            box-shadow: var(--shadow-md);
-            object-fit: cover;
+            box-shadow: var(--shadow-sm);
+            animation: fadeSlideIn 0.4s ease-out;
+            border: 2px solid transparent;
         }
+
+        .guess-row.correct { border-color: #2196F3; }
+
+        .guess-name-block { display: flex; align-items: center; gap: 8px; }
+
+        .guess-flag {
+            width: 28px;
+            height: 19px;
+            object-fit: cover;
+            border: 1px solid rgba(0,0,0,0.15);
+            border-radius: 4px;
+            flex-shrink: 0;
+        }
+
+        .guess-dot {
+            width: 11px;
+            height: 11px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            box-shadow: 0 0 0 2px rgba(0,0,0,0.05);
+        }
+
+        .guess-name {
+            font-size: 14px;
+            font-weight: 700;
+            color: #2c2c2c;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .guess-meta { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 12px; color: #666; }
+
+        .guess-distance { font-weight: bold; font-variant-numeric: tabular-nums; }
 
         /* -------------------- Opponent panel -------------------- */
 
         .opponent-panel {
             width: 100%;
-            max-width: 320px;
+            max-width: 380px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 14px;
-            padding: 26px 22px;
+            gap: 16px;
+            padding: 32px 26px;
             background: rgba(255,255,255,0.85);
             backdrop-filter: blur(10px);
             border-radius: 20px;
             box-shadow: var(--shadow-md);
         }
 
-        .opponent-percent {
-            font-family: 'Consolas', monospace;
-            font-size: 46px;
+        .opponent-badge {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 24px;
+            border-radius: 999px;
+            background: #f5f5f5;
+            box-shadow: inset 0 2px 6px rgba(0,0,0,0.06);
+        }
+
+        .opponent-dot {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #ccc;
+            flex-shrink: 0;
+            box-shadow: 0 0 0 3px rgba(0,0,0,0.05);
+        }
+
+        .opponent-level-text {
+            font-size: 20px;
             font-weight: 800;
             color: #2c2c2c;
+            letter-spacing: 0.3px;
         }
 
-        .opponent-percent-label {
-            margin-top: -10px;
-            font-size: 17px;
-            font-weight: 700;
-            color: #888;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .progress-track {
-            width: 100%;
-            height: 18px;
-            border-radius: 999px;
-            background: #eee;
-            overflow: hidden;
-            box-shadow: inset 0 2px 6px rgba(0,0,0,0.1);
-        }
-
-        .progress-fill {
-            height: 100%;
-            width: 0%;
-            border-radius: 999px;
-            background: linear-gradient(135deg, #ef5350, #e53935);
-            transition: width 0.6s ease;
-        }
-
-        .opponent-status { font-size: var(--font-base); font-weight: 700; color: #4a4a4a; }
-        .opponent-attempts { font-size: 18px; color: #888; }
+        .opponent-status { font-size: 19px; font-weight: 700; color: #4a4a4a; }
+        .opponent-attempts { font-size: 20px; color: #888; }
 
         /* -------------------- Overlays -------------------- */
 
@@ -346,7 +532,7 @@
             animation: fadeSlideIn 0.35s ease-out;
         }
 
-        .overlay-panel h2 { font-size: 30px; color: #4CAF50; margin-bottom: 14px; }
+        .overlay-panel h2 { font-size: 30px; color: #2196F3; margin-bottom: 14px; }
         .overlay-panel.lost h2 { color: #c62828; }
         .overlay-panel.wide { max-width: 640px; }
 
@@ -372,28 +558,17 @@
             color: #555;
         }
 
-        .recap-row.won  { background: #e8f7ee; color: #2f7a34; }
+        .recap-row.won  { background: #e3f2fd; color: #1565c0; }
         .recap-row.lost { background: #fdeaea; color: #c62828; }
 
         .recap-round-num { color: #999; font-weight: 700; min-width: 70px; }
-        .recap-country-info { flex: 1; display: flex; align-items: center; justify-content: center; gap: 12px; }
-        .recap-country   { text-align: center; }
+        .recap-country   { flex: 1; text-align: center; }
         .recap-result    { min-width: 70px; text-align: right; }
 
-        .recap-flag img {
-            width: 56px;
-            height: 42px;
-            object-fit: cover;
-            border-radius: 6px;
-            box-shadow: var(--shadow-sm);
-        }
-
-        .overlay-flag img {
-            width: 220px;
-            height: 165px;
-            object-fit: cover;
-            border-radius: 12px;
-            box-shadow: var(--shadow-md);
+        .overlay-country-name {
+            font-size: 24px;
+            font-weight: 800;
+            color: #2c2c2c;
             margin: 16px 0;
         }
 
@@ -416,15 +591,15 @@
         }
 
         .overlay-btn.primary {
-            background: linear-gradient(135deg, #4CAF50, #3f9142);
+            background: linear-gradient(135deg, #2196F3, #1769aa);
             color: white;
             box-shadow: 0 8px 18px rgba(0,0,0,0.25);
         }
 
         .overlay-btn.secondary {
             background: white;
-            color: #4CAF50;
-            border: 2px solid #4CAF50;
+            color: #2196F3;
+            border: 2px solid #2196F3;
         }
 
         .overlay-btn.primary:hover, .overlay-btn.secondary:hover { transform: translateY(-2px); }
@@ -461,7 +636,7 @@
 
         .rules-backdrop.active { opacity: 1; pointer-events: auto; }
 
-        .rules-panel h2 { color: #4CAF50; margin-bottom: 15px; }
+        .rules-panel h2 { color: #2196F3; margin-bottom: 15px; }
         .rules-panel p { margin: 10px 0; color: #333; }
 
         .close-rules {
@@ -470,7 +645,7 @@
             right: 25px;
             font-size: 32px;
             cursor: pointer;
-            color: #4CAF50;
+            color: #2196F3;
         }
     </style>
 </head>
@@ -478,9 +653,6 @@
 <body th:attr="data-match-id=${matchId}">
 
 <div class="badge-stack">
-    <div class="badge" th:classappend="${difficulty.name() eq 'EASY'} ? 'easy' : 'hard'">
-        <span th:text="${difficulty.name() eq 'EASY'} ? '🟢 EASY FLAGS' : '🔴 HARD FLAGS'">HARD FLAGS</span>
-    </div>
     <div class="badge" th:classappend="${aiLevel.name() eq 'EASY'} ? 'easy' : (${aiLevel.name() eq 'HARD'} ? 'hard' : 'medium')">
         <span th:text="'🤖 AI: ' + ${aiLevel.name()}">AI: MEDIUM</span>
     </div>
@@ -494,7 +666,7 @@
     <button class="rules-btn" onclick="openRules()">RULES</button>
 </div>
 
-<h1>⚔️ 1v1 vs Computer</h1>
+<h1>🌍⚔️ 1v1 vs Computer</h1>
 
 <div class="scoreboard">
     <div class="round-indicator" id="roundIndicator"
@@ -512,31 +684,57 @@
     <div class="column your-column">
         <div class="column-title">🙋 You</div>
 
-        <form class="guess-form" id="guessForm" autocomplete="off">
-            <input type="text" id="countryInput" placeholder="Enter country name" required list="countries">
-            <datalist id="countries">
-                <option th:each="c : ${viewModel.getAllCountries()}" th:value="${c.name}"/>
-            </datalist>
-            <button type="submit" class="guess-btn" id="guessBtn">GUESS</button>
-        </form>
+        <div class="controls-row">
+            <form class="guess-form" id="guessForm" autocomplete="off">
+                <input type="text" id="countryInput" placeholder="Enter country name" required list="countries">
+                <datalist id="countries">
+                    <option th:each="c : ${viewModel.getAllCountries()}" th:value="${c.name}"/>
+                </datalist>
+                <button type="submit" class="guess-btn" id="guessBtn">GUESS</button>
+            </form>
 
-        <div class="attempts-text">Attempts this round: <span id="humanAttemptsText">0</span></div>
+            <div class="attempts-text">Attempts this round: <span id="humanAttemptsText">0</span></div>
 
-        <button class="giveup-btn" id="giveupBtn">GIVE UP ROUND</button>
+            <button class="hint-btn" id="hintBtn">💡 HINT</button>
 
-        <div class="guesses" id="guessesList"></div>
+            <button class="giveup-btn" id="giveupBtn">GIVE UP ROUND</button>
+        </div>
+
+        <div class="hint-reveal" id="hintReveal"></div>
+
+        <div class="proximity-banner" id="proximityBanner">
+            <span id="proximityBannerText">Make a guess to see how close you are 🔍</span>
+        </div>
+
+        <div class="grace-banner" id="graceBanner"></div>
+
+        <div id="globeContainer">
+            <div id="notificationArea">
+                <div id="neighbor-toast" class="neighbor-toast">
+                    The country that you chose is a neighbor of the target country
+                </div>
+            </div>
+            <canvas id="globeCanvas"></canvas>
+            <div id="globeLoadingOverlay">
+                <div class="globe-spinner"></div>
+                <div class="globe-loading-text">Loading globe...</div>
+            </div>
+        </div>
     </div>
 
     <div class="column opponent-column">
         <div class="column-title">🤖 Opponent</div>
 
         <div class="opponent-panel">
-            <div class="opponent-percent"><span id="aiPercent">0</span>%</div>
-            <div class="opponent-percent-label">of the flag matched</div>
-            <div class="progress-track"><div class="progress-fill" id="aiProgressBar"></div></div>
+            <div class="opponent-badge">
+                <div class="opponent-dot" id="aiDot"></div>
+                <div class="opponent-level-text" id="aiLevelText">No guess yet</div>
+            </div>
             <div class="opponent-status" id="aiStatusText">🤔 Thinking...</div>
             <div class="opponent-attempts">Attempts: <span id="aiAttemptsText">0</span></div>
         </div>
+
+        <div class="guesses" id="guessesList"></div>
     </div>
 
 </div>
@@ -557,8 +755,9 @@
 <div class="overlay-backdrop" id="roundOverlay">
     <div class="overlay-panel" id="roundOverlayPanel">
         <h2 id="roundOverlayTitle">Round Over!</h2>
-        <div class="overlay-flag"><img id="roundOverlayFlag" src="" alt="Correct Flag"></div>
+        <div class="overlay-country-name" id="roundOverlayCountry">Country</div>
         <div class="overlay-sub" id="roundOverlaySub">It was ...</div>
+        <div class="overlay-sub" id="roundOverlayRecap" style="font-size:15px;color:#666;"></div>
         <div class="overlay-note">Next round starting soon...</div>
         <div class="overlay-actions">
             <button class="overlay-btn primary" id="continueBtn">CONTINUE ▶</button>
@@ -574,8 +773,8 @@
         <div class="match-recap" id="matchRecap"></div>
         <div class="overlay-actions">
             <a class="overlay-btn secondary" href="/">HOME</a>
-            <a class="overlay-btn secondary" href="/Flaggle">FLAGGLE</a>
-            <a class="overlay-btn primary" th:href="@{/Flaggle/match/start(difficulty=${difficulty}, aiLevel=${aiLevel}, bestOf=${bestOf})}">PLAY AGAIN</a>
+            <a class="overlay-btn secondary" href="/Globe">GLOBE</a>
+            <a class="overlay-btn primary" th:href="@{/Globe/match/start(aiLevel=${aiLevel}, bestOf=${bestOf})}">PLAY AGAIN</a>
         </div>
     </div>
 </div>
@@ -585,21 +784,33 @@
 <div id="rulesPanel" class="rules-panel">
     <span class="close-rules" onclick="closeRules()">&times;</span>
     <h2>1v1 vs Computer Rules</h2>
-    <p>You and the AI opponent both try to guess the <strong>exact same flag</strong>, every round. Whoever guesses it correctly first wins the round.</p>
-    <p>You can't see the opponent's actual guesses - only a live <strong>progress percentage</strong> and attempt count, so you know roughly how close they are without ever seeing their flags.</p>
+    <p>You and the AI opponent both try to guess the location of the <strong>exact same country</strong>, every round. Whoever guesses it correctly first wins the round.</p>
+    <p>You can't see the opponent's actual guesses - only a live <strong>proximity badge</strong> and attempt count, so you know roughly how close they are without ever seeing their guesses.</p>
     <p><strong th:text="'Best of ' + ${bestOf} + ':'">Best of 3:</strong>
         <span th:text="'first side to win ' + ${viewModel.engine.pointsToWin} + ' rounds wins the match.'">first side to win 2 rounds wins the match.</span></p>
     <p>A running clock shows the total time elapsed in the match, just for reference - there's no time limit on this format.</p>
     <p>You can press <strong>GIVE UP ROUND</strong> to concede a round you're stuck on - the opponent is credited with the win and you move straight to the next round.</p>
+    <p>There's no limit on how many guesses you get per round - keep trying until you solve it, run the clock out against the AI, or press GIVE UP.</p>
+    <p>💡 Stuck? <strong>HINT</strong> reveals one more letter of the country's name each time, at a random position.</p>
+    <p>A hint isn't entirely free, though: if you solve it after using hints, the round isn't over yet - the AI gets a <strong>grace period</strong> (20 seconds per hint you used) to still catch up and steal the round on its own clock. Solve it with no hints and you win immediately, no grace period at all.</p>
+    <p>When a round ends, the recap shows how long it took and the AI's final guess count - so you always know exactly what you were up against.</p>
 </div>
 
-<script th:inline="none">
+<!-- TopoJSON — must load before globe.js -->
+<script src="/js/topojson-client.min.js?v=2"></script>
+
+<script type="module" th:inline="none">
+    import { initGlobe, colorCountry, focusOnCountry, resetGlobeColors } from '/js/globe.js?v=2049';
+
     const MATCH_ID = document.body.getAttribute('data-match-id');
 
     const guessForm       = document.getElementById('guessForm');
     const countryInput    = document.getElementById('countryInput');
     const guessBtn        = document.getElementById('guessBtn');
     const giveupBtn       = document.getElementById('giveupBtn');
+    const hintBtn          = document.getElementById('hintBtn');
+    const hintReveal       = document.getElementById('hintReveal');
+    const graceBanner      = document.getElementById('graceBanner');
     const guessesList     = document.getElementById('guessesList');
     const pauseBtn        = document.getElementById('pauseBtn');
     const resumeBtn       = document.getElementById('resumeBtn');
@@ -611,17 +822,21 @@
     const matchClock         = document.getElementById('matchClock');
     const humanAttemptsText  = document.getElementById('humanAttemptsText');
 
-    const aiPercent      = document.getElementById('aiPercent');
-    const aiProgressBar  = document.getElementById('aiProgressBar');
+    const aiDot          = document.getElementById('aiDot');
+    const aiLevelText     = document.getElementById('aiLevelText');
     const aiStatusText   = document.getElementById('aiStatusText');
     const aiAttemptsText = document.getElementById('aiAttemptsText');
 
-    const roundOverlay      = document.getElementById('roundOverlay');
-    const roundOverlayPanel = document.getElementById('roundOverlayPanel');
-    const roundOverlayTitle = document.getElementById('roundOverlayTitle');
-    const roundOverlayFlag  = document.getElementById('roundOverlayFlag');
-    const roundOverlaySub   = document.getElementById('roundOverlaySub');
-    const continueBtn       = document.getElementById('continueBtn');
+    const proximityBanner     = document.getElementById('proximityBanner');
+    const proximityBannerText = document.getElementById('proximityBannerText');
+
+    const roundOverlay        = document.getElementById('roundOverlay');
+    const roundOverlayPanel   = document.getElementById('roundOverlayPanel');
+    const roundOverlayTitle   = document.getElementById('roundOverlayTitle');
+    const roundOverlayCountry = document.getElementById('roundOverlayCountry');
+    const roundOverlaySub     = document.getElementById('roundOverlaySub');
+    const roundOverlayRecap   = document.getElementById('roundOverlayRecap');
+    const continueBtn         = document.getElementById('continueBtn');
 
     const matchOverlay      = document.getElementById('matchOverlay');
     const matchOverlayPanel = document.getElementById('matchOverlayPanel');
@@ -635,6 +850,24 @@
     let isPaused = false;
     let statusPollTimer = null;
     let autoAdvanceTimer = null;
+    let guessesArray = [];
+
+    initGlobe().finally(() => {
+        const overlay = document.getElementById('globeLoadingOverlay');
+        if (overlay) overlay.classList.add('hidden');
+        resetGlobeColors();
+    });
+
+    const PROXIMITY_LABELS = {
+        CORRECT:    '✅ Solved it!',
+        NEIGHBOR:   '🔥 Right next door!',
+        VERY_CLOSE: '🔥 Very close!',
+        CLOSE:      '🌡️ Close',
+        MEDIUM:     '🔍 Getting warmer...',
+        FAR:        '🧭 Far off',
+        VERY_FAR:   '❄️ Very far',
+        EXTREME:    '🥶 Ice cold'
+    };
 
     function formatClock(totalSeconds) {
         const s = Math.max(0, Math.floor(totalSeconds));
@@ -643,26 +876,67 @@
         return mm + ':' + ss;
     }
 
-    function aiStatusLabel(pct) {
-        if (pct >= 100) return '✅ Solved it!';
-        if (pct >= 70)  return '🔥 Very close!';
-        if (pct >= 30)  return '🔍 Getting warmer...';
-        return '🤔 Thinking...';
+    function buildGuessRowHTML(guess) {
+        let fileName = guess.flagPath;
+        if (fileName && (fileName.includes('/') || fileName.includes('\\'))) {
+            fileName = fileName.split(/[/\\]/).pop();
+        }
+        const flagSrc = fileName ? `/DB/FlagsImages/${fileName}` : '';
+        return `
+            <div class="guess-name-block">
+                <img src="${flagSrc}" class="guess-flag" alt="${guess.name} flag" onerror="this.style.display='none'">
+                <div class="guess-dot" style="background:${guess.colorHex || '#ccc'}"></div>
+                <div class="guess-name">${guess.name}</div>
+            </div>
+            <div class="guess-meta">
+                <span class="guess-distance">${Math.round(guess.distance).toLocaleString()} km</span>
+                <span class="guess-level">${PROXIMITY_LABELS[guess.proximityLevel] || guess.proximityLevel}</span>
+            </div>
+        `;
     }
 
-    function addGuessCard(name, guessedImg, resultImg) {
-        const row = document.createElement('div');
-        row.className = 'guess-row';
-        row.innerHTML =
-            '<div class="flag">' +
-                '<div class="guess-label">' + name + '</div>' +
-                '<img src="data:image/png;base64,' + guessedImg + '" alt="Guessed Flag">' +
-            '</div>' +
-            '<div class="flag">' +
-                '<div class="guess-label">result</div>' +
-                '<img src="data:image/png;base64,' + resultImg + '" alt="Result Flag">' +
-            '</div>';
-        guessesList.appendChild(row);
+    function renderGuesses() {
+        guessesList.innerHTML = '';
+        guessesArray.sort((a, b) => a.distance - b.distance);
+        guessesArray.forEach(function (guess) {
+            const row = document.createElement('div');
+            row.className = 'guess-row' + (guess.correct ? ' correct' : '');
+            row.innerHTML = buildGuessRowHTML(guess);
+            guessesList.appendChild(row);
+        });
+    }
+
+    function addGuessCard(name, flagPath, colorHex, distance, proximityLevel, correct) {
+        const already = guessesArray.find(g => g.name === name);
+        if (!already) {
+            guessesArray.push({ name, flagPath, colorHex, distance, proximityLevel, correct });
+        } else {
+            already.colorHex = colorHex;
+            already.distance = distance;
+            already.proximityLevel = proximityLevel;
+            already.correct = correct;
+        }
+        renderGuesses();
+    }
+
+    function updateProximityBanner(proximityLevel, colorHex, distance, correct) {
+        if (!proximityBanner) return;
+        const label = PROXIMITY_LABELS[proximityLevel] || proximityLevel;
+        const distText = (!correct && typeof distance === 'number') ? ' — ' + Math.round(distance).toLocaleString() + ' km away' : '';
+        proximityBannerText.textContent = label + distText;
+        proximityBanner.style.background = colorHex || '#f0f0f0';
+        proximityBanner.style.color = '#fff';
+        proximityBanner.classList.remove('pulse');
+        void proximityBanner.offsetWidth;
+        proximityBanner.classList.add('pulse');
+    }
+
+    function resetProximityBanner() {
+        if (!proximityBanner) return;
+        proximityBannerText.textContent = 'Make a guess to see how close you are 🔍';
+        proximityBanner.style.background = '#f0f0f0';
+        proximityBanner.style.color = '#555';
+        proximityBanner.classList.remove('pulse');
     }
 
     function setGuessingEnabled(enabled) {
@@ -670,6 +944,23 @@
         guessBtn.disabled = !enabled;
         giveupBtn.disabled = !enabled;
         pauseBtn.disabled = !enabled;
+        hintBtn.disabled = !enabled;
+    }
+
+    // Reflects the post-win grace period (see GlobeMatchEngineBL#humanGuess): if I found the
+    // country using hints, the round isn't decided yet - the AI still has a window to steal
+    // it. This state always resolves straight into a real round-over, never back to normal
+    // play, so there's no "else, re-enable" branch to worry about.
+    function handleGraceState(data) {
+        if (data.provisionalWinner === 'HUMAN' && !data.roundOver) {
+            setGuessingEnabled(false);
+            const secs = Math.max(0, Math.ceil(data.graceRemainingSeconds || 0));
+            graceBanner.textContent = '🎉 You found it! You used ' + data.hintsUsed + ' hint(s), so the AI has ' + secs + 's left to catch up...';
+            graceBanner.classList.add('shown');
+        } else {
+            graceBanner.classList.remove('shown');
+            graceBanner.textContent = '';
+        }
     }
 
     function applyState(data) {
@@ -681,13 +972,38 @@
         matchClock.textContent = formatClock(data.matchElapsedSeconds);
         humanAttemptsText.textContent = data.humanAttempts;
 
-        aiPercent.textContent = data.aiProgressPercent;
-        aiProgressBar.style.width = data.aiProgressPercent + '%';
-        aiStatusText.textContent = aiStatusLabel(data.aiProgressPercent);
+        if (data.hintsUsed > 0) {
+            hintReveal.textContent = data.hintMask.split('').join(' ');
+            hintReveal.classList.add('shown');
+        }
+
+        handleGraceState(data);
+
+        if (data.aiProgressLevel) {
+            aiDot.style.background = data.aiProgressColorHex || '#ccc';
+            aiLevelText.textContent = data.aiProgressLevel.replace('_', ' ');
+            aiStatusText.textContent = PROXIMITY_LABELS[data.aiProgressLevel] || '🤔 Thinking...';
+        } else {
+            aiDot.style.background = '#ccc';
+            aiLevelText.textContent = 'No guess yet';
+            aiStatusText.textContent = '🤔 Thinking...';
+        }
         aiAttemptsText.textContent = data.aiAttempts;
 
         if (data.guessedName) {
-            addGuessCard(data.guessedName, data.guessedFlagBase64, data.resultFlagBase64);
+            addGuessCard(data.guessedName, data.flagPath, data.colorHex, data.distance, data.proximityLevel, data.correct);
+            colorCountry(data.guessedName, data.colorHex);
+            updateProximityBanner(data.proximityLevel, data.colorHex, data.distance, data.correct);
+            if (typeof data.lat === 'number' && typeof data.lon === 'number') {
+                focusOnCountry(data.lat, data.lon);
+            }
+            if (data.proximityLevel === 'NEIGHBOR') {
+                const toast = document.getElementById('neighbor-toast');
+                if (toast) {
+                    toast.classList.add('show');
+                    setTimeout(() => toast.classList.remove('show'), 3000);
+                }
+            }
         }
 
         if (data.matchOver && !matchIsOver) {
@@ -709,8 +1025,13 @@
         const wonRound = data.roundWinner === 'HUMAN';
         roundOverlayPanel.classList.toggle('lost', !wonRound);
         roundOverlayTitle.textContent = wonRound ? '🎉 You won the round!' : '🤖 The AI got it first!';
+        roundOverlayCountry.textContent = data.targetCountryName;
         roundOverlaySub.textContent = 'It was ' + data.targetCountryName;
-        roundOverlayFlag.src = 'data:image/png;base64,' + data.targetFlagBase64;
+        roundOverlayRecap.textContent = '⏱ ' + formatClock(data.lastRoundDurationSeconds) + ' round · '
+            + 'You: ' + data.humanAttempts + ' guesses, ' + data.hintsUsed + ' hints · '
+            + 'AI: ' + data.aiAttempts + ' guesses';
+        colorCountry(data.targetCountryName, '#25C267');
+        focusOnCountry(data.targetLat, data.targetLon);
         roundOverlay.classList.add('active');
 
         autoAdvanceTimer = setTimeout(nextRound, 3500);
@@ -723,12 +1044,9 @@
             const won = r.winner === 'HUMAN';
             const row = document.createElement('div');
             row.className = 'recap-row ' + (won ? 'won' : 'lost');
-            const flagImg = r.targetFlagBase64
-                ? '<div class="recap-flag"><img src="data:image/png;base64,' + r.targetFlagBase64 + '" alt="' + r.targetCountryName + '"></div>'
-                : '';
             row.innerHTML =
                 '<span class="recap-round-num">Round ' + r.roundNumber + '</span>' +
-                '<span class="recap-country-info">' + flagImg + '<span class="recap-country">' + r.targetCountryName + '</span></span>' +
+                '<span class="recap-country">' + r.targetCountryName + '</span>' +
                 '<span class="recap-result">' + (won ? '🎉 You' : '🤖 AI') + '</span>';
             matchRecap.appendChild(row);
         });
@@ -760,12 +1078,19 @@
     async function nextRound() {
         clearTimeout(autoAdvanceTimer);
         try {
-            const data = await postForm('/Flaggle/match/nextRound/ajax', 'matchId=' + encodeURIComponent(MATCH_ID));
+            const data = await postForm('/Globe/match/nextRound/ajax', 'matchId=' + encodeURIComponent(MATCH_ID));
             roundOverlay.classList.remove('active');
+            guessesArray = [];
             guessesList.innerHTML = '';
             roundOverHandled = false;
             setGuessingEnabled(true);
             countryInput.value = '';
+            resetGlobeColors();
+            resetProximityBanner();
+            hintReveal.textContent = '';
+            hintReveal.classList.remove('shown');
+            graceBanner.textContent = '';
+            graceBanner.classList.remove('shown');
             applyState(data);
             startPolling();
         } catch (e) {
@@ -785,7 +1110,7 @@
         busy = true;
         try {
             const data = await postForm(
-                '/Flaggle/match/guess/ajax',
+                '/Globe/match/guess/ajax',
                 'matchId=' + encodeURIComponent(MATCH_ID) + '&countryName=' + encodeURIComponent(countryName)
             );
             countryInput.value = '';
@@ -801,10 +1126,24 @@
         if (busy || roundOverHandled || matchIsOver || isPaused) return;
         busy = true;
         try {
-            const data = await postForm('/Flaggle/match/giveup/ajax', 'matchId=' + encodeURIComponent(MATCH_ID));
+            const data = await postForm('/Globe/match/giveup/ajax', 'matchId=' + encodeURIComponent(MATCH_ID));
             applyState(data);
         } catch (err) {
             console.error('Give up error:', err);
+        } finally {
+            busy = false;
+        }
+    });
+
+    // Purely informational - reveals a letter, doesn't touch the clock or the AI's progress.
+    hintBtn.addEventListener('click', async function () {
+        if (busy || roundOverHandled || matchIsOver || isPaused) return;
+        busy = true;
+        try {
+            const data = await postForm('/Globe/match/hint/ajax', 'matchId=' + encodeURIComponent(MATCH_ID));
+            applyState(data);
+        } catch (err) {
+            console.error('Hint error:', err);
         } finally {
             busy = false;
         }
@@ -830,7 +1169,7 @@
         if (busy || roundOverHandled || matchIsOver || isPaused) return;
         busy = true;
         try {
-            const data = await postForm('/Flaggle/match/pause/ajax', 'matchId=' + encodeURIComponent(MATCH_ID));
+            const data = await postForm('/Globe/match/pause/ajax', 'matchId=' + encodeURIComponent(MATCH_ID));
             showPauseOverlay();
             applyState(data);
         } catch (err) {
@@ -844,7 +1183,7 @@
         if (busy) return;
         busy = true;
         try {
-            const data = await postForm('/Flaggle/match/resume/ajax', 'matchId=' + encodeURIComponent(MATCH_ID));
+            const data = await postForm('/Globe/match/resume/ajax', 'matchId=' + encodeURIComponent(MATCH_ID));
             hidePauseOverlay();
             applyState(data);
         } catch (err) {
@@ -857,7 +1196,7 @@
     async function pollStatus() {
         if (roundOverHandled || matchIsOver || isPaused) return;
         try {
-            const response = await fetch('/Flaggle/match/status/ajax?matchId=' + encodeURIComponent(MATCH_ID));
+            const response = await fetch('/Globe/match/status/ajax?matchId=' + encodeURIComponent(MATCH_ID));
             const data = await response.json();
             applyState(data);
         } catch (err) {
@@ -878,6 +1217,8 @@
         document.getElementById('rulesPanel').classList.remove('open');
         document.getElementById('rulesBackdrop').classList.remove('active');
     }
+    window.openRules = openRules;
+    window.closeRules = closeRules;
 
     // Global keyboard support so the mouse is never required mid-match:
     //  - Enter still resumes from a voluntary pause (that's a deliberate action, not an

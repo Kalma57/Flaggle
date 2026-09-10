@@ -172,8 +172,8 @@
 
     }
 
-    /* Grid of mode options — currently a single mode, but the grid already
-       auto-wraps so more modes can be added later without touching the layout */
+    /* Grid of mode options — auto-wraps so more modes can be added later
+       without touching the layout */
     .modes-grid{
 
     position:relative;
@@ -184,7 +184,7 @@
     gap:30px;
 
     width:100%;
-    max-width:320px;
+    max-width:760px;
 
     margin-top:25px;
 
@@ -272,7 +272,7 @@
 
     .mode-cta{
 
-    margin-top:4px;
+    margin-top:auto;
 
     padding:9px 26px;
 
@@ -320,9 +320,23 @@
 
   <a class="mode-card" href="/Globe/start">
     <div class="mode-icon">▶️</div>
-    <h2 class="mode-title">PLAY</h2>
+    <h2 class="mode-title">CLASSIC</h2>
     <p class="mode-desc">Find each country on the globe using the hints you're given</p>
-    <span class="mode-cta">START</span>
+    <span class="mode-cta">PLAY</span>
+  </a>
+
+  <a class="mode-card" href="/Globe/match">
+    <div class="mode-icon">🌍⚔️</div>
+    <h2 class="mode-title">1v1 VS COMPUTER</h2>
+    <p class="mode-desc">Race the AI to find the same country first</p>
+    <span class="mode-cta">PLAY</span>
+  </a>
+
+  <a class="mode-card" href="/Globe/match/pvp/lobby">
+    <div class="mode-icon">🌍👥</div>
+    <h2 class="mode-title">1v1 VS FRIEND</h2>
+    <p class="mode-desc">Create a room, share the code, and race a real friend to find the same country first</p>
+    <span class="mode-cta">PLAY</span>
   </a>
 
 </div>

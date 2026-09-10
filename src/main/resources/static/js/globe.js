@@ -218,15 +218,43 @@ export function colorCountry(dbCountryName, hexColor) {
         }
     }
 
-    // Re-run the polygon layer's digest so the cap/side/stroke/altitude
-    // accessors above are re-evaluated with the freshly updated colors
-    world.polygonsData(countriesData.features);
+    scheduleColorRefresh();
+}
+
+// Re-running the polygon layer's full digest (world.polygonsData(...)) is by
+// far the most expensive part of coloring a country - it re-evaluates the
+// cap/side/stroke/altitude accessors for every one of the ~350 country
+// sub-polygons on the globe, not just the single one that actually changed,
+// which is what made every guess feel like it "stuck" for a moment right as
+// the color/zoom feedback was supposed to appear. Deferring the refresh to
+// the next animation frame (and coalescing any back-to-back colorCountry()
+// calls into a single refresh) lets the synchronous guess-handling code that
+// runs right after colorCountry() - including the instant camera jump in
+// focusOnCountry() - finish and paint first, so the globe's heavier repaint
+// no longer blocks the guess from feeling immediate.
+let colorRefreshScheduled = false;
+function scheduleColorRefresh() {
+    if (colorRefreshScheduled) return;
+    colorRefreshScheduled = true;
+    requestAnimationFrame(() => {
+        colorRefreshScheduled = false;
+        if (world && countriesData) world.polygonsData(countriesData.features);
+    });
 }
 
 function animate() {
     requestAnimationFrame(animate);
     if (controls) controls.update();
     if (renderer && scene && camera) renderer.render(scene, camera);
+}
+
+export function resetGlobeColors() {
+    guessedCountriesColors = {};
+    guessedPoints = [];
+    if (world) {
+        world.pointsData(guessedPoints);
+        if (countriesData) world.polygonsData(countriesData.features);
+    }
 }
 
 export function focusOnCountry(lat, lon) {
