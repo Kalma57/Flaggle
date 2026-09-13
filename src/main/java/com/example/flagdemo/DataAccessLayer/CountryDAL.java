@@ -9,8 +9,9 @@ public class CountryDAL implements java.io.Serializable {
     private double longitude;
     private String neighborsList;
     private String iso3;
+    private String capital;
 
-    public CountryDAL(int ID, String countryName, String code, String flagPath, double lat, double longitude, String neighbors, String iso3) {
+    public CountryDAL(int ID, String countryName, String code, String flagPath, double lat, double longitude, String neighbors, String iso3, String capital) {
         this.ID = ID;
         this.countryName = countryName;
         this.code = code;
@@ -19,6 +20,7 @@ public class CountryDAL implements java.io.Serializable {
         this.longitude = longitude;
         this.neighborsList = neighbors;
         this.iso3 = iso3;
+        this.capital = capital;
     }
 
     public int getID() { return ID; }
@@ -29,4 +31,5 @@ public class CountryDAL implements java.io.Serializable {
     public double getLongitude() { return longitude; }
     public String getNeighborsList() { return neighborsList; }
     public String getIso3() { return iso3; }
+    public String getCapital() { return capital; }
 }

@@ -1,0 +1,258 @@
+ABW: Oranjestad
+AFG: Kabul
+AGO: Luanda
+AIA: The Valley
+ALA: Mariehamn
+ALB: Tirana
+AND: Andorra la Vella
+AQ: 
+ARE: Abu Dhabi
+ARG: Buenos Aires
+ARM: Yerevan
+ASM: Pago Pago
+ATG: St. John's
+AUS: Canberra
+AUT: Vienna
+AZE: Baku
+BDI: Gitega
+BEL: Brussels
+BEN: Porto-Novo
+BES: Kralendijk
+BFA: Ouagadougou
+BGD: Dhaka
+BGR: Sofia
+BHR: Manama
+BHS: Nassau
+BIH: Sarajevo
+BLM: Gustavia
+BLR: Minsk
+BLZ: Belmopan
+BMU: Hamilton
+BOL: Sucre
+BRA: Brasília
+BRB: Bridgetown
+BRN: Bandar Seri Begawan
+BTN: Thimphu
+BV: 
+BWA: Gaborone
+CAF: Bangui
+CAN: Ottawa
+CCK: West Island
+CHE: Bern
+CHL: Santiago
+CHN: Beijing
+CIV: Yamoussoukro
+CMR: Yaoundé
+COD: Kinshasa
+COG: Brazzaville
+COK: Avarua
+COL: Bogotá
+COM: Moroni
+CP: 
+CPV: Praia
+CRI: San José
+CUB: Havana
+CUW: Willemstad
+CXR: Flying Fish Cove
+CYM: George Town
+CYP: Nicosia
+CZE: Prague
+DEU: Berlin
+DG: 
+DJI: Djibouti
+DMA: Roseau
+DNK: Copenhagen
+DOM: Santo Domingo
+DZA: Algiers
+ECU: Quito
+EGY: Cairo
+ENG: London
+ERI: Asmara
+ESH: Laâyoune
+ESP: Madrid
+EST: Tallinn
+ETH: Addis Ababa
+EU: 
+FIN: Helsinki
+FJI: Suva
+FLK: Stanley
+FRA: Paris
+FRO: Tórshavn
+FSM: Palikir
+GAB: Libreville
+GBR: London
+GEO: Tbilisi
+GGY: St Peter Port
+GHA: Accra
+GIB: Gibraltar
+GIN: Conakry
+GLP: Basse-Terre
+GMB: Banjul
+GNB: Bissau
+GNQ: Malabo
+GRC: Athens
+GRD: St. George's
+GRL: Nuuk
+GS: King Edward Point
+GTM: Guatemala City
+GUF: Cayenne
+GUM: Hagåtña
+GUY: Georgetown
+HKG: 
+HM: 
+HND: Tegucigalpa
+HRV: Zagreb
+HTI: Port-au-Prince
+HUN: Budapest
+IC: 
+IDN: Jakarta
+IMN: Douglas
+IND: New Delhi
+IOT: 
+IRL: Dublin
+IRN: Tehran
+IRQ: Baghdad
+ISL: Reykjavik
+ISR: Jerusalem
+ITA: Rome
+JAM: Kingston
+JEY: Saint Helier
+JOR: Amman
+JPN: Tokyo
+KAZ: Astana
+KEN: Nairobi
+KGZ: Bishkek
+KHM: Phnom Penh
+KIR: South Tarawa
+KNA: Basseterre
+KOR: Seoul
+KWT: Kuwait City
+LAO: Vientiane
+LBN: Beirut
+LBR: Monrovia
+LBY: Tripoli
+LCA: Castries
+LIE: Vaduz
+LKA: Sri Jayawardenepura Kotte
+LSO: Maseru
+LTU: Vilnius
+LUX: Luxembourg
+LVA: Riga
+MAC: 
+MAF: Marigot
+MAR: Rabat
+MCO: Monaco
+MDA: Chișinău
+MDG: Antananarivo
+MDV: Malé
+MEX: Mexico City
+MHL: Majuro
+MKD: Skopje
+MLI: Bamako
+MLT: Valletta
+MMR: Naypyidaw
+MNE: Podgorica
+MNG: Ulaanbaatar
+MNP: Saipan
+MOZ: Maputo
+MRT: Nouakchott
+MSR: Brades
+MTQ: Fort-de-France
+MUS: Port Louis
+MWI: Lilongwe
+MYS: Kuala Lumpur
+MYT: Mamoudzou
+NAM: Windhoek
+NCL: Nouméa
+NER: Niamey
+NFK: Kingston
+NGA: Abuja
+NIC: Managua
+NIR: Belfast
+NIU: Alofi
+NLD: Amsterdam
+NOR: Oslo
+NPL: Kathmandu
+NRU: Yaren
+NZL: Wellington
+OMN: Muscat
+PAK: Islamabad
+PAN: Panama City
+PCN: Adamstown
+PER: Lima
+PHL: Manila
+PLW: Ngerulmud
+PNG: Port Moresby
+POL: Warsaw
+PRI: San Juan
+PRK: Pyongyang
+PRT: Lisbon
+PRY: Asunción
+PYF: Papeete
+QAT: Doha
+REU: Saint-Denis
+ROU: Bucharest
+RUS: Moscow
+RWA: Kigali
+SAU: Riyadh
+SCT: Edinburgh
+SDN: Khartoum
+SEN: Dakar
+SGP: Singapore
+SHN: Jamestown
+SJM: Longyearbyen
+SLB: Honiara
+SLE: Freetown
+SLV: San Salvador
+SMR: City of San Marino
+SOM: Mogadishu
+SPM: Saint-Pierre
+SRB: Belgrade
+SSD: Juba
+STP: São Tomé
+SUR: Paramaribo
+SVK: Bratislava
+SVN: Ljubljana
+SWE: Stockholm
+SWZ: Mbabane
+SXM: Philipsburg
+SYC: Victoria
+SYR: Damascus
+TCA: Cockburn Town
+TCD: N'Djamena
+TF: 
+TGO: Lomé
+THA: Bangkok
+TJK: Dushanbe
+TKL: 
+TKM: Ashgabat
+TLS: Dili
+TON: Nuku'alofa
+TTO: Port of Spain
+TUN: Tunis
+TUR: Ankara
+TUV: Funafuti
+TWN: Taipei
+TZA: Dodoma
+UGA: Kampala
+UKR: Kyiv
+UMI: 
+UN: 
+URY: Montevideo
+USA: Washington, D.C.
+UZB: Tashkent
+VAT: Vatican City
+VCT: Kingstown
+VEN: Caracas
+VGB: Road Town
+VIR: Charlotte Amalie
+VNM: Hanoi
+VUT: Port Vila
+WLF: Mata-Utu
+WLS: Cardiff
+WSM: Apia
+XKX: Pristina
+YEM: Sana'a
+ZAF: Pretoria
+ZMB: Lusaka
+ZWE: Harare

@@ -17,8 +17,9 @@ public class CountryBL implements java.io.Serializable {
     private double longitude;
     private String neighbors;
     private String iso3;
+    private String capital;
 
-    public CountryBL(String name, int ID, String flagPath, double lat, double longi, String neighbors, String iso3) {
+    public CountryBL(String name, int ID, String flagPath, double lat, double longi, String neighbors, String iso3, String capital) {
         this.name = name;
         this.ID = ID;
         this.flagPath = flagPath;
@@ -26,6 +27,7 @@ public class CountryBL implements java.io.Serializable {
         this.longitude = longi;
         this.neighbors = neighbors;
         this.iso3 = iso3;
+        this.capital = capital;
     }
 
     public CountryBL() {}
@@ -39,6 +41,7 @@ public class CountryBL implements java.io.Serializable {
         this.longitude = cd.getLongitude();
         this.neighbors = cd.getNeighborsList();
         this.iso3 = cd.getIso3();
+        this.capital = cd.getCapital();
     }
 
     public String getName() {
@@ -84,6 +87,12 @@ public class CountryBL implements java.io.Serializable {
     public double getLongitude() { return longitude; }
     public String getNeighborsList() { return neighbors; }
     public String getIso3() { return iso3; }
+
+    /** Null/blank for entities with no real capital (Antarctica, the EU, dependent territories, etc.). */
+    public String getCapital() { return capital; }
+
+    /** True if this entity has a real capital city on record - check before using it in the capitals game. */
+    public boolean hasCapital() { return capital != null && !capital.isBlank(); }
 
     @Override
     public boolean equals(Object o) {
