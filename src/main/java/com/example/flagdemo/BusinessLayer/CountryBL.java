@@ -101,4 +101,9 @@ public class CountryBL implements java.io.Serializable {
         }
         return false;
     }
+
+    @Override
+    public int hashCode() {
+        return ID;
+    }
 }

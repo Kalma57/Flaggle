@@ -165,11 +165,11 @@
             z-index:1;
 
             display:grid;
-            grid-template-columns:repeat(auto-fit, minmax(240px, 1fr));
-            gap:35px;
+            grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));
+            gap:30px;
 
             width:100%;
-            max-width:640px;
+            max-width:1040px;
 
             margin-top:20px;
 
@@ -327,6 +327,11 @@
             --accent-dark:#1769aa;
         }
 
+        .game-card.capital{
+            --accent:#7c4dff;
+            --accent-dark:#5e35b1;
+        }
+
         /* A quietly-styled placeholder card, hinting more games are coming
            without pretending to be a real, clickable game */
         .game-card.coming-soon{
@@ -403,8 +408,13 @@
         <span class="game-cta">PLAY <span class="arrow">→</span></span>
     </a>
 
-    <!-- Placeholder for future games (e.g. 1v1 modes) — remove once a real
-         game card takes its place -->
+    <a class="game-card capital" href="/Capital">
+        <div class="game-icon">🏛️</div>
+        <h2 class="game-title">CAPITAL</h2>
+        <p class="game-desc">Guess capital cities and their countries</p>
+        <span class="game-cta">PLAY <span class="arrow">→</span></span>
+    </a>
+
     <div class="game-card coming-soon">
         <div class="game-icon">✨</div>
         <h2 class="game-title">More soon</h2>

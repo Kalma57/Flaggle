@@ -66,7 +66,7 @@ DOM: Santo Domingo
 DZA: Algiers
 ECU: Quito
 EGY: Cairo
-ENG: London
+ENG:
 ERI: Asmara
 ESH: Laâyoune
 ESP: Madrid
@@ -168,7 +168,7 @@ NER: Niamey
 NFK: Kingston
 NGA: Abuja
 NIC: Managua
-NIR: Belfast
+NIR:
 NIU: Alofi
 NLD: Amsterdam
 NOR: Oslo
