@@ -97,10 +97,10 @@
             position: relative;
             z-index: 1;
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
             gap: 26px;
             width: 100%;
-            max-width: 900px;
+            max-width: 1020px;
             margin-top: 25px;
         }
 
@@ -128,7 +128,7 @@
         }
 
         .mode-icon { font-size: 44px; }
-        .mode-title { font-size: 26px; letter-spacing: 1px; color: #2c2c2c; }
+        .mode-title { font-size: 22px; letter-spacing: 0.5px; color: #2c2c2c; white-space: nowrap; }
         .mode-desc { font-size: 19px; color: #666; min-height: 68px; }
 
         .mode-cta {
@@ -148,6 +148,7 @@
 
         .mode-card.flagcap { --accent: #7c4dff; --accent-dark: #5e35b1; }
         .mode-card.capcountry { --accent: #ab47bc; --accent-dark: #8e24aa; }
+        .mode-card.globehunt { --accent: #26a69a; --accent-dark: #00897b; }
 
         .mode-card.coming-soon {
             border: 2px dashed #c9b8f2;
@@ -184,17 +185,18 @@
     </a>
 
     <a class="mode-card capcountry" href="/Capital/capital-to-country/format">
-        <div class="mode-icon">🏛️➡️🌍</div>
+        <div class="mode-icon">🏛️➡️🏳️</div>
         <h2 class="mode-title">CAPITAL → COUNTRY</h2>
         <p class="mode-desc">See a capital city's name - pick the country it belongs to from 4 options</p>
         <span class="mode-cta">PLAY ▶</span>
     </a>
 
-    <div class="mode-card coming-soon">
-        <div class="mode-icon">✨</div>
-        <h2 class="mode-title">More soon</h2>
-        <p class="mode-desc">A globe-based capital hunt is on the way</p>
-    </div>
+    <a class="mode-card globehunt" href="/Capital/globe/format">
+        <div class="mode-icon">🏛️➡️🌍</div>
+        <h2 class="mode-title">CAPITAL LOCATIONS</h2>
+        <p class="mode-desc">See a capital city's name - find its country on the 3D globe</p>
+        <span class="mode-cta">PLAY ▶</span>
+    </a>
 
 </div>
 

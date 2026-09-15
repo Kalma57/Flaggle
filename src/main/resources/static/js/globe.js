@@ -90,6 +90,16 @@ const tinyCountriesExtras = {
     "Tuvalu": { lat: -7.10, lon: 177.64 }
 };
 
+// Reverse of countryNameMapping (map-name -> DB-name) - built once below, used to translate
+// a clicked polygon's map-dataset name back into the name our own DB/backend expects.
+const reverseCountryNameMapping = {};
+for (const [dbName, mapName] of Object.entries(countryNameMapping)) {
+    reverseCountryNameMapping[mapName] = dbName;
+}
+function mapNameToDbName(mapName) {
+    return reverseCountryNameMapping[mapName] || mapName;
+}
+
 const SKY_COLOR = 0xffffff;
 
 let scene, camera, renderer, controls, world;
@@ -97,6 +107,8 @@ let countriesData = null;
 let guessedCountriesColors = {};
 let missingPolygonNames = new Set();
 let guessedPoints = [];
+let selectedMapName = null;
+let countryClickCallback = null;
 
 export async function initGlobe() {
     const canvas = document.getElementById('globeCanvas');
@@ -153,6 +165,8 @@ export async function initGlobe() {
     controls.minDistance = 118;
     controls.maxDistance = 480;
 
+    setupClickDetection(canvas);
+
     try {
         const [topoResponse, manifest, geometryBuffer] = await Promise.all([
             fetch('/assets/countries-50m.json').then(r => r.json()),
@@ -183,19 +197,145 @@ export async function initGlobe() {
 }
 
 function capColorFor(feat) {
+    if (feat.properties.name === selectedMapName) return 'rgba(124,77,255,0.55)';
     return guessedCountriesColors[feat.properties.name] || 'rgba(0,0,0,0)';
 }
 
 function sideColorFor(feat) {
+    if (feat.properties.name === selectedMapName) return 'rgba(124,77,255,0.3)';
     return guessedCountriesColors[feat.properties.name] ? 'rgba(0,0,0,0.25)' : 'rgba(0,0,0,0)';
 }
 
 function strokeColorFor(feat) {
+    if (feat.properties.name === selectedMapName) return '#7c4dff';
     return guessedCountriesColors[feat.properties.name] ? '#222222' : 'rgba(0,0,0,0)';
 }
 
 function altitudeFor(feat) {
+    if (feat.properties.name === selectedMapName) return 0.006;
     return guessedCountriesColors[feat.properties.name] ? 0.006 : 0;
+}
+
+/**
+ * Click-to-select support (used by the Capital Locations globe game). The bare `three-globe`
+ * package (as opposed to the higher-level `globe.gl`) has no built-in onPolygonClick - it's
+ * just a THREE.Object3D meant to be dropped into your own scene, so hit-testing is done by
+ * hand here: raycast against the globe to find the clicked (lat, lng) - using the exact
+ * inverse of three-globe's own polar2Cartesian formula so it lines up with the rendered
+ * polygons - then a standard point-in-polygon test against the same GeoJSON features
+ * colorCountry() already paints finds which country was clicked.
+ */
+const raycaster = new THREE.Raycaster();
+const pointerNDC = new THREE.Vector2();
+let pointerDownPos = null;
+
+function setupClickDetection(canvas) {
+    canvas.addEventListener('pointerdown', (e) => {
+        pointerDownPos = { x: e.clientX, y: e.clientY };
+    });
+    canvas.addEventListener('pointerup', (e) => {
+        if (!pointerDownPos) return;
+        const dx = e.clientX - pointerDownPos.x;
+        const dy = e.clientY - pointerDownPos.y;
+        pointerDownPos = null;
+        // Only a near-stationary press counts as a click - anything more was a
+        // drag-to-rotate gesture and must never register as a guess.
+        if (Math.sqrt(dx * dx + dy * dy) > 6) return;
+        handleCanvasClick(e, canvas);
+    });
+}
+
+function handleCanvasClick(event, canvas) {
+    if (!world || !countriesData || !camera) return;
+
+    const rect = canvas.getBoundingClientRect();
+    pointerNDC.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+    pointerNDC.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+    raycaster.setFromCamera(pointerNDC, camera);
+    const intersects = raycaster.intersectObject(world, true);
+    // Only accept a hit near the globe's own radius (100) - excludes the larger, semi-transparent
+    // atmosphere shell (radius ~118 here) so a click through the atmosphere still resolves to
+    // whatever's on the actual surface underneath it, not the shell itself.
+    const surfaceHit = intersects.find(i => i.point.length() < 106);
+    if (!surfaceHit) return; // clicked empty space/background, not the globe
+
+    const { lat, lng } = cartesianToLatLon(surfaceHit.point);
+    const feature = findCountryAtLatLon(lat, lng);
+    if (feature && countryClickCallback) {
+        countryClickCallback(mapNameToDbName(feature.properties.name));
+    }
+}
+
+/** Exact inverse of three-globe's own polar2Cartesian(lat, lng, alt) -> {x, y, z}. */
+function cartesianToLatLon({ x, y, z }) {
+    const r = Math.sqrt(x * x + y * y + z * z);
+    const phi = Math.acos(y / r);
+    const theta = Math.atan2(z, x);
+    return {
+        lat: 90 - phi * 180 / Math.PI,
+        lng: 90 - theta * 180 / Math.PI - (theta < -Math.PI / 2 ? 360 : 0)
+    };
+}
+
+function findCountryAtLatLon(lat, lng) {
+    for (const feature of countriesData.features) {
+        const geom = feature.geometry;
+        if (!geom) continue;
+        if (geom.type === 'Polygon' && pointInPolygonRings(lng, lat, geom.coordinates)) return feature;
+        if (geom.type === 'MultiPolygon') {
+            for (const poly of geom.coordinates) {
+                if (pointInPolygonRings(lng, lat, poly)) return feature;
+            }
+        }
+    }
+    return null;
+}
+
+/** rings[0] is the outer boundary, any further rings are holes to subtract - standard GeoJSON. */
+function pointInPolygonRings(lon, lat, rings) {
+    if (!pointInRing(lon, lat, rings[0])) return false;
+    for (let i = 1; i < rings.length; i++) {
+        if (pointInRing(lon, lat, rings[i])) return false;
+    }
+    return true;
+}
+
+/** Standard even-odd ray-casting point-in-polygon test. */
+function pointInRing(lon, lat, ring) {
+    let inside = false;
+    for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+        const [xi, yi] = ring[i];
+        const [xj, yj] = ring[j];
+        const intersects = ((yi > lat) !== (yj > lat)) &&
+            (lon < (xj - xi) * (lat - yi) / (yj - yi) + xi);
+        if (intersects) inside = !inside;
+    }
+    return inside;
+}
+
+/** Registers the callback fired with a DB country name whenever the player clicks the globe. */
+export function onCountryClick(callback) {
+    countryClickCallback = callback;
+}
+
+/** True if this country has already been colored (a guess was already made/revealed on it). */
+export function isCountryColored(dbCountryName) {
+    if (!dbCountryName) return false;
+    const cleanName = dbCountryName.trim();
+    const mapName = countryNameMapping[cleanName] || cleanName;
+    return guessedCountriesColors[mapName] !== undefined;
+}
+
+/** Highlights one country as "selected but not yet confirmed" - pass null to clear it. */
+export function setSelectedCountry(dbCountryName) {
+    if (!dbCountryName) {
+        selectedMapName = null;
+    } else {
+        const cleanName = dbCountryName.trim();
+        selectedMapName = countryNameMapping[cleanName] || cleanName;
+    }
+    scheduleColorRefresh();
 }
 
 export function colorCountry(dbCountryName, hexColor) {
@@ -251,6 +391,7 @@ function animate() {
 export function resetGlobeColors() {
     guessedCountriesColors = {};
     guessedPoints = [];
+    selectedMapName = null;
     if (world) {
         world.pointsData(guessedPoints);
         if (countriesData) world.polygonsData(countriesData.features);
