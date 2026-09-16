@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${modeLabel} + ' - 1v1 vs Computer'">Capital Cities - 1v1 vs Computer</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Nunito', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        h1, h2, .mode-title { font-family: 'Baloo 2', 'Nunito', sans-serif; }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            padding: 60px 20px;
+            background: linear-gradient(-45deg, #f3e9ff, #f9f9f9, #ede1ff, #f8f2ff);
+            background-size: 400% 400%;
+            animation: gradientMove 12s ease infinite;
+            overflow-x: hidden;
+        }
+
+        @keyframes gradientMove {
+            0%   { background-position: 0% 50%; }
+            50%  { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .glow {
+            position: fixed;
+            width: 350px;
+            height: 350px;
+            background: #7c4dff;
+            opacity: 0.15;
+            filter: blur(120px);
+            border-radius: 50%;
+            animation: float 8s infinite alternate ease-in-out;
+            pointer-events: none;
+        }
+
+        .glow1 { top: 5%; left: 10%; }
+        .glow2 { bottom: 5%; right: 10%; }
+
+        @keyframes float {
+            from { transform: translateY(0px); }
+            to   { transform: translateY(-60px); }
+        }
+
+        .back-link {
+            position: fixed;
+            top: 30px;
+            left: 30px;
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 21px;
+            font-weight: bold;
+            color: #7c4dff;
+            text-decoration: none;
+            padding: 10px 18px;
+            background: rgba(255,255,255,0.85);
+            border-radius: 999px;
+            box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+            transition: 0.3s;
+        }
+
+        .back-link:hover { transform: translateX(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.18); }
+
+        .lobby-header { position: relative; z-index: 1; text-align: center; margin-bottom: 10px; }
+
+        h1 {
+            font-size: 50px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 14px;
+            color: #7c4dff;
+            text-shadow: 0 8px 20px rgba(124,77,255,0.35);
+        }
+
+        .lobby-subtitle { font-size: 21px; color: #4a4a4a; margin-top: 10px; }
+
+        .modes-grid {
+            position: relative;
+            z-index: 1;
+            display: grid;
+            grid-template-columns: repeat(5, minmax(220px, 1fr));
+            gap: 26px;
+            width: 100%;
+            max-width: 1600px;
+            margin-top: 25px;
+        }
+
+        .mode-card {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            gap: 12px;
+            padding: 30px 22px 26px;
+            text-decoration: none;
+            background: rgba(255,255,255,0.85);
+            backdrop-filter: blur(12px);
+            border-radius: 22px;
+            border: 2px solid transparent;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.12);
+            transition: all 0.35s ease;
+        }
+
+        .mode-card:hover {
+            transform: translateY(-8px) scale(1.03);
+            border-color: var(--accent);
+            box-shadow: 0 22px 45px rgba(0,0,0,0.2);
+        }
+
+        .mode-icon { font-size: 40px; }
+        .mode-title { font-size: 23px; letter-spacing: 0.5px; color: #2c2c2c; white-space: nowrap; }
+        .mode-desc { font-size: 19px; color: #666; min-height: 68px; }
+
+        .mode-cta {
+            margin-top: 4px;
+            padding: 9px 26px;
+            font-size: 20px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            color: white;
+            border-radius: 999px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+            box-shadow: 0 8px 18px rgba(0,0,0,0.2);
+            transition: 0.3s;
+        }
+
+        .mode-card:hover .mode-cta { transform: translateY(-2px); box-shadow: 0 12px 24px rgba(0,0,0,0.3); }
+
+        .mode-card.best3 { --accent: #9575cd; --accent-dark: #7e57c2; }
+        .mode-card.best5 { --accent: #7c4dff; --accent-dark: #6a3df0; }
+        .mode-card.best7 { --accent: #5e35b1; --accent-dark: #4527a0; }
+        .mode-card.blitz1 { --accent: #ab47bc; --accent-dark: #8e24aa; }
+        .mode-card.blitz2 { --accent: #8e24aa; --accent-dark: #6a1b7a; }
+    </style>
+</head>
+
+<body>
+
+<div class="glow glow1"></div>
+<div class="glow glow2"></div>
+
+<a class="back-link" th:href="@{'/Capital/' + ${mode} + '/format'}">← Back</a>
+
+<div class="lobby-header">
+    <h1><span>🤖</span> <span th:text="${modeLabel}">Flag → Capital</span></h1>
+    <p class="lobby-subtitle">Choose a format</p>
+</div>
+
+<div class="modes-grid">
+
+    <a class="mode-card best3" th:href="@{'/Capital/' + ${mode} + '/lobby'(target=3)}">
+        <div class="mode-icon">🥉</div>
+        <h2 class="mode-title">FIRST TO 3</h2>
+        <p class="mode-desc">First to reach 3 net correct wins (wrong answers set you back a point)</p>
+        <span class="mode-cta">CHOOSE ▶</span>
+    </a>
+
+    <a class="mode-card best5" th:href="@{'/Capital/' + ${mode} + '/lobby'(target=5)}">
+        <div class="mode-icon">🥈</div>
+        <h2 class="mode-title">FIRST TO 5</h2>
+        <p class="mode-desc">First to reach 5 net correct wins (wrong answers set you back a point)</p>
+        <span class="mode-cta">CHOOSE ▶</span>
+    </a>
+
+    <a class="mode-card best7" th:href="@{'/Capital/' + ${mode} + '/lobby'(target=7)}">
+        <div class="mode-icon">🥇</div>
+        <h2 class="mode-title">FIRST TO 7</h2>
+        <p class="mode-desc">First to reach 7 net correct wins (wrong answers set you back a point)</p>
+        <span class="mode-cta">CHOOSE ▶</span>
+    </a>
+
+    <a class="mode-card blitz1" th:href="@{'/Capital/' + ${mode} + '/blitz/lobby'(durationSeconds=60)}">
+        <div class="mode-icon">⏱️</div>
+        <h2 class="mode-title">1 MINUTE BLITZ</h2>
+        <p class="mode-desc">Same questions, one shared minute. Highest net score when time's up wins</p>
+        <span class="mode-cta">CHOOSE ▶</span>
+    </a>
+
+    <a class="mode-card blitz2" th:href="@{'/Capital/' + ${mode} + '/blitz/lobby'(durationSeconds=120)}">
+        <div class="mode-icon">⏳</div>
+        <h2 class="mode-title">2 MINUTE BLITZ</h2>
+        <p class="mode-desc">Same questions, two shared minutes. Highest net score when time's up wins</p>
+        <span class="mode-cta">CHOOSE ▶</span>
+    </a>
+
+</div>
+
+</body>
+</html>

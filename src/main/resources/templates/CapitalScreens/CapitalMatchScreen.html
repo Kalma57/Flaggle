@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Capital Cities - 1v1 vs Computer</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --font-display: clamp(26px, 4.4vh, 44px);
+            --font-xl: clamp(18px, 2.6vh, 26px);
+            --font-lg: clamp(15px, 2.1vh, 20px);
+            --font-md: clamp(13px, 1.8vh, 17px);
+            --font-base: clamp(12px, 1.6vh, 15px);
+
+            --shadow-sm: 0 4px 12px rgba(0,0,0,0.08);
+            --shadow-md: 0 10px 25px rgba(0,0,0,0.15);
+            --shadow-lg: 0 12px 28px rgba(0,0,0,0.18);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Nunito', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        h1, h2 { font-family: 'Baloo 2', 'Nunito', sans-serif; }
+
+        html, body { height: 100%; }
+
+        body {
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 1.4vh 20px 1.6vh;
+            background: linear-gradient(-45deg, #f3e9ff, #f9f9f9, #ede1ff, #f8f2ff);
+            background-size: 400% 400%;
+            animation: gradientMove 12s ease infinite;
+        }
+
+        @keyframes gradientMove {
+            0%   { background-position: 0% 50%; }
+            50%  { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        h1 {
+            font-size: clamp(22px, 3.4vh, 34px);
+            color: #7c4dff;
+            margin-bottom: 0.3vh;
+            text-shadow: 0 8px 20px rgba(124,77,255,0.35);
+            flex-shrink: 0;
+        }
+
+        /* -------------------- Top badges -------------------- */
+
+        .badge-stack {
+            position: fixed;
+            top: 24px;
+            left: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            z-index: 5;
+        }
+
+        .badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 18px;
+            border-radius: 999px;
+            font-size: clamp(13px, 1.8vh, 17px);
+            font-weight: bold;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .badge.easy   { background: linear-gradient(135deg, #e3f2fd, #ffffff); color: #1565c0; border: 2px solid #42a5f5; }
+        .badge.hard   { background: linear-gradient(135deg, #fdeaea, #ffffff); color: #c62828; border: 2px solid #ef5350; }
+        .badge.medium { background: linear-gradient(135deg, #fff3e0, #ffffff); color: #ef6c00; border: 2px solid #ffa726; }
+        .badge.format { background: linear-gradient(135deg, #f3e9ff, #ffffff); color: #5e35b1; border: 2px solid #7c4dff; }
+
+        .top-right-actions {
+            position: fixed;
+            top: 24px;
+            right: 24px;
+            display: flex;
+            gap: 10px;
+            z-index: 5;
+        }
+
+        .rules-btn, .pause-btn {
+            padding: 9px 20px;
+            font-size: var(--font-md);
+            border-radius: 10px;
+            cursor: pointer;
+            border: 2px solid #7c4dff;
+            background: white;
+            color: #7c4dff;
+            box-shadow: var(--shadow-sm);
+            transition: 0.3s;
+        }
+
+        .pause-btn { border-color: #ffa726; color: #ef6c00; }
+
+        .rules-btn:hover { background: #f3e9ff; transform: translateY(-2px); box-shadow: var(--shadow-md); }
+        .pause-btn:hover { background: #fff3e0; transform: translateY(-2px); box-shadow: var(--shadow-md); }
+        .pause-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* -------------------- Scoreboard -------------------- */
+
+        .scoreboard {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-bottom: 1.2vh;
+            flex-shrink: 0;
+        }
+
+        .round-indicator { font-size: var(--font-base); color: #4a4a4a; font-weight: 700; }
+
+        .score-line {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: var(--font-xl);
+            font-weight: 800;
+            color: #2c2c2c;
+        }
+
+        .score-you  { color: #5e35b1; }
+        .score-ai   { color: #c62828; }
+        .score-you.negative, .score-ai.negative { color: #c62828; }
+        .score-sep  { color: #999; font-weight: 400; font-size: var(--font-base); }
+
+        .match-clock {
+            font-family: 'Consolas', monospace;
+            font-size: var(--font-md);
+            font-weight: 700;
+            color: #4a4a4a;
+            background: rgba(255,255,255,0.75);
+            padding: 3px 14px;
+            border-radius: 999px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        /* -------------------- Two-column layout -------------------- */
+
+        .match-columns {
+            flex: 1;
+            min-height: 0;
+            display: flex;
+            gap: 24px;
+            width: 100%;
+            max-width: 1180px;
+            align-items: stretch;
+            justify-content: center;
+        }
+
+        .column {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 1.2vh;
+            min-height: 0;
+        }
+
+        .column.your-column {
+            flex: 2 1 620px;
+            min-width: 0;
+        }
+
+        .column.opponent-column {
+            flex: 1 1 220px;
+            max-width: 250px;
+            min-width: 200px;
+        }
+
+        .column-title {
+            font-size: var(--font-lg);
+            font-weight: 800;
+            color: #2c2c2c;
+            flex-shrink: 0;
+        }
+
+        /* -------------------- Quiz area -------------------- */
+
+        .prompt-card {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1.1vh;
+            padding: clamp(12px, 2.2vh, 26px) clamp(16px, 2.4vw, 32px);
+            background: rgba(255,255,255,0.85);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: var(--shadow-md);
+            flex-shrink: 0;
+        }
+
+        .prompt-flag {
+            height: clamp(80px, 18vh, 200px);
+            width: auto;
+            max-width: 58vw;
+            border-radius: 12px;
+            box-shadow: var(--shadow-md);
+            border: 3px solid rgba(124,77,255,0.25);
+        }
+
+        .prompt-text {
+            font-size: clamp(22px, 3.8vh, 38px);
+            font-weight: 800;
+            color: #2c2c2c;
+            text-align: center;
+        }
+
+        .prompt-label {
+            font-size: clamp(11px, 1.4vh, 14px);
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-weight: 700;
+        }
+
+        .options-grid {
+            width: 100%;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: clamp(10px, 1.8vh, 20px);
+            flex-shrink: 0;
+        }
+
+        @media (max-width: 560px) {
+            .options-grid { grid-template-columns: 1fr; }
+        }
+
+        .option-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            padding: clamp(14px, 2.6vh, 26px) clamp(14px, 2vw, 22px);
+            font-size: clamp(16px, 2.6vh, 23px);
+            font-weight: 700;
+            color: #2c2c2c;
+            background: rgba(255,255,255,0.9);
+            border: 2px solid rgba(124,77,255,0.25);
+            border-radius: 14px;
+            cursor: pointer;
+            box-shadow: var(--shadow-sm);
+            transition: 0.2s;
+        }
+
+        .option-btn:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-md);
+            border-color: #7c4dff;
+        }
+
+        .option-btn:disabled { cursor: not-allowed; opacity: 0.7; }
+
+        .option-btn img { width: clamp(30px, 4.2vh, 42px); height: clamp(20px, 2.8vh, 28px); object-fit: cover; border-radius: 4px; border: 1px solid rgba(0,0,0,0.15); }
+
+        .option-btn.correct { background: #e8f5e9; border-color: #4CAF50; color: #2e7d32; }
+        .option-btn.wrong   { background: #fdeaea; border-color: #ef5350; color: #c62828; }
+
+        /* -------------------- Feedback banner -------------------- */
+
+        .feedback-banner {
+            width: 100%;
+            text-align: center;
+            padding: clamp(8px, 1.2vh, 14px) 18px;
+            border-radius: 12px;
+            font-size: clamp(13px, 1.9vh, 18px);
+            font-weight: 800;
+            box-shadow: var(--shadow-sm);
+            display: none;
+            flex-shrink: 0;
+        }
+
+        .feedback-banner.shown { display: block; }
+        .feedback-banner.correct { background: #e8f5e9; color: #2e7d32; }
+        .feedback-banner.wrong   { background: #fdeaea; color: #c62828; }
+
+        /* -------------------- Opponent panel -------------------- */
+
+        .opponent-panel {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.8vh;
+            padding: clamp(12px, 2vh, 24px) clamp(12px, 1.6vw, 20px);
+            background: rgba(255,255,255,0.85);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: var(--shadow-md);
+        }
+
+        .opponent-score {
+            font-family: 'Consolas', monospace;
+            font-size: clamp(28px, 5vh, 44px);
+            font-weight: 800;
+            color: #2c2c2c;
+        }
+
+        .opponent-score.negative { color: #c62828; }
+
+        .opponent-score-label {
+            margin-top: -6px;
+            font-size: clamp(10px, 1.2vh, 13px);
+            font-weight: 700;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .progress-track {
+            width: 100%;
+            height: clamp(9px, 1.5vh, 14px);
+            border-radius: 999px;
+            background: #eee;
+            overflow: hidden;
+            box-shadow: inset 0 2px 6px rgba(0,0,0,0.1);
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            border-radius: 999px;
+            background: linear-gradient(135deg, #ab47bc, #8e24aa);
+            transition: width 0.5s ease;
+        }
+
+        .opponent-status { font-size: var(--font-base); font-weight: 700; color: #4a4a4a; text-align: center; }
+
+        /* -------------------- Overlays -------------------- */
+
+        .overlay-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 200;
+        }
+
+        .overlay-backdrop.active { display: flex; }
+
+        .overlay-panel {
+            background: white;
+            border-radius: 22px;
+            padding: 40px 44px;
+            max-width: 500px;
+            width: 92%;
+            max-height: 92vh;
+            overflow-y: auto;
+            text-align: center;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .overlay-panel h2 { font-size: clamp(24px, 3.6vh, 32px); color: #7c4dff; margin-bottom: 14px; }
+        .overlay-panel.lost h2 { color: #c62828; }
+        .overlay-panel.wide { max-width: 880px; }
+
+        .match-recap {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 100%;
+            margin: 20px 0;
+            text-align: left;
+            max-height: 440px;
+            overflow-y: auto;
+        }
+
+        .recap-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            padding: 13px 22px;
+            border-radius: 14px;
+            background: #f5f5f5;
+            font-size: 16px;
+            font-weight: 700;
+            color: #555;
+        }
+
+        .recap-flag {
+            width: 38px;
+            height: 25px;
+            object-fit: cover;
+            border-radius: 4px;
+            border: 1px solid rgba(0,0,0,0.15);
+            flex-shrink: 0;
+        }
+
+        .recap-round-num { color: #999; font-weight: 700; min-width: 46px; }
+        .recap-prompt   { flex: 1; text-align: center; }
+        .recap-side { min-width: 110px; text-align: right; }
+        .recap-side.correct { color: #2e7d32; }
+        .recap-side.wrong { color: #c62828; }
+        .recap-side small { font-weight: 600; opacity: 0.7; font-size: 0.85em; }
+
+        .overlay-sub { font-size: var(--font-md); color: #444; margin-bottom: 4px; }
+        .overlay-note { font-size: 13px; color: #888; margin-top: 8px; }
+
+        .overlay-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin-top: 16px;
+            flex-wrap: wrap;
+        }
+
+        .overlay-btn {
+            padding: 10px 22px;
+            font-size: var(--font-base);
+            font-weight: bold;
+            border-radius: 999px;
+        }
+
+        .overlay-btn.primary {
+            background: linear-gradient(135deg, #7c4dff, #5e35b1);
+            color: white;
+            box-shadow: 0 8px 18px rgba(0,0,0,0.25);
+        }
+
+        .overlay-btn.secondary {
+            background: white;
+            color: #7c4dff;
+            border: 2px solid #7c4dff;
+        }
+
+        .overlay-btn.primary:hover, .overlay-btn.secondary:hover { transform: translateY(-2px); }
+
+        /* -------------------- Rules panel -------------------- */
+
+        .rules-panel {
+            height: 100%;
+            width: 380px;
+            max-width: 85vw;
+            position: fixed;
+            z-index: 101;
+            top: 0;
+            right: 0;
+            background: white;
+            overflow-y: auto;
+            transform: translateX(100%);
+            transition: transform 0.4s ease;
+            padding: 30px 25px;
+            box-shadow: -10px 0 30px rgba(0,0,0,0.25);
+        }
+
+        .rules-panel.open { transform: translateX(0); }
+
+        .rules-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.35);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s ease;
+            z-index: 100;
+        }
+
+        .rules-backdrop.active { opacity: 1; pointer-events: auto; }
+
+        .rules-panel h2 { color: #7c4dff; margin-bottom: 15px; }
+        .rules-panel p { margin: 10px 0; color: #333; }
+
+        .close-rules {
+            position: absolute;
+            top: 15px;
+            right: 25px;
+            font-size: 32px;
+            cursor: pointer;
+            color: #7c4dff;
+        }
+    </style>
+</head>
+
+<body th:attr="data-match-id=${matchId}, data-mode=${mode}">
+
+<div class="badge-stack">
+    <div class="badge" th:classappend="${aiLevel.name() eq 'EASY'} ? 'easy' : (${aiLevel.name() eq 'HARD'} ? 'hard' : 'medium')">
+        <span th:text="'🤖 AI: ' + ${aiLevel.name()}">AI: MEDIUM</span>
+    </div>
+    <div class="badge format">
+        <span th:text="'🎯 FIRST TO ' + ${target}">FIRST TO 3</span>
+    </div>
+</div>
+
+<div class="top-right-actions">
+    <button class="pause-btn" id="pauseBtn">⏸ PAUSE</button>
+    <button class="rules-btn" onclick="openRules()">RULES</button>
+</div>
+
+<h1><span th:text="${modeLabel}">Flag → Capital</span></h1>
+
+<div class="scoreboard">
+    <div class="round-indicator" id="roundIndicator" th:text="'Round 1 - race to ' + ${target} + ' correct'">Round 1 - race to 3 correct</div>
+    <div class="score-line">
+        <span class="score-you" id="humanScoreText">0</span>
+        <span class="score-sep">YOU - AI</span>
+        <span class="score-ai" id="aiScoreText">0</span>
+    </div>
+    <div class="match-clock" id="matchClock">00:00</div>
+</div>
+
+<div class="match-columns">
+
+    <div class="column your-column">
+
+        <div class="prompt-card">
+            <span class="prompt-label" id="promptLabel">Which is the capital of...</span>
+            <img class="prompt-flag" id="promptFlag" style="display:none" alt="flag">
+            <div class="prompt-text" id="promptText">Loading...</div>
+        </div>
+
+        <div class="feedback-banner" id="feedbackBanner"></div>
+
+        <div class="options-grid" id="optionsGrid"></div>
+
+    </div>
+
+    <div class="column opponent-column">
+        <div class="column-title">🤖 OPPONENT</div>
+        <div class="opponent-panel">
+            <div class="opponent-score" id="opponentScore">0</div>
+            <div class="opponent-score-label">net correct</div>
+            <div class="progress-track"><div class="progress-fill" id="opponentProgressFill"></div></div>
+            <div class="opponent-status" id="opponentStatusText">🤔 Thinking...</div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Pause overlay -->
+<div class="overlay-backdrop" id="pauseOverlay">
+    <div class="overlay-panel" id="pauseOverlayPanel">
+        <h2>⏸ Match Paused</h2>
+        <div class="overlay-sub">The clock and the AI are frozen. Pick up whenever you're ready.</div>
+        <div class="overlay-actions">
+            <a class="overlay-btn secondary" href="/">🏠 HOME</a>
+            <button class="overlay-btn primary" id="resumeBtn">▶ RESUME</button>
+        </div>
+    </div>
+</div>
+
+<!-- Match-over overlay -->
+<div class="overlay-backdrop" id="matchOverlay">
+    <div class="overlay-panel wide" id="matchOverlayPanel">
+        <h2 id="matchOverlayTitle">🏆 You Win the Match!</h2>
+        <div class="overlay-sub" id="matchOverlaySub">Final score: 2 - 1</div>
+        <div class="match-recap" id="matchRecap"></div>
+        <div class="overlay-actions">
+            <a class="overlay-btn secondary" href="/">HOME</a>
+            <a class="overlay-btn secondary" href="/Capital">CAPITAL</a>
+            <a class="overlay-btn primary" th:href="@{'/Capital/' + ${mode} + '/start'(aiLevel=${aiLevel}, target=${target})}">PLAY AGAIN</a>
+        </div>
+    </div>
+</div>
+
+<!-- Rules backdrop + panel -->
+<div id="rulesBackdrop" class="rules-backdrop" onclick="closeRules()"></div>
+<div id="rulesPanel" class="rules-panel">
+    <span class="close-rules" onclick="closeRules()">&times;</span>
+    <h2>1v1 vs Computer Rules</h2>
+    <p>Every round, you and the AI both answer the same question: it's not a race to answer first, both of you always get a shot.</p>
+    <p>A correct answer is <strong>+1</strong>, a wrong answer is <strong>-1</strong> - your score can go negative.</p>
+    <p th:text="'First to reach ' + ${target} + ' net correct wins the match.'">First to reach 3 net correct wins the match.</p>
+    <p>The AI "thinks" for a random amount of time before locking in its own answer (faster and sharper on HARD). Watch its live score in the side panel.</p>
+    <p>Pausing freezes the clock and the AI. Resume whenever you're ready, no limit on how many times.</p>
+</div>
+
+<script th:inline="none">
+    const MATCH_ID = document.body.getAttribute('data-match-id');
+    const MODE = document.body.getAttribute('data-mode');
+
+    const promptLabel = document.getElementById('promptLabel');
+    const promptFlag  = document.getElementById('promptFlag');
+    const promptText  = document.getElementById('promptText');
+    const optionsGrid = document.getElementById('optionsGrid');
+    const feedbackBanner = document.getElementById('feedbackBanner');
+    const pauseBtn    = document.getElementById('pauseBtn');
+    const resumeBtn   = document.getElementById('resumeBtn');
+    const pauseOverlay = document.getElementById('pauseOverlay');
+    const opponentScore = document.getElementById('opponentScore');
+    const opponentProgressFill = document.getElementById('opponentProgressFill');
+    const opponentStatusText = document.getElementById('opponentStatusText');
+
+    const roundIndicator = document.getElementById('roundIndicator');
+    const humanScoreText = document.getElementById('humanScoreText');
+    const aiScoreText    = document.getElementById('aiScoreText');
+    const matchClock     = document.getElementById('matchClock');
+
+    const matchOverlay      = document.getElementById('matchOverlay');
+    const matchOverlayPanel = document.getElementById('matchOverlayPanel');
+    const matchOverlayTitle = document.getElementById('matchOverlayTitle');
+    const matchOverlaySub   = document.getElementById('matchOverlaySub');
+    const matchRecap        = document.getElementById('matchRecap');
+
+    let pointsToWin = 2; // overwritten by the first status payload (data.pointsToWin)
+
+    let busy = false;
+    let roundOverHandled = false;
+    let matchIsOver = false;
+    let isPaused = false;
+    let statusPollTimer = null;
+    let autoAdvanceTimer = null;
+    let answered = false;
+
+    function flagSrc(flagPath) {
+        if (!flagPath) return '';
+        let fileName = flagPath;
+        if (fileName.includes('/') || fileName.includes('\\')) {
+            fileName = fileName.split(/[/\\]/).pop();
+        }
+        return `/DB/FlagsImages/${fileName}`;
+    }
+
+    function formatClock(totalSeconds) {
+        const s = Math.max(0, Math.floor(totalSeconds));
+        const mm = String(Math.floor(s / 60)).padStart(2, '0');
+        const ss = String(s % 60).padStart(2, '0');
+        return mm + ':' + ss;
+    }
+
+    function renderPrompt(data) {
+        if (data.mode === 'FLAG_TO_CAPITAL') {
+            promptLabel.textContent = 'Which is the capital of...';
+            promptFlag.src = flagSrc(data.promptFlagPath);
+            promptFlag.style.display = 'block';
+            promptText.textContent = data.promptText;
+        } else {
+            promptLabel.textContent = 'Which country has this capital...';
+            promptFlag.style.display = 'none';
+            promptText.textContent = data.promptText;
+        }
+    }
+
+    function renderOptions(data) {
+        optionsGrid.innerHTML = '';
+        (data.options || []).forEach(function (opt, i) {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.disabled = answered || data.roundOver || matchIsOver || isPaused;
+            if (opt.flagPath) {
+                const img = document.createElement('img');
+                img.src = flagSrc(opt.flagPath);
+                img.alt = opt.text;
+                img.onerror = function () { this.style.display = 'none'; };
+                btn.appendChild(img);
+            }
+            const span = document.createElement('span');
+            span.textContent = opt.text;
+            btn.appendChild(span);
+
+            if (data.roundOver) {
+                if (i === data.correctOptionIndex) btn.classList.add('correct');
+                else if (i === data.humanPickedIndex) btn.classList.add('wrong');
+            }
+
+            btn.addEventListener('click', function () { submitAnswer(i); });
+            optionsGrid.appendChild(btn);
+        });
+    }
+
+    function updateFeedback(data) {
+        if (!data.roundOver) {
+            feedbackBanner.classList.remove('shown', 'correct', 'wrong');
+            return;
+        }
+        const humanCorrect = data.humanCorrectThisRound === true;
+        feedbackBanner.textContent = humanCorrect ? '✅ Correct! (+1)' : '❌ Wrong (-1)';
+        feedbackBanner.classList.add('shown');
+        feedbackBanner.classList.toggle('correct', humanCorrect);
+        feedbackBanner.classList.toggle('wrong', !humanCorrect);
+    }
+
+    function updateScoreColors(data) {
+        humanScoreText.textContent = data.humanScore;
+        aiScoreText.textContent = data.aiScore;
+        humanScoreText.classList.toggle('negative', data.humanScore < 0);
+        aiScoreText.classList.toggle('negative', data.aiScore < 0);
+    }
+
+    function updateOpponentPanel(data) {
+        pointsToWin = data.pointsToWin || pointsToWin;
+        opponentScore.textContent = data.aiScore;
+        opponentScore.classList.toggle('negative', data.aiScore < 0);
+        const fillPercent = Math.max(0, Math.min(100, (data.aiScore / pointsToWin) * 100));
+        opponentProgressFill.style.width = fillPercent + '%';
+
+        if (data.roundOver) {
+            opponentStatusText.textContent = data.aiCorrectThisRound ? '✅ Correct (+1)' : '❌ Wrong (-1)';
+        } else {
+            opponentStatusText.textContent = data.aiAnswered ? '🔒 Locked in...' : '🤔 Thinking...';
+        }
+    }
+
+    function setGuessingEnabled(enabled) {
+        pauseBtn.disabled = !enabled;
+        Array.from(optionsGrid.querySelectorAll('.option-btn')).forEach(b => { b.disabled = !enabled; });
+    }
+
+    function applyState(data) {
+        if (!data || data.humanScore === undefined) return;
+
+        updateScoreColors(data);
+        roundIndicator.textContent = 'Round ' + data.roundNumber + ' - race to ' + data.pointsToWin + ' correct';
+        matchClock.textContent = formatClock(data.matchElapsedSeconds);
+
+        renderPrompt(data);
+        renderOptions(data);
+        updateFeedback(data);
+        updateOpponentPanel(data);
+        handlePauseState(data);
+
+        if (data.matchOver && !matchIsOver) {
+            matchIsOver = true;
+            showMatchOverlay(data);
+            return;
+        }
+
+        if (data.roundOver && !roundOverHandled && !data.matchOver) {
+            roundOverHandled = true;
+            scheduleNextRound();
+        }
+    }
+
+    function handlePauseState(data) {
+        if (data.paused && !isPaused) {
+            isPaused = true;
+            setGuessingEnabled(false);
+            pauseOverlay.classList.add('active');
+        } else if (!data.paused && isPaused) {
+            isPaused = false;
+            pauseOverlay.classList.remove('active');
+            if (!roundOverHandled && !matchIsOver) setGuessingEnabled(true);
+        }
+        pauseBtn.disabled = data.paused || roundOverHandled || matchIsOver;
+    }
+
+    // The round is already fully decided by the time the human answers (see
+    // CapitalQuizEngineBL) - no blocking "round over" popup, just a brief pause on the colored
+    // options + feedback banner, then straight into the next question automatically.
+    function scheduleNextRound() {
+        setGuessingEnabled(false);
+        clearInterval(statusPollTimer);
+        autoAdvanceTimer = setTimeout(nextRound, 2200);
+    }
+
+    function formatTime(seconds) {
+        return (typeof seconds === 'number' ? seconds.toFixed(1) : '?') + 's';
+    }
+
+    function renderMatchRecap(history) {
+        matchRecap.innerHTML = '';
+        if (!history) return;
+        history.forEach(function (r) {
+            const row = document.createElement('div');
+            row.className = 'recap-row';
+            const youSpan = '<span class="recap-side ' + (r.humanCorrect ? 'correct' : 'wrong') + '">You ' + (r.humanCorrect ? '✓' : '✗') + ' <small>(' + formatTime(r.humanTimeSeconds) + ')</small></span>';
+            const aiSpan = '<span class="recap-side ' + (r.aiCorrect ? 'correct' : 'wrong') + '">AI ' + (r.aiCorrect ? '✓' : '✗') + ' <small>(' + formatTime(r.aiTimeSeconds) + ')</small></span>';
+            const flagImg = r.targetFlagPath ? '<img class="recap-flag" src="' + flagSrc(r.targetFlagPath) + '" alt="" onerror="this.style.display=\'none\'">' : '';
+            row.innerHTML =
+                '<span class="recap-round-num">Round ' + r.roundNumber + '</span>' +
+                flagImg +
+                '<span class="recap-prompt">' + r.promptText + ' → ' + r.correctAnswerText + '</span>' +
+                youSpan + aiSpan;
+            matchRecap.appendChild(row);
+        });
+    }
+
+    function showMatchOverlay(data) {
+        setGuessingEnabled(false);
+        clearInterval(statusPollTimer);
+        clearTimeout(autoAdvanceTimer);
+
+        const won = data.matchWinner === 'HUMAN';
+        matchOverlayPanel.classList.toggle('lost', !won);
+        matchOverlayTitle.textContent = won ? '🏆 You Win the Match!' : '🤖 The AI Wins the Match';
+        matchOverlaySub.textContent = 'Final score: ' + data.humanScore + ' - ' + data.aiScore;
+        renderMatchRecap(data.roundHistory);
+        matchOverlay.classList.add('active');
+    }
+
+    async function postForm(url, params) {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: params
+        });
+        return response.json();
+    }
+
+    function matchParams() {
+        return 'matchId=' + encodeURIComponent(MATCH_ID);
+    }
+
+    async function submitAnswer(optionIndex) {
+        if (busy || answered || roundOverHandled || matchIsOver || isPaused) return;
+        busy = true;
+        answered = true;
+        setGuessingEnabled(false);
+        try {
+            const data = await postForm(`/Capital/${MODE}/answer/ajax`, matchParams() + '&optionIndex=' + optionIndex);
+            applyState(data);
+        } catch (err) {
+            console.error('Answer error:', err);
+        } finally {
+            busy = false;
+        }
+    }
+
+    async function nextRound() {
+        clearTimeout(autoAdvanceTimer);
+        try {
+            const data = await postForm(`/Capital/${MODE}/nextRound/ajax`, matchParams());
+            roundOverHandled = false;
+            answered = false;
+            feedbackBanner.classList.remove('shown', 'correct', 'wrong');
+            applyState(data);
+            startPolling();
+        } catch (e) {
+            console.error('Next round error:', e);
+        }
+    }
+
+    pauseBtn.addEventListener('click', async function () {
+        if (busy || pauseBtn.disabled) return;
+        busy = true;
+        try {
+            const data = await postForm(`/Capital/${MODE}/pause/ajax`, matchParams());
+            applyState(data);
+        } catch (err) {
+            console.error('Pause error:', err);
+        } finally {
+            busy = false;
+        }
+    });
+
+    resumeBtn.addEventListener('click', async function () {
+        if (busy) return;
+        busy = true;
+        try {
+            const data = await postForm(`/Capital/${MODE}/resume/ajax`, matchParams());
+            applyState(data);
+        } catch (err) {
+            console.error('Resume error:', err);
+        } finally {
+            busy = false;
+        }
+    });
+
+    async function pollStatus() {
+        if (roundOverHandled || matchIsOver || isPaused) return;
+        try {
+            const response = await fetch(`/Capital/${MODE}/status/ajax?` + matchParams());
+            const data = await response.json();
+            applyState(data);
+        } catch (err) {
+            console.error('Status poll error:', err);
+        }
+    }
+
+    function startPolling() {
+        clearInterval(statusPollTimer);
+        statusPollTimer = setInterval(pollStatus, 1000);
+    }
+
+    function openRules() {
+        document.getElementById('rulesPanel').classList.add('open');
+        document.getElementById('rulesBackdrop').classList.add('active');
+    }
+    function closeRules() {
+        document.getElementById('rulesPanel').classList.remove('open');
+        document.getElementById('rulesBackdrop').classList.remove('active');
+    }
+    window.openRules = openRules;
+    window.closeRules = closeRules;
+
+    // Enter resumes from a voluntary pause; round advancement is automatic, not keyboard-driven.
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') { closeRules(); return; }
+        if (e.key === 'Enter') {
+            if (pauseOverlay.classList.contains('active')) { e.preventDefault(); resumeBtn.click(); return; }
+            return;
+        }
+    });
+
+    // Kick off the first poll immediately, then every second after that
+    pollStatus();
+    startPolling();
+</script>
+
+</body>
+</html>

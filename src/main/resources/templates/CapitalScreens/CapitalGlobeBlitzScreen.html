@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Capital Locations - Blitz</title>
+
+    <script type="importmap">
+        { "imports": {
+            "three": "/three/three.module.js?v=2",
+            "three/": "/three/",
+            "three-globe": "https://esm.sh/three-globe@2.41.11?external=three,three-conic-polygon-geometry&bundle",
+            "three-conic-polygon-geometry": "/js/conic-polygon-geometry-cache.js?v=1"
+        } }
+    </script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --purple: #ab47bc;
+            --purple-dark: #8e24aa;
+            --shadow-sm: 0 4px 12px rgba(0,0,0,0.08);
+            --shadow-md: 0 10px 25px rgba(0,0,0,0.15);
+            --shadow-lg: 0 20px 50px rgba(0,0,0,0.2);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Nunito', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        h1, h2 { font-family: 'Baloo 2', 'Nunito', sans-serif; }
+
+        body {
+            min-height: 100vh; display: flex; flex-direction: column; align-items: center;
+            padding: 30px 20px 60px;
+            background: linear-gradient(-45deg, #f3e9ff, #f9f9f9, #ede1ff, #f8f2ff);
+            background-size: 400% 400%; animation: gradientMove 12s ease infinite;
+            overflow-x: hidden; position: relative;
+        }
+
+        @keyframes gradientMove { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+
+        .badge-stack { position: fixed; top: 24px; left: 24px; display: flex; flex-direction: column; gap: 8px; z-index: 5; }
+        .badge { display: flex; align-items: center; gap: 8px; padding: 8px 18px; border-radius: 999px; font-size: 16px; font-weight: bold; box-shadow: var(--shadow-sm); }
+        .badge.easy   { background: linear-gradient(135deg, #e3f2fd, #ffffff); color: #1565c0; border: 2px solid #42a5f5; }
+        .badge.hard   { background: linear-gradient(135deg, #fdeaea, #ffffff); color: #c62828; border: 2px solid #ef5350; }
+        .badge.medium { background: linear-gradient(135deg, #fff3e0, #ffffff); color: #ef6c00; border: 2px solid #ffa726; }
+        .badge.format { background: linear-gradient(135deg, #f8e9fb, #ffffff); color: var(--purple-dark); border: 2px solid var(--purple); }
+
+        .top-right-actions { position: fixed; top: 24px; right: 24px; display: flex; gap: 10px; z-index: 5; }
+        .rules-btn, .pause-btn {
+            padding: 9px 20px; font-size: 15px; border-radius: 10px; cursor: pointer;
+            border: 2px solid var(--purple); background: white; color: var(--purple); box-shadow: var(--shadow-sm); transition: 0.3s;
+        }
+        .pause-btn { border-color: #ffa726; color: #ef6c00; }
+        .rules-btn:hover { background: #f8e9fb; transform: translateY(-2px); box-shadow: var(--shadow-md); }
+        .pause-btn:hover { background: #fff3e0; transform: translateY(-2px); box-shadow: var(--shadow-md); }
+        .pause-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        h1 { color: var(--purple); font-size: 34px; text-shadow: 0 8px 20px rgba(171,71,188,0.35); margin-bottom: 10px; }
+
+        .scoreboard { display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; }
+        .score-line { display: flex; align-items: center; gap: 12px; font-size: 24px; font-weight: 800; color: #2c2c2c; }
+        .score-you  { color: var(--purple-dark); } .score-ai { color: #c62828; }
+        .score-you.negative, .score-ai.negative { color: #c62828; }
+        .score-sep  { color: #999; font-weight: 400; font-size: 14px; }
+        .blitz-clock {
+            font-family: 'Consolas', monospace; font-size: 22px; font-weight: 800; color: #4a4a4a;
+            background: rgba(255,255,255,0.75); padding: 5px 18px; border-radius: 999px; box-shadow: var(--shadow-sm); transition: 0.3s;
+        }
+        .blitz-clock.urgent { color: white; background: #ef5350; animation: pulseUrgent 1s infinite; }
+        @keyframes pulseUrgent { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.08); } }
+
+        .match-columns { display: flex; gap: 24px; width: 100%; max-width: 1180px; align-items: flex-start; justify-content: center; flex-wrap: wrap; }
+        .column { display: flex; flex-direction: column; align-items: center; gap: 14px; }
+        .column.your-column { flex: 2 1 800px; min-width: 0; }
+        .column.opponent-column { flex: 1 1 220px; max-width: 250px; min-width: 200px; }
+        .column-title { font-size: 18px; font-weight: 800; color: #2c2c2c; }
+
+        .prompt-card {
+            width: 100%; max-width: 800px; display: flex; flex-direction: column; align-items: center; gap: 6px;
+            padding: 16px 30px; background: rgba(255,255,255,0.85); backdrop-filter: blur(10px); border-radius: 20px; box-shadow: var(--shadow-md);
+        }
+        .prompt-label { font-size: 13px; color: #888; text-transform: uppercase; letter-spacing: 1.5px; font-weight: 700; }
+        .prompt-capital { font-size: 28px; font-weight: 800; color: #2c2c2c; }
+        .prompt-instruction { font-size: 15px; font-weight: 700; color: var(--purple-dark); margin-top: 2px; }
+
+        .feedback-banner {
+            width: 100%; max-width: 800px; text-align: center; padding: 10px 18px; border-radius: 12px;
+            font-size: 16px; font-weight: 800; box-shadow: var(--shadow-sm); display: none;
+        }
+        .feedback-banner.shown { display: block; }
+        .feedback-banner.correct { background: #e8f5e9; color: #2e7d32; }
+        .feedback-banner.wrong   { background: #fdeaea; color: #c62828; }
+
+        #guessSection { width: 100%; max-width: 800px; display: flex; justify-content: center; align-items: flex-end; }
+        .guess-controls { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; align-items: center; }
+
+        #selectionDisplay {
+            padding: 11px 18px; font-size: 15px; font-weight: 700; min-width: 220px; text-align: center; border-radius: 10px;
+            border: 2px dashed rgba(171,71,188,0.4); background: rgba(255,255,255,0.7); color: #999;
+        }
+        #selectionDisplay.has-selection { border-style: solid; border-color: var(--purple); color: #2c2c2c; background: rgba(255,255,255,0.9); }
+
+        #guessBtn {
+            padding: 11px 24px; font-size: 15px; cursor: pointer; background: linear-gradient(135deg, var(--purple), var(--purple-dark));
+            color: white; border: none; border-radius: 10px; box-shadow: 0 8px 18px rgba(0,0,0,0.25); transition: 0.3s;
+        }
+        #guessBtn:hover:not(:disabled) { transform: translateY(-3px) scale(1.05); box-shadow: 0 12px 22px rgba(0,0,0,0.35); }
+        #guessBtn:disabled, #btn-skip:disabled { background: #cccccc; cursor: not-allowed; opacity: 0.7; transform: none; box-shadow: none; }
+
+        .secondary-btn {
+            padding: 9px 18px; font-size: 14px; cursor: pointer; background: white; color: var(--purple);
+            border: 2px solid var(--purple); border-radius: 10px; font-weight: 600; box-shadow: var(--shadow-sm); transition: 0.3s;
+        }
+        .secondary-btn:hover:not(:disabled) { background: #f8e9fb; transform: translateY(-2px); box-shadow: var(--shadow-md); }
+
+        #globeContainer {
+            position: relative; width: 800px; height: 520px; max-width: 90vw;
+            border: 3px solid rgba(171,71,188,0.35); border-radius: 24px; background-color: #ffffff;
+            display: flex; flex-direction: column; overflow: hidden; box-shadow: var(--shadow-lg);
+        }
+
+        #globeLoadingOverlay {
+            position: absolute; inset: 0; z-index: 20; display: flex; flex-direction: column; align-items: center;
+            justify-content: center; gap: 14px; background-color: #ffffff; transition: opacity 0.3s ease;
+        }
+        #globeLoadingOverlay.hidden { opacity: 0; pointer-events: none; }
+        .globe-spinner { width: 36px; height: 36px; border: 4px solid rgba(171,71,188,0.2); border-top-color: var(--purple); border-radius: 50%; animation: spin 0.9s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .globe-loading-text { color: var(--purple-dark); font-weight: 700; font-size: 14px; }
+
+        #notificationArea { position: absolute; top: 12px; left: 0; right: 0; z-index: 10; display: flex; justify-content: center; pointer-events: none; }
+        .neighbor-toast {
+            background: linear-gradient(135deg, var(--purple), var(--purple-dark)); color: white; padding: 8px 20px; border-radius: 999px;
+            font-weight: 700; font-size: 13px; box-shadow: var(--shadow-md); opacity: 0; transform: translateY(-10px); transition: 0.3s; max-width: 80%; text-align: center;
+        }
+        .neighbor-toast.show { opacity: 1; transform: translateY(0); }
+        #globeCanvas { width: 100%; flex: 1; }
+
+        /* -------------------- Opponent panel -------------------- */
+
+        .opponent-panel {
+            width: 100%; display: flex; flex-direction: column; align-items: center; gap: 8px;
+            padding: 20px 16px; background: rgba(255,255,255,0.85); backdrop-filter: blur(10px); border-radius: 20px; box-shadow: var(--shadow-md);
+        }
+        .opponent-score { font-family: 'Consolas', monospace; font-size: 40px; font-weight: 800; color: #2c2c2c; }
+        .opponent-score.negative { color: #c62828; }
+        .opponent-score-label { margin-top: -6px; font-size: 12px; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 0.5px; }
+        .opponent-status { font-size: 15px; font-weight: 700; color: #4a4a4a; text-align: center; }
+        .opponent-answered { font-size: 12px; color: #999; text-align: center; }
+
+        /* -------------------- Overlays -------------------- */
+
+        .overlay-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 200; }
+        .overlay-backdrop.active { display: flex; }
+
+        .overlay-panel {
+            background: white; border-radius: 22px; padding: 40px 44px; max-width: 500px; width: 92%;
+            max-height: 92vh; overflow-y: auto; text-align: center; box-shadow: var(--shadow-lg);
+        }
+        .overlay-panel h2 { font-size: 30px; color: var(--purple); margin-bottom: 14px; }
+        .overlay-panel.lost h2 { color: #c62828; }
+        .overlay-panel.draw h2 { color: #ef6c00; }
+        .overlay-panel.wide { max-width: 880px; }
+
+        .match-recap { display: flex; flex-direction: column; gap: 10px; width: 100%; margin: 20px 0; text-align: left; max-height: 440px; overflow-y: auto; }
+        .recap-row { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 12px 20px; border-radius: 14px; background: #f5f5f5; font-size: 15px; font-weight: 700; color: #555; }
+        .recap-flag { width: 38px; height: 25px; object-fit: cover; border-radius: 4px; border: 1px solid rgba(0,0,0,0.15); flex-shrink: 0; }
+        .recap-order { color: #999; font-weight: 700; min-width: 30px; }
+        .recap-prompt { flex: 1; text-align: center; }
+        .recap-side { min-width: 118px; text-align: right; }
+        .recap-side.human-correct { color: var(--purple-dark); }
+        .recap-side.ai-correct { color: #c62828; }
+        .recap-side small { font-weight: 600; opacity: 0.7; font-size: 0.85em; }
+
+        .overlay-sub { font-size: 18px; color: #444; margin-bottom: 4px; }
+        .overlay-actions { display: flex; gap: 12px; justify-content: center; margin-top: 16px; flex-wrap: wrap; }
+        .overlay-btn { padding: 10px 22px; font-size: 16px; font-weight: bold; border-radius: 999px; }
+        .overlay-btn.primary { background: linear-gradient(135deg, var(--purple), var(--purple-dark)); color: white; box-shadow: 0 8px 18px rgba(0,0,0,0.25); text-decoration: none; }
+        .overlay-btn.secondary { background: white; color: var(--purple); border: 2px solid var(--purple); text-decoration: none; }
+        .overlay-btn.primary:hover, .overlay-btn.secondary:hover { transform: translateY(-2px); }
+
+        /* -------------------- Rules panel -------------------- */
+
+        .rules-panel {
+            height: 100%; width: 380px; max-width: 85vw; position: fixed; z-index: 101; top: 0; right: 0; background: white;
+            overflow-y: auto; transform: translateX(100%); transition: transform 0.4s ease; padding: 30px 25px; box-shadow: -10px 0 30px rgba(0,0,0,0.25);
+        }
+        .rules-panel.open { transform: translateX(0); }
+        .rules-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.35); opacity: 0; pointer-events: none; transition: opacity 0.4s ease; z-index: 100; }
+        .rules-backdrop.active { opacity: 1; pointer-events: auto; }
+        .rules-panel h2 { color: var(--purple); margin-bottom: 15px; }
+        .rules-panel p { margin: 10px 0; color: #333; }
+        .close-rules { position: absolute; top: 15px; right: 25px; font-size: 32px; cursor: pointer; color: var(--purple); }
+    </style>
+</head>
+
+<body th:attr="data-match-id=${matchId}">
+
+<div class="badge-stack">
+    <div class="badge" th:classappend="${aiLevel.name() eq 'EASY'} ? 'easy' : (${aiLevel.name() eq 'HARD'} ? 'hard' : 'medium')">
+        <span th:text="'🤖 AI: ' + ${aiLevel.name()}">AI: MEDIUM</span>
+    </div>
+    <div class="badge format">
+        <span th:text="'⏱️ ' + ${durationMinutes} + ' MINUTE' + (${durationMinutes} > 1 ? 'S' : '') + ' BLITZ'">1 MINUTE BLITZ</span>
+    </div>
+</div>
+
+<div class="top-right-actions">
+    <button class="pause-btn" id="pauseBtn">⏸ PAUSE</button>
+    <button class="rules-btn" onclick="openRules()">RULES</button>
+</div>
+
+<h1>🌍 Capital Locations</h1>
+
+<div class="scoreboard">
+    <div class="score-line">
+        <span class="score-you" id="humanScoreText">0</span>
+        <span class="score-sep">YOU - AI</span>
+        <span class="score-ai" id="aiScoreText">0</span>
+    </div>
+    <div class="blitz-clock" id="blitzClock">01:00</div>
+</div>
+
+<div class="match-columns">
+
+    <div class="column your-column">
+
+        <div class="prompt-card">
+            <span class="prompt-label">Which country's capital is...</span>
+            <span class="prompt-capital" id="promptCapital">Loading...</span>
+            <span class="prompt-instruction">🌍 Mark the country on the globe</span>
+        </div>
+
+        <div class="feedback-banner" id="feedbackBanner"></div>
+
+        <div id="guessSection">
+            <div class="guess-controls">
+                <div id="selectionDisplay">Click a country on the globe</div>
+                <button id="guessBtn" disabled>Confirm Guess</button>
+                <button id="btn-skip" class="secondary-btn">⏭ Skip</button>
+            </div>
+        </div>
+
+        <div id="globeContainer">
+            <div id="notificationArea">
+                <div id="neighbor-toast" class="neighbor-toast">Your guess is a neighbor of the target country</div>
+            </div>
+            <canvas id="globeCanvas"></canvas>
+            <div id="globeLoadingOverlay">
+                <div class="globe-spinner"></div>
+                <div class="globe-loading-text">Loading globe...</div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="column opponent-column">
+        <div class="column-title">🤖 OPPONENT</div>
+        <div class="opponent-panel">
+            <div class="opponent-score" id="opponentScore">0</div>
+            <div class="opponent-score-label">correct</div>
+            <div class="opponent-status" id="opponentStatusText">🏃 Racing...</div>
+            <div class="opponent-answered" id="opponentAnswered">0 answered</div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Pause overlay -->
+<div class="overlay-backdrop" id="pauseOverlay">
+    <div class="overlay-panel" id="pauseOverlayPanel">
+        <h2>⏸ Match Paused</h2>
+        <div class="overlay-sub">The clock and the AI are frozen. Pick up whenever you're ready.</div>
+        <div class="overlay-actions">
+            <a class="overlay-btn secondary" href="/">🏠 HOME</a>
+            <button class="overlay-btn primary" id="resumeBtn">▶ RESUME</button>
+        </div>
+    </div>
+</div>
+
+<!-- Match-over overlay -->
+<div class="overlay-backdrop" id="matchOverlay">
+    <div class="overlay-panel wide" id="matchOverlayPanel">
+        <h2 id="matchOverlayTitle">🏆 You Win the Blitz!</h2>
+        <div class="overlay-sub" id="matchOverlaySub">Final score: 8 - 5</div>
+        <div class="match-recap" id="matchRecap"></div>
+        <div class="overlay-actions">
+            <a class="overlay-btn secondary" href="/">HOME</a>
+            <a class="overlay-btn secondary" href="/Capital/globe/format">CAPITAL LOCATIONS</a>
+            <a class="overlay-btn primary" th:href="@{/Capital/globe/blitz/start(aiLevel=${aiLevel}, durationSeconds=${durationSeconds})}">PLAY AGAIN</a>
+        </div>
+    </div>
+</div>
+
+<!-- Rules -->
+<div id="rulesBackdrop" class="rules-backdrop" onclick="closeRules()"></div>
+<div id="rulesPanel" class="rules-panel">
+    <span class="close-rules" onclick="closeRules()">&times;</span>
+    <h2>Blitz Rules</h2>
+    <p>You and the AI race through capitals independently. Answer as many as you can before time runs out.</p>
+    <p>Click a country to select it, then press <strong>Enter</strong> or <strong>Confirm Guess</strong> to submit it. Unlimited guesses per capital, colored by proximity. Once you find it, you move straight to the next one. Press <strong>Skip</strong> to give up on one and move on.</p>
+    <p>A correct answer is <strong>+1</strong>, a skip is <strong>-1</strong> - your score can go negative. No hints in this format.</p>
+    <p>The AI answers each capital independently (faster and sharper on HARD). Watch its live score in the side panel.</p>
+    <p th:text="'Whoever has the higher net score when the clock hits 0 wins the ' + ${durationMinutes} + '-minute Blitz. A tie is a draw.'">Whoever has the higher net score when the clock hits 0 wins the Blitz. A tie is a draw.</p>
+    <p>Pausing freezes the clock and the AI. Resume whenever you're ready, no limit on how many times.</p>
+</div>
+
+<script th:inline="javascript">
+    const MATCH_ID = /*[[${matchId}]]*/ 'fallback-id';
+</script>
+
+<script src="/js/topojson-client.min.js?v=2"></script>
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+<script type="module">
+    import { initGlobe, colorCountry, focusOnCountry, resetGlobeColors, onCountryClick, setSelectedCountry, isCountryColored } from '/js/globe.js?v=2056';
+
+    const promptCapital = document.getElementById('promptCapital');
+    const feedbackBanner = document.getElementById('feedbackBanner');
+    const selectionDisplay = document.getElementById('selectionDisplay');
+    const guessBtn = document.getElementById('guessBtn');
+    const skipBtn = document.getElementById('btn-skip');
+    const pauseBtn = document.getElementById('pauseBtn');
+    const resumeBtn = document.getElementById('resumeBtn');
+    const pauseOverlay = document.getElementById('pauseOverlay');
+    const opponentScore = document.getElementById('opponentScore');
+    const opponentStatusText = document.getElementById('opponentStatusText');
+    const opponentAnswered = document.getElementById('opponentAnswered');
+
+    const humanScoreText = document.getElementById('humanScoreText');
+    const aiScoreText = document.getElementById('aiScoreText');
+    const blitzClock = document.getElementById('blitzClock');
+
+    const matchOverlay = document.getElementById('matchOverlay');
+    const matchOverlayPanel = document.getElementById('matchOverlayPanel');
+    const matchOverlayTitle = document.getElementById('matchOverlayTitle');
+    const matchOverlaySub = document.getElementById('matchOverlaySub');
+    const matchRecap = document.getElementById('matchRecap');
+
+    let busy = false;
+    let matchIsOver = false;
+    let isPaused = false;
+    let statusPollTimer = null;
+    let feedbackHideTimer = null;
+    let currentPromptCapital = null;
+    let selectedCountry = null;
+    let guessingAllowed = true;
+
+    initGlobe().finally(() => {
+        const overlay = document.getElementById('globeLoadingOverlay');
+        if (overlay) overlay.classList.add('hidden');
+    });
+
+    /* Click a country once to select it (highlighted on the globe); click the same one again,
+       press Enter, or press the Confirm button to actually submit it as your guess. */
+    onCountryClick(function (countryName) {
+        if (!guessingAllowed) return;
+        // A country you've already guessed/revealed (this question) is just a free look: it
+        // never becomes your active pick, so peeking can't accidentally change what submits.
+        if (isCountryColored(countryName)) {
+            selectionDisplay.textContent = '📍 ' + countryName;
+            return;
+        }
+        selectedCountry = countryName;
+        setSelectedCountry(countryName);
+        selectionDisplay.textContent = 'A country is selected: press Confirm Guess or Enter to submit';
+        selectionDisplay.classList.add('has-selection');
+        guessBtn.disabled = false;
+    });
+
+    function clearSelection() {
+        selectedCountry = null;
+        setSelectedCountry(null);
+        selectionDisplay.textContent = 'Click a country on the globe';
+        selectionDisplay.classList.remove('has-selection');
+        guessBtn.disabled = true;
+    }
+
+    function flagSrc(flagPath) {
+        if (!flagPath) return '';
+        let fileName = flagPath;
+        if (fileName.includes('/') || fileName.includes('\\')) fileName = fileName.split(/[/\\]/).pop();
+        return `/DB/FlagsImages/${fileName}`;
+    }
+
+    function formatClock(totalSeconds) {
+        const s = Math.max(0, Math.ceil(totalSeconds));
+        const mm = String(Math.floor(s / 60)).padStart(2, '0');
+        const ss = String(s % 60).padStart(2, '0');
+        return mm + ':' + ss;
+    }
+
+    function formatTime(seconds) {
+        return (typeof seconds === 'number' ? seconds.toFixed(1) : '?') + 's';
+    }
+
+    function matchParams() { return 'matchId=' + encodeURIComponent(MATCH_ID); }
+
+    async function postForm(url, params) {
+        const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: params });
+        return response.json();
+    }
+
+    function flashFeedback(correct, text) {
+        clearTimeout(feedbackHideTimer);
+        feedbackBanner.textContent = text;
+        feedbackBanner.classList.add('shown');
+        feedbackBanner.classList.toggle('correct', correct);
+        feedbackBanner.classList.toggle('wrong', !correct);
+        feedbackHideTimer = setTimeout(() => feedbackBanner.classList.remove('shown', 'correct', 'wrong'), 1400);
+    }
+
+    function setGuessingEnabled(enabled) {
+        guessingAllowed = enabled;
+        guessBtn.disabled = !enabled || !selectedCountry;
+        skipBtn.disabled = !enabled;
+        pauseBtn.disabled = !enabled;
+    }
+
+    function applyState(data) {
+        if (!data || data.humanScore === undefined) return;
+
+        humanScoreText.textContent = data.humanScore;
+        aiScoreText.textContent = data.aiScore;
+        humanScoreText.classList.toggle('negative', data.humanScore < 0);
+        aiScoreText.classList.toggle('negative', data.aiScore < 0);
+
+        const remaining = data.timeRemainingSeconds;
+        blitzClock.textContent = formatClock(remaining);
+        blitzClock.classList.toggle('urgent', remaining <= 10 && remaining > 0);
+
+        opponentScore.textContent = data.aiScore;
+        opponentScore.classList.toggle('negative', data.aiScore < 0);
+        opponentStatusText.textContent = '🏃 Racing...';
+        opponentAnswered.textContent = data.aiQuestionsAnswered + ' answered';
+
+        if (!data.matchOver && data.promptCapital) {
+            if (currentPromptCapital !== null && currentPromptCapital !== data.promptCapital) {
+                resetGlobeColors();
+                clearSelection();
+            }
+            currentPromptCapital = data.promptCapital;
+            promptCapital.textContent = data.promptCapital;
+        }
+
+        handlePauseState(data);
+
+        if (data.matchOver && !matchIsOver) {
+            matchIsOver = true;
+            showMatchOverlay(data);
+        }
+    }
+
+    function handlePauseState(data) {
+        if (data.paused && !isPaused) {
+            isPaused = true;
+            setGuessingEnabled(false);
+            pauseOverlay.classList.add('active');
+        } else if (!data.paused && isPaused) {
+            isPaused = false;
+            pauseOverlay.classList.remove('active');
+            if (!matchIsOver) setGuessingEnabled(true);
+        }
+        pauseBtn.disabled = data.paused || matchIsOver;
+    }
+
+    function renderMatchRecap(history) {
+        matchRecap.innerHTML = '';
+        if (!history) return;
+        history.forEach(function (q) {
+            const row = document.createElement('div');
+            row.className = 'recap-row';
+            const humanCell = q.humanAnswered
+                ? '<span class="recap-side ' + (q.humanCorrect ? 'human-correct' : '') + '">' + (q.humanCorrect ? '🎉 You ✓' : 'You ✗') + ' <small>(' + formatTime(q.humanTimeSeconds) + ')</small></span>'
+                : '<span class="recap-side">You -</span>';
+            const aiCell = q.aiAnswered
+                ? '<span class="recap-side ' + (q.aiCorrect ? 'ai-correct' : '') + '">' + (q.aiCorrect ? '🤖 AI ✓' : 'AI ✗') + ' <small>(' + formatTime(q.aiTimeSeconds) + ')</small></span>'
+                : '<span class="recap-side">AI -</span>';
+            const flagImg = q.targetFlagPath ? '<img class="recap-flag" src="' + flagSrc(q.targetFlagPath) + '" alt="" onerror="this.style.display=\'none\'">' : '';
+            row.innerHTML =
+                '<span class="recap-order">' + q.order + '</span>' +
+                flagImg +
+                '<span class="recap-prompt">' + (q.targetCapital || '') + ' → ' + (q.targetCountryName || '') + '</span>' +
+                humanCell + aiCell;
+            matchRecap.appendChild(row);
+        });
+    }
+
+    function launchConfetti() {
+        const colors = ['#ab47bc', '#8e24aa', '#ce93d8', '#f3e5f5', '#ffd700'];
+
+        // A big double burst from the center right away, for instant "you won!" impact...
+        confetti({ particleCount: 150, spread: 110, origin: { y: 0.55 }, colors, startVelocity: 48 });
+        confetti({ particleCount: 90, spread: 130, origin: { y: 0.4 }, colors, startVelocity: 58, scalar: 1.2 });
+
+        // ...then a longer, denser stream from both sides.
+        const duration = 4500;
+        const end = Date.now() + duration;
+        (function frame() {
+            confetti({ particleCount: 12, angle: 60, spread: 75, origin: { x: 0 }, colors });
+            confetti({ particleCount: 12, angle: 120, spread: 75, origin: { x: 1 }, colors });
+            if (Date.now() < end) requestAnimationFrame(frame);
+        })();
+    }
+
+    function showMatchOverlay(data) {
+        setGuessingEnabled(false);
+        clearInterval(statusPollTimer);
+        clearTimeout(feedbackHideTimer);
+        feedbackBanner.classList.remove('shown', 'correct', 'wrong');
+
+        matchOverlayPanel.classList.remove('lost', 'draw');
+        if (data.matchWinner === 'HUMAN') {
+            matchOverlayTitle.textContent = '🏆 You Win the Blitz!';
+        } else if (data.matchWinner === 'AI') {
+            matchOverlayPanel.classList.add('lost');
+            matchOverlayTitle.textContent = '🤖 The AI Wins the Blitz';
+        } else {
+            matchOverlayPanel.classList.add('draw');
+            matchOverlayTitle.textContent = "🤝 It's a Draw!";
+        }
+        matchOverlaySub.textContent = 'Final score: ' + data.humanScore + ' - ' + data.aiScore;
+        renderMatchRecap(data.questionHistory);
+        matchOverlay.classList.add('active');
+        if (data.matchWinner === 'HUMAN') launchConfetti();
+    }
+
+    window.sendGuess = async function () {
+        if (busy || matchIsOver || isPaused || !selectedCountry) return;
+        const country = selectedCountry;
+
+        busy = true;
+        try {
+            const data = await postForm(`/Capital/globe/blitz/guess/ajax`, matchParams() + '&countryName=' + encodeURIComponent(country));
+
+            if (data.colorHex !== undefined) {
+                clearSelection();
+                colorCountry(data.guessedName, data.colorHex);
+                focusOnCountry(data.lat, data.lon);
+                if (data.proximityLevel === 'NEIGHBOR') {
+                    const toast = document.getElementById('neighbor-toast');
+                    toast.classList.add('show');
+                    setTimeout(() => toast.classList.remove('show'), 3000);
+                }
+                if (data.correct) flashFeedback(true, '✅ Correct! (+1)');
+            }
+
+            applyState(data);
+        } catch (err) {
+            console.error('Guess error:', err);
+        } finally {
+            busy = false;
+        }
+    };
+
+    guessBtn.onclick = window.sendGuess;
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' && selectedCountry && guessingAllowed && !matchIsOver && !isPaused) {
+            e.preventDefault();
+            window.sendGuess();
+        }
+    });
+
+    skipBtn.addEventListener('click', async function () {
+        if (busy || matchIsOver || isPaused) return;
+        busy = true;
+        clearSelection();
+        try {
+            const data = await postForm(`/Capital/globe/blitz/skip/ajax`, matchParams());
+            if (data.skippedName) flashFeedback(false, '❌ Skipped (-1): it was ' + data.skippedName);
+            applyState(data);
+        } catch (err) {
+            console.error('Skip error:', err);
+        } finally {
+            busy = false;
+        }
+    });
+
+    pauseBtn.addEventListener('click', async function () {
+        if (busy || pauseBtn.disabled) return;
+        busy = true;
+        try {
+            const data = await postForm(`/Capital/globe/blitz/pause/ajax`, matchParams());
+            applyState(data);
+        } catch (err) {
+            console.error('Pause error:', err);
+        } finally {
+            busy = false;
+        }
+    });
+
+    resumeBtn.addEventListener('click', async function () {
+        if (busy) return;
+        busy = true;
+        try {
+            const data = await postForm(`/Capital/globe/blitz/resume/ajax`, matchParams());
+            applyState(data);
+        } catch (err) {
+            console.error('Resume error:', err);
+        } finally {
+            busy = false;
+        }
+    });
+
+    async function pollStatus() {
+        if (matchIsOver || isPaused || busy) return;
+        try {
+            const response = await fetch(`/Capital/globe/blitz/status/ajax?` + matchParams());
+            const data = await response.json();
+            applyState(data);
+        } catch (err) {
+            console.error('Status poll error:', err);
+        }
+    }
+
+    function startPolling() {
+        clearInterval(statusPollTimer);
+        statusPollTimer = setInterval(pollStatus, 1000);
+    }
+
+    function openRules() {
+        document.getElementById('rulesPanel').classList.add('open');
+        document.getElementById('rulesBackdrop').classList.add('active');
+    }
+    function closeRules() {
+        document.getElementById('rulesPanel').classList.remove('open');
+        document.getElementById('rulesBackdrop').classList.remove('active');
+    }
+    window.openRules = openRules;
+    window.closeRules = closeRules;
+
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') { closeRules(); return; }
+        if (e.key === 'Enter' && pauseOverlay.classList.contains('active')) { e.preventDefault(); resumeBtn.click(); }
+    });
+
+    pollStatus();
+    startPolling();
+</script>
+
+</body>
+</html>

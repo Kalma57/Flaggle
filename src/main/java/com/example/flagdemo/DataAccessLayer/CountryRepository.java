@@ -50,7 +50,7 @@ public class CountryRepository implements java.io.Serializable {
     private void loadCountries() {
         try (Connection conn = getConnection()) {
             Statement stmt = conn.createStatement();
-            ResultSet rs = stmt.executeQuery("SELECT ID, Code, CountryName, FlagPath, Latitude, Longitude, neighborList, ISO3 FROM Countries");
+            ResultSet rs = stmt.executeQuery("SELECT ID, Code, CountryName, FlagPath, Latitude, Longitude, neighborList, ISO3, Capital FROM Countries");
 
             while (rs.next()) {
                 int ID = rs.getInt("ID");
@@ -61,8 +61,9 @@ public class CountryRepository implements java.io.Serializable {
                 double longitude = rs.getDouble("Longitude");
                 String neighborList = rs.getString("neighborList");
                 String iso3 = rs.getString("ISO3");
+                String capital = rs.getString("Capital");
 
-                CountryDAL country = new CountryDAL(ID, name, code, flagPath, latitude, longitude, neighborList, iso3);
+                CountryDAL country = new CountryDAL(ID, name, code, flagPath, latitude, longitude, neighborList, iso3, capital);
                 allCountries.add(country);
                 codeToName.put(code, name);
                 nameToCode.put(name.toLowerCase(), code);

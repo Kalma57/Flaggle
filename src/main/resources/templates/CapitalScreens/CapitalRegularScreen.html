@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${modeLabel} + ' - Regular'">Capital Cities - Regular</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --shadow-sm: 0 4px 12px rgba(0,0,0,0.08);
+            --shadow-md: 0 10px 25px rgba(0,0,0,0.15);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Nunito', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        h1, h2 { font-family: 'Baloo 2', 'Nunito', sans-serif; }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 30px 20px 60px;
+            background: linear-gradient(-45deg, #e8f9f4, #f9f9f9, #dff5ee, #f0fbf8);
+            background-size: 400% 400%;
+            animation: gradientMove 12s ease infinite;
+        }
+
+        @keyframes gradientMove { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+
+        .top-actions { position: fixed; top: 24px; right: 24px; z-index: 5; display: flex; gap: 10px; }
+        .top-btn {
+            padding: 9px 20px; font-size: 15px; border-radius: 10px; cursor: pointer;
+            border: 2px solid #26a69a; background: white; color: #00897b; box-shadow: var(--shadow-sm);
+            text-decoration: none; transition: 0.3s;
+        }
+        .top-btn:hover { background: #e8f9f4; transform: translateY(-2px); box-shadow: var(--shadow-md); }
+
+        h1 { color: #00897b; font-size: 34px; text-shadow: 0 6px 16px rgba(0,137,123,0.3); margin-bottom: 20px; }
+
+        .prompt-card {
+            width: 100%; max-width: 620px; display: flex; flex-direction: column; align-items: center; gap: 12px;
+            padding: 28px 30px; background: rgba(255,255,255,0.85); backdrop-filter: blur(10px);
+            border-radius: 20px; box-shadow: var(--shadow-md); margin-bottom: 20px;
+        }
+        .prompt-label { font-size: 14px; color: #888; text-transform: uppercase; letter-spacing: 1.5px; font-weight: 700; }
+        .prompt-flag { height: 140px; width: auto; max-width: 80%; border-radius: 12px; box-shadow: var(--shadow-md); border: 3px solid rgba(0,137,123,0.25); }
+        .prompt-text { font-size: 30px; font-weight: 800; color: #2c2c2c; text-align: center; }
+
+        .options-grid { width: 100%; max-width: 620px; display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        @media (max-width: 560px) { .options-grid { grid-template-columns: 1fr; } }
+
+        .option-btn {
+            display: flex; align-items: center; justify-content: center; gap: 12px;
+            padding: 20px 18px; font-size: 19px; font-weight: 700; color: #2c2c2c;
+            background: rgba(255,255,255,0.9); border: 2px solid rgba(0,137,123,0.25); border-radius: 14px;
+            cursor: pointer; box-shadow: var(--shadow-sm); transition: 0.2s;
+        }
+        .option-btn:hover:not(:disabled) { transform: translateY(-3px); box-shadow: var(--shadow-md); border-color: #26a69a; }
+        .option-btn:disabled { cursor: not-allowed; opacity: 0.7; }
+        .option-btn img { width: 34px; height: 23px; object-fit: cover; border-radius: 4px; border: 1px solid rgba(0,0,0,0.15); }
+        .option-btn.correct { background: #e8f5e9; border-color: #4CAF50; color: #2e7d32; }
+        .option-btn.wrong   { background: #fdeaea; border-color: #ef5350; color: #c62828; }
+
+        .rules-panel {
+            height: 100%; width: 340px; max-width: 85vw; position: fixed; z-index: 101; top: 0; right: 0; background: white;
+            overflow-y: auto; transform: translateX(100%); transition: transform 0.4s ease; padding: 30px 25px; box-shadow: -10px 0 30px rgba(0,0,0,0.25);
+        }
+        .rules-panel.open { transform: translateX(0); }
+        .rules-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.35); opacity: 0; pointer-events: none; transition: opacity 0.4s ease; z-index: 100; }
+        .rules-backdrop.active { opacity: 1; pointer-events: auto; }
+        .rules-panel h2 { color: #00897b; margin-bottom: 15px; font-family: 'Baloo 2', 'Nunito', sans-serif; }
+        .rules-panel p { margin: 10px 0; color: #333; }
+        .close-rules { position: absolute; top: 15px; right: 25px; font-size: 32px; cursor: pointer; color: #00897b; }
+    </style>
+</head>
+
+<body th:attr="data-mode=${mode}">
+
+<div class="top-actions">
+    <a class="top-btn" href="/Capital">← Back to Capital</a>
+    <button class="top-btn" onclick="openRules()">RULES</button>
+</div>
+
+<div id="rulesBackdrop" class="rules-backdrop" onclick="closeRules()"></div>
+<div id="rulesPanel" class="rules-panel">
+    <span class="close-rules" onclick="closeRules()">&times;</span>
+    <h2>Regular Rules</h2>
+    <p>Casual practice, no score, no timer. Pick an answer to see it colored right or wrong, then the next question loads automatically.</p>
+    <p>Leave whenever you like.</p>
+</div>
+
+<h1><span th:text="${modeLabel}">Flag → Capital</span> - Regular</h1>
+
+<div class="prompt-card">
+    <span class="prompt-label" id="promptLabel">Which is the capital of...</span>
+    <img class="prompt-flag" id="promptFlag" style="display:none" alt="flag">
+    <div class="prompt-text" id="promptText">Loading...</div>
+</div>
+
+<div class="options-grid" id="optionsGrid"></div>
+
+<script th:inline="none">
+    const MODE = document.body.getAttribute('data-mode');
+
+    const promptLabel = document.getElementById('promptLabel');
+    const promptFlag  = document.getElementById('promptFlag');
+    const promptText  = document.getElementById('promptText');
+    const optionsGrid = document.getElementById('optionsGrid');
+
+    let answered = false;
+    let nextTimer = null;
+
+    function flagSrc(flagPath) {
+        if (!flagPath) return '';
+        let fileName = flagPath;
+        if (fileName.includes('/') || fileName.includes('\\')) fileName = fileName.split(/[/\\]/).pop();
+        return `/DB/FlagsImages/${fileName}`;
+    }
+
+    function renderPrompt(data) {
+        if (MODE === 'flag-to-capital') {
+            promptLabel.textContent = 'Which is the capital of...';
+            promptFlag.src = flagSrc(data.promptFlagPath);
+            promptFlag.style.display = 'block';
+        } else {
+            promptLabel.textContent = 'Which country has this capital...';
+            promptFlag.style.display = 'none';
+        }
+        promptText.textContent = data.promptText;
+    }
+
+    function renderOptions(data) {
+        optionsGrid.innerHTML = '';
+        (data.options || []).forEach(function (opt, i) {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            if (opt.flagPath) {
+                const img = document.createElement('img');
+                img.src = flagSrc(opt.flagPath);
+                img.alt = opt.text;
+                img.onerror = function () { this.style.display = 'none'; };
+                btn.appendChild(img);
+            }
+            const span = document.createElement('span');
+            span.textContent = opt.text;
+            btn.appendChild(span);
+            btn.addEventListener('click', function () { pickOption(i, data); });
+            optionsGrid.appendChild(btn);
+        });
+    }
+
+    function pickOption(index, data) {
+        if (answered) return;
+        answered = true;
+        Array.from(optionsGrid.children).forEach(function (btn, i) {
+            btn.disabled = true;
+            if (i === data.correctOptionIndex) btn.classList.add('correct');
+            else if (i === index) btn.classList.add('wrong');
+        });
+        nextTimer = setTimeout(loadQuestion, 1600);
+    }
+
+    async function loadQuestion() {
+        clearTimeout(nextTimer);
+        answered = false;
+        try {
+            const response = await fetch(`/Capital/${MODE}/regular/question/ajax`);
+            const data = await response.json();
+            renderPrompt(data);
+            renderOptions(data);
+        } catch (err) {
+            console.error('Question load error:', err);
+        }
+    }
+
+    function openRules() {
+        document.getElementById('rulesPanel').classList.add('open');
+        document.getElementById('rulesBackdrop').classList.add('active');
+    }
+    function closeRules() {
+        document.getElementById('rulesPanel').classList.remove('open');
+        document.getElementById('rulesBackdrop').classList.remove('active');
+    }
+    window.openRules = openRules;
+    window.closeRules = closeRules;
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeRules(); });
+
+    loadQuestion();
+</script>
+
+</body>
+</html>

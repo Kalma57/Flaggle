@@ -54,6 +54,7 @@ public class FlagsInserter {
         String flagsFolder = baseDir + "/FlagsImages";
         String longLatFilePath = baseDir + "/countriesBorders/CountriesLongLat.txt";
         String neighborsFilePath = baseDir + "/countriesBorders/CountriesNeighbors.txt";
+        String capitalsFilePath = baseDir + "/countriesBorders/CountriesCapitals.txt";
 
         loadCountryLongLat(longLatFilePath);
 
@@ -193,6 +194,47 @@ public class FlagsInserter {
             }
 
             System.out.println("Neighbors update complete!");
+
+            try {
+                stmt.execute("ALTER TABLE Countries ADD COLUMN Capital TEXT;");
+            } catch (SQLException ignored) {}
+
+            Map<String, String> capitalsMap = new HashMap<>();
+            File capitalsFile = new File(capitalsFilePath);
+            if (!capitalsFile.exists()) {
+                System.err.println("❌ Error: Capitals file not found at: " + capitalsFile.getAbsolutePath());
+            } else {
+                try (BufferedReader br = new BufferedReader(new FileReader(capitalsFile))) {
+                    String line;
+                    while ((line = br.readLine()) != null) {
+                        line = line.trim();
+                        if (line.isEmpty()) continue;
+                        String[] parts = line.split(":", 2);
+                        if (parts.length != 2) continue;
+                        String countryIso3 = parts[0].trim();
+                        String capital = parts[1].trim();
+                        capitalsMap.put(countryIso3, capital);
+                    }
+                } catch (IOException e) {
+                    System.out.println("Failed to read capitals file: " + e.getMessage());
+                }
+            }
+
+            for (Map.Entry<String, String> entry : capitalsMap.entrySet()) {
+                String iso3 = entry.getKey();
+                String capital = entry.getValue();
+
+                String updateSQL = "UPDATE Countries SET Capital = ? WHERE ISO3 = ?";
+                try (PreparedStatement updateStmt = conn.prepareStatement(updateSQL)) {
+                    updateStmt.setString(1, capital.isEmpty() ? null : capital);
+                    updateStmt.setString(2, iso3);
+                    updateStmt.executeUpdate();
+                } catch (SQLException ex) {
+                    System.out.println("Failed to update capital for " + iso3 + ": " + ex.getMessage());
+                }
+            }
+
+            System.out.println("Capitals update complete!");
 
             String targetPath = "target/classes/static/DB/Flaggle.db";
             File originalDb = new File(dbPath);

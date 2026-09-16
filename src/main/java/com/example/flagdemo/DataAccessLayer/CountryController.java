@@ -63,7 +63,7 @@ public class CountryController implements java.io.Serializable {
      * Retrieves a country from the database using its ID.
      */
     public CountryBL getCountryById(int id) {
-        String query = "SELECT ID, CountryName, Code, FlagPath, Latitude, Longitude, neighborList, ISO3 FROM Countries WHERE ID = ?";
+        String query = "SELECT ID, CountryName, Code, FlagPath, Latitude, Longitude, neighborList, ISO3, Capital FROM Countries WHERE ID = ?";
 
         try (Connection conn = getConnection();
              PreparedStatement pstmt = conn.prepareStatement(query)) {
@@ -80,7 +80,8 @@ public class CountryController implements java.io.Serializable {
                             rs.getDouble("Latitude"),
                             rs.getDouble("Longitude"),
                             rs.getString("neighborList"),
-                            rs.getString("ISO3")
+                            rs.getString("ISO3"),
+                            rs.getString("Capital")
                     );
                 }
             }
@@ -97,7 +98,7 @@ public class CountryController implements java.io.Serializable {
     public CountryBL getCountryByName(String countryName) {
         String countryCode = cr.getCodeByName(countryName);
 
-        String query = "SELECT ID, CountryName, Code, FlagPath, Latitude, Longitude, neighborList, ISO3 FROM Countries WHERE Code = ?";
+        String query = "SELECT ID, CountryName, Code, FlagPath, Latitude, Longitude, neighborList, ISO3, Capital FROM Countries WHERE Code = ?";
 
         try (Connection conn = getConnection();
              PreparedStatement pstmt = conn.prepareStatement(query)) {
@@ -114,7 +115,8 @@ public class CountryController implements java.io.Serializable {
                         rs.getDouble("Latitude"),
                         rs.getDouble("Longitude"),
                         rs.getString("neighborList"),
-                        rs.getString("ISO3")
+                        rs.getString("ISO3"),
+                        rs.getString("Capital")
                 );
             }
         } catch (Exception e) {
