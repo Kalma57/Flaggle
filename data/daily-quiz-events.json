@@ -1,4 +1,53 @@
 {
-  "generatedAt": null,
-  "days": {}
+  "generatedAt": "2026-09-16T13:08:22Z",
+  "days": {
+    "2026-09-20": {
+      "countryName": "France",
+      "eventTier": "ACHIEVEMENT",
+      "eventTitle": "First Cannes Film Festival opens",
+      "infoText": "The first Cannes Film Festival opened in France on September 20, 1946. It ran for about two weeks in the French Riviera town of Cannes and grew out of an effort to create a film showcase free from political interference. Today the festival is one of the most prestigious events in world cinema, drawing filmmakers and stars from every continent."
+    },
+    "2026-09-21": {
+      "countryName": "Thailand",
+      "eventTier": "WEIRD_DAY",
+      "eventTitle": "National Fisheries Day",
+      "infoText": "Thailand marks National Fisheries Day every year on September 21. The day recognizes the government agencies set up nearly a century ago to manage and protect the country's rivers, coasts, and aquaculture. Fishing and seafood remain a major part of Thailand's economy and everyday cuisine, which is part of why the country keeps a special day just for it."
+    },
+    "2026-09-22": {
+      "countryName": "Ukraine",
+      "eventTier": "HOLIDAY",
+      "eventTitle": "Day of Partisan Glory",
+      "infoText": "Ukraine observes the Day of Partisan Glory on September 22 each year. It honors the roughly 220,000 Ukrainian partisan fighters who resisted Nazi German occupation during the Second World War. The holiday was established in 2001 and is marked with official ceremonies and tributes to that wartime resistance."
+    },
+    "2026-09-23": {
+      "countryName": "Germany",
+      "eventTier": "ACHIEVEMENT",
+      "eventTitle": "Discovery of Neptune",
+      "infoText": "On September 23, 1846, German astronomer Johann Gottfried Galle observed the planet Neptune from the Berlin Observatory. French astronomer Urbain Le Verrier had calculated where an unseen planet should be, and Galle found it within hours of looking, in almost exactly the predicted spot. It was the first planet ever located through mathematical prediction rather than by scanning the sky, and it remains a landmark moment in the history of astronomy."
+    },
+    "2026-09-24": {
+      "countryName": "India",
+      "eventTier": "ACHIEVEMENT",
+      "eventTitle": "Mars Orbiter Mission reaches Mars",
+      "infoText": "On September 24, 2014, India's Mars Orbiter Mission, nicknamed Mangalyaan, successfully entered orbit around Mars. This made India the first country in the world to reach Mars orbit on its very first attempt, and the first Asian nation to reach the planet at all. The mission was also notable for costing far less than most other Mars missions before or since."
+    },
+    "2026-09-25": {
+      "countryName": "United States",
+      "eventTier": "ACHIEVEMENT",
+      "eventTitle": "Oracle Team USA's America's Cup comeback",
+      "infoText": "On September 25, 2013, Oracle Team USA completed one of the greatest comebacks in sailing history. After trailing Emirates Team New Zealand 8 races to 1, the American team won eight straight races to take the series 9-8 and keep hold of the America's Cup off San Francisco Bay. It is still remembered as one of the most dramatic turnarounds in the history of the sport."
+    },
+    "2026-09-26": {
+      "countryName": "Australia",
+      "eventTier": "ACHIEVEMENT",
+      "eventTitle": "Australia II wins the America's Cup",
+      "infoText": "On September 26, 1983, the Australian yacht Australia II defeated the American yacht Liberty to win the America's Cup. The win ended a 132-year winning streak by the New York Yacht Club, the longest winning streak in the history of sports at the time. Australia became the first country ever to take the trophy away from the United States since the race began in 1851."
+    },
+    "2026-09-27": {
+      "countryName": "China",
+      "eventTier": "ACHIEVEMENT",
+      "eventTitle": "China's first spacewalk",
+      "infoText": "On September 27, 2008, Chinese astronaut Zhai Zhigang stepped outside the Shenzhou 7 spacecraft to carry out China's first-ever spacewalk. The excursion lasted around 20 minutes and made China only the third country, after the Soviet Union and the United States, to complete a spacewalk on its own. It was a major milestone for China's growing space program."
+    }
+  }
 }
