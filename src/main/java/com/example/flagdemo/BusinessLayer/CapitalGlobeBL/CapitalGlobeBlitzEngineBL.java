@@ -1,7 +1,6 @@
 package com.example.flagdemo.BusinessLayer.CapitalGlobeBL;
 
 import com.example.flagdemo.BusinessLayer.CapitalBL.CapitalAiOpponentPlan;
-import com.example.flagdemo.BusinessLayer.CapitalBL.CapitalAiOpponentPlanFactory;
 import com.example.flagdemo.BusinessLayer.CountryBL;
 import com.example.flagdemo.BusinessLayer.GlobeBL.GuessResultGlobeBL;
 import com.example.flagdemo.BusinessLayer.MatchBL.AiSkillLevel;
@@ -80,7 +79,7 @@ public class CapitalGlobeBlitzEngineBL implements java.io.Serializable {
         aiCurrentTargetStartElapsed = 0;
         aiScore = 0;
         aiHistory.clear();
-        aiPlan = CapitalAiOpponentPlanFactory.createPlan(aiLevel);
+        aiPlan = CapitalGlobeAiOpponentPlanFactory.createPlan(aiLevel);
     }
 
     // -------------------- Human guessing --------------------
@@ -90,9 +89,14 @@ public class CapitalGlobeBlitzEngineBL implements java.io.Serializable {
         refreshAiProgress();
         if (matchOver) return null;
 
-        humanAttemptsThisTarget++;
         CountryBL target = queue.get(humanQueueIndex);
+
+        // A click can land on a polygon from the map dataset that has no matching row in our
+        // own DB - treat that as a no-op, not a wasted attempt.
         CountryBL guessedCountry = cc.getCountryByName(countryName);
+        if (guessedCountry == null) return null;
+
+        humanAttemptsThisTarget++;
         GuessResultGlobeBL result = new GuessResultGlobeBL(guessedCountry, target);
 
         if (result.isCorrect()) {
@@ -150,7 +154,7 @@ public class CapitalGlobeBlitzEngineBL implements java.io.Serializable {
             aiCurrentTargetStartElapsed = aiTargetAnswerTime;
             aiQueueIndex++;
             if (aiQueueIndex >= queue.size()) aiQueueIndex = 0; // wrap-around safety net
-            aiPlan = CapitalAiOpponentPlanFactory.createPlan(aiLevel);
+            aiPlan = CapitalGlobeAiOpponentPlanFactory.createPlan(aiLevel);
         }
     }
 

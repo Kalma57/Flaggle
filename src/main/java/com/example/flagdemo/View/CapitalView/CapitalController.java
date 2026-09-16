@@ -41,7 +41,7 @@ public class CapitalController {
         return "CapitalScreens/CapitalHubScreen";
     }
 
-    /** Step 1 of 2 (direction already chosen at the hub): choose the match format. */
+    /** Top-level hub for this quiz direction: Regular, 1v1 vs Computer, or 1v1 vs Friend. */
     @GetMapping("/{mode}/format")
     public String format(@PathVariable String mode, Model model) {
         CapitalQuizMode quizMode = parseMode(mode);
@@ -50,6 +50,17 @@ public class CapitalController {
         model.addAttribute("mode", mode);
         model.addAttribute("modeLabel", modeLabel(quizMode));
         return "CapitalScreens/CapitalFormatScreen";
+    }
+
+    /** The "1v1 vs Computer" bucket: First to N or Blitz, then pick an AI level. */
+    @GetMapping("/{mode}/com/format")
+    public String comFormat(@PathVariable String mode, Model model) {
+        CapitalQuizMode quizMode = parseMode(mode);
+        if (quizMode == null) return "redirect:/Capital";
+
+        model.addAttribute("mode", mode);
+        model.addAttribute("modeLabel", modeLabel(quizMode));
+        return "CapitalScreens/CapitalComFormatScreen";
     }
 
     /** Step 2 of 2 ("First to N" path): choose the AI's skill level, now that the format is picked. */

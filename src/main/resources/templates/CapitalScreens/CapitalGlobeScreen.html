@@ -445,7 +445,7 @@
 <div id="rulesPanel" class="rules-panel">
     <span class="close-rules" onclick="closeRules()">&times;</span>
     <h2>Capital Locations Rules</h2>
-    <p>You're shown a capital city - can you guess which country it belongs to?</p>
+    <p>You're shown a capital city. Can you guess which country it belongs to?</p>
     <p>Click a country on the globe to select it (highlighted in purple), then press <strong>Enter</strong> or <strong>Confirm Guess</strong> to submit it. After each guess, the country will be colored based on how close it is to the target country.</p>
     <p>You also get the distance in km between your guess and the target country.</p>
     <p>If your guess shares a border with the target, you'll get a special notification.</p>
@@ -467,7 +467,7 @@
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
 <script type="module">
-    import { initGlobe, colorCountry, focusOnCountry, onCountryClick, setSelectedCountry, isCountryColored } from '/js/globe.js?v=2052';
+    import { initGlobe, colorCountry, focusOnCountry, onCountryClick, setSelectedCountry, isCountryColored } from '/js/globe.js?v=2056';
 
     let guessesArray = [];
     let selectedCountry = null;
@@ -487,7 +487,7 @@
        on a real click, not a drag. */
     onCountryClick(function (countryName) {
         if (gameOver) return;
-        // A country you've already guessed/revealed is just a free look - it never becomes
+        // A country you've already guessed/revealed is just a free look: it never becomes
         // your active pick, so peeking at one can't accidentally change what Confirm submits.
         if (isCountryColored(countryName)) {
             selectionDisplay.textContent = '📍 ' + countryName;
@@ -495,7 +495,7 @@
         }
         selectedCountry = countryName;
         setSelectedCountry(countryName);
-        selectionDisplay.textContent = 'A country is selected - press Confirm Guess or Enter to submit';
+        selectionDisplay.textContent = 'A country is selected: press Confirm Guess or Enter to submit';
         selectionDisplay.classList.add('has-selection');
         guessBtn.disabled = false;
     });
@@ -638,7 +638,10 @@
                 headers: { "Content-Type": "application/x-www-form-urlencoded" },
                 body: "countryName=" + encodeURIComponent(country) + "&gameId=" + encodeURIComponent(GAME_ID)
             });
-            const result = await response.json();
+            // A guess the server can't match to a country in our own data comes back as an
+            // empty body (not JSON "null"), so response.json() would throw here.
+            const responseText = await response.text();
+            const result = responseText ? JSON.parse(responseText) : null;
 
             if (result && result.colorHex && result.guessedCountry) {
                 const already = guessesArray.find(g => g.name === result.guessedCountry.name);
@@ -668,6 +671,14 @@
                     }
                     setTimeout(() => showEndScreen(true, guessesArray.length, result.guessedCountry.name, flagFileName), 1000);
                 }
+            } else if (!result) {
+                // The spot doesn't match any country in our data - let the player know and
+                // clear the pick instead of leaving them stuck on a guess that can never submit.
+                clearSelection();
+                selectionDisplay.textContent = "That spot isn't recognized, try another country";
+                setTimeout(() => {
+                    if (!selectedCountry) selectionDisplay.textContent = 'Click a country on the globe';
+                }, 2500);
             }
         } catch (error) {
             console.error("Error submitting guess:", error);

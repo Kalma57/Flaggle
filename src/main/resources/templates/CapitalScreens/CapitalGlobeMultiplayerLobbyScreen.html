@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Capital Locations - 1v1 vs Friend</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Nunito', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        h1, h2, .section-title { font-family: 'Baloo 2', 'Nunito', sans-serif; }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 6px;
+            padding: 30px 20px;
+            background: linear-gradient(-45deg, #fdeef5, #f9f9f9, #fbe4ee, #fff5fa);
+            background-size: 400% 400%;
+            animation: gradientMove 12s ease infinite;
+            overflow-x: hidden;
+        }
+
+        @keyframes gradientMove {
+            0%   { background-position: 0% 50%; }
+            50%  { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .glow {
+            position: fixed;
+            width: 350px;
+            height: 350px;
+            background: #ec407a;
+            opacity: 0.15;
+            filter: blur(120px);
+            border-radius: 50%;
+            animation: float 8s infinite alternate ease-in-out;
+            pointer-events: none;
+        }
+
+        .glow1 { top: 5%; left: 10%; }
+        .glow2 { bottom: 5%; right: 10%; }
+
+        @keyframes float {
+            from { transform: translateY(0px); }
+            to   { transform: translateY(-60px); }
+        }
+
+        .back-link {
+            position: fixed;
+            top: 30px;
+            left: 30px;
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 21px;
+            font-weight: bold;
+            color: #ec407a;
+            text-decoration: none;
+            padding: 10px 18px;
+            background: rgba(255,255,255,0.85);
+            border-radius: 999px;
+            box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+            transition: 0.3s;
+        }
+
+        .back-link:hover { transform: translateX(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.18); }
+
+        .lobby-header { position: relative; z-index: 1; text-align: center; margin-bottom: 4px; }
+
+        h1 {
+            font-size: 50px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 14px;
+            color: #ec407a;
+            text-shadow: 0 8px 20px rgba(236,64,122,0.35);
+        }
+
+        .lobby-subtitle { font-size: 19px; color: #4a4a4a; margin-top: 4px; }
+
+        /* -------------------- CREATE (left) + JOIN (right) -------------------- */
+
+        .top-area {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            justify-content: center;
+            gap: 50px;
+            width: 100%;
+            margin-top: 30px;
+            align-items: flex-start;
+        }
+
+        .create-col, .join-col {
+            flex: 0 0 auto;
+            width: 320px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            gap: 16px;
+        }
+
+        .panel-title {
+            font-family: 'Baloo 2', 'Nunito', sans-serif;
+            font-size: 34px;
+            font-weight: 800;
+            letter-spacing: 0.3px;
+            color: #2c2c2c;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .create-col .panel-title { color: #ad1457; }
+        .join-col .panel-title { color: #6a1b9a; }
+
+        .panel-desc { font-size: 19px; color: #777; margin-top: -8px; }
+
+        .action-btn {
+            padding: 15px 40px;
+            font-size: 23px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            color: white;
+            border: none;
+            border-radius: 999px;
+            cursor: pointer;
+            background: linear-gradient(135deg, #ec407a, #c2185b);
+            box-shadow: 0 10px 24px rgba(0,0,0,0.25);
+            transition: 0.3s;
+            width: 100%;
+            max-width: 280px;
+        }
+
+        .action-btn:hover { transform: translateY(-3px) scale(1.02); box-shadow: 0 14px 28px rgba(0,0,0,0.35); }
+
+        .join-btn { background: linear-gradient(135deg, #ab47bc, #7b1fa2); }
+
+        .room-code-input {
+            width: 100%;
+            max-width: 280px;
+            padding: 16px;
+            font-size: 30px;
+            letter-spacing: 6px;
+            text-align: center;
+            text-transform: uppercase;
+            border-radius: 12px;
+            border: 2px solid #7b1fa2;
+            outline: none;
+            font-weight: 800;
+            color: #2c2c2c;
+            background: rgba(255,255,255,0.9);
+        }
+
+        .room-code-input:focus { box-shadow: 0 0 10px rgba(123,31,162,0.4); }
+
+        .join-error {
+            width: 100%;
+            max-width: 280px;
+            padding: 12px 16px;
+            border-radius: 12px;
+            background: #fdeaea;
+            color: #c62828;
+            font-size: 17px;
+            font-weight: 700;
+            text-align: center;
+        }
+
+        /* -------------------- Shared section/card styling -------------------- */
+
+        .section {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .match-format-section {
+            position: relative;
+            z-index: 1;
+            max-width: 1600px;
+            margin-top: 50px;
+        }
+
+        .section-title {
+            font-size: 28px;
+            color: #2c2c2c;
+            letter-spacing: 0.5px;
+        }
+
+        .modes-grid {
+            display: grid;
+            grid-template-columns: repeat(5, minmax(220px, 1fr));
+            gap: 26px;
+            width: 100%;
+        }
+
+        .match-type-card input { display: none; }
+
+        .match-type-card label {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            gap: 10px;
+            height: 100%;
+            padding: 32px 20px 28px;
+            cursor: pointer;
+            background: rgba(255,255,255,0.9);
+            border-radius: 22px;
+            border: 2px solid transparent;
+            box-shadow: 0 10px 24px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+
+        .match-type-card label:hover { transform: translateY(-5px); box-shadow: 0 18px 34px rgba(0,0,0,0.16); }
+
+        .match-type-card input:checked + label {
+            border-color: var(--accent, #ec407a);
+            box-shadow: 0 0 0 4px rgba(236,64,122,0.15), 0 18px 34px rgba(0,0,0,0.18);
+        }
+
+        .match-type-icon { font-size: 38px; }
+        .match-type-title { font-size: 21px; font-weight: 800; color: #2c2c2c; letter-spacing: 0.5px; }
+        .match-type-desc { font-size: 16px; color: #666; }
+
+        .match-type-card.best3 label { --accent: #9575cd; }
+        .match-type-card.best5 label { --accent: #7c4dff; }
+        .match-type-card.best7 label { --accent: #5e35b1; }
+        .match-type-card.blitz1 label { --accent: #ab47bc; }
+        .match-type-card.blitz2 label { --accent: #8e24aa; }
+    </style>
+</head>
+
+<body>
+
+<div class="glow glow1"></div>
+<div class="glow glow2"></div>
+
+<a class="back-link" href="/Capital/globe/format">← Back</a>
+
+<!-- Two invisible forms - CREATE and JOIN controls live wherever they need to for
+     layout purposes and simply point at these via the "form" attribute, so the
+     visual placement of a field doesn't have to match where its <form> tag sits. -->
+<form id="createForm" action="/Capital/globe/match/pvp/create" method="post"></form>
+<form id="joinForm" action="/Capital/globe/match/pvp/join" method="post"></form>
+
+<div class="lobby-header">
+    <h1><span>🌍👥</span> 1v1 vs Friend</h1>
+    <p class="lobby-subtitle">Create a room and share the code, or join a friend's room</p>
+</div>
+
+<div class="top-area">
+
+    <div class="create-col">
+        <div class="panel-title">🆕 Create a Game</div>
+        <p class="panel-desc">Pick a format below, you'll get a room code to share</p>
+        <button type="submit" form="createForm" class="action-btn">CREATE ROOM</button>
+    </div>
+
+    <div class="join-col">
+        <div class="panel-title">🔑 Join a Game</div>
+        <p class="panel-desc">Got a room code from a friend? Enter it below</p>
+
+        <div class="join-error" th:if="${joinError}" th:text="${joinError}">Room not found.</div>
+
+        <input type="text" name="roomCode" form="joinForm" class="room-code-input" placeholder="ABC123" maxlength="6" required autocomplete="off">
+        <button type="submit" form="joinForm" class="action-btn join-btn">JOIN ROOM</button>
+    </div>
+
+</div>
+
+<div class="section match-format-section">
+    <div class="section-title">🎯 Match Format</div>
+    <div class="modes-grid">
+        <div class="match-type-card best3">
+            <input type="radio" form="createForm" name="matchType" id="mt-best3" value="BEST_3" checked>
+            <label for="mt-best3">
+                <span class="match-type-icon">🥉</span>
+                <span class="match-type-title">FIRST TO 3</span>
+                <span class="match-type-desc">First to 2 round wins</span>
+            </label>
+        </div>
+        <div class="match-type-card best5">
+            <input type="radio" form="createForm" name="matchType" id="mt-best5" value="BEST_5">
+            <label for="mt-best5">
+                <span class="match-type-icon">🥈</span>
+                <span class="match-type-title">FIRST TO 5</span>
+                <span class="match-type-desc">First to 3 round wins</span>
+            </label>
+        </div>
+        <div class="match-type-card best7">
+            <input type="radio" form="createForm" name="matchType" id="mt-best7" value="BEST_7">
+            <label for="mt-best7">
+                <span class="match-type-icon">🥇</span>
+                <span class="match-type-title">FIRST TO 7</span>
+                <span class="match-type-desc">First to 4 round wins</span>
+            </label>
+        </div>
+        <div class="match-type-card blitz1">
+            <input type="radio" form="createForm" name="matchType" id="mt-blitz1" value="BLITZ_60">
+            <label for="mt-blitz1">
+                <span class="match-type-icon">⏱️</span>
+                <span class="match-type-title">1 MIN BLITZ</span>
+                <span class="match-type-desc">Highest net score in one shared minute</span>
+            </label>
+        </div>
+        <div class="match-type-card blitz2">
+            <input type="radio" form="createForm" name="matchType" id="mt-blitz2" value="BLITZ_120">
+            <label for="mt-blitz2">
+                <span class="match-type-icon">⏳</span>
+                <span class="match-type-title">2 MIN BLITZ</span>
+                <span class="match-type-desc">Highest net score in two shared minutes</span>
+            </label>
+        </div>
+    </div>
+</div>
+
+<input type="hidden" form="createForm" name="bestOf" id="hiddenBestOf" value="3">
+<input type="hidden" form="createForm" name="durationSeconds" id="hiddenDuration" value="60">
+
+<script>
+    document.getElementById('createForm').addEventListener('submit', function () {
+        var checked = document.querySelector('input[name="matchType"]:checked');
+        var matchType = checked ? checked.value : 'BEST_3';
+        var bestOfMap = { BEST_3: '3', BEST_5: '5', BEST_7: '7' };
+        var durationMap = { BLITZ_60: '60', BLITZ_120: '120' };
+
+        if (bestOfMap.hasOwnProperty(matchType)) {
+            this.action = '/Capital/globe/match/pvp/create';
+            document.getElementById('hiddenBestOf').value = bestOfMap[matchType];
+        } else {
+            this.action = '/Capital/globe/match/pvp/blitz/create';
+            document.getElementById('hiddenDuration').value = durationMap[matchType];
+        }
+    });
+</script>
+
+</body>
+</html>

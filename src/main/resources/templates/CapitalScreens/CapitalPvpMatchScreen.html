@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${modeLabel} + ' - 1v1 vs Friend'">Capital Cities - 1v1 vs Friend</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --pink: #ec407a;
+            --pink-dark: #c2185b;
+            --shadow-sm: 0 4px 12px rgba(0,0,0,0.08);
+            --shadow-md: 0 10px 25px rgba(0,0,0,0.15);
+            --shadow-lg: 0 12px 28px rgba(0,0,0,0.18);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Nunito', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        h1, h2 { font-family: 'Baloo 2', 'Nunito', sans-serif; }
+        html, body { height: 100%; }
+
+        body {
+            height: 100vh; overflow: hidden; display: flex; flex-direction: column; align-items: center;
+            padding: 1.4vh 20px 1.6vh;
+            background: linear-gradient(-45deg, #fdeef5, #f9f9f9, #f3e9ff, #fff5fa);
+            background-size: 400% 400%; animation: gradientMove 12s ease infinite;
+        }
+
+        @keyframes gradientMove { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+
+        h1 { font-size: clamp(20px, 3.2vh, 30px); color: var(--pink-dark); margin-bottom: 0.3vh; text-shadow: 0 8px 20px rgba(236,64,122,0.3); flex-shrink: 0; }
+
+        .badge-stack { position: fixed; top: 24px; left: 24px; display: flex; flex-direction: column; gap: 8px; z-index: 5; }
+        .badge { display: flex; align-items: center; gap: 8px; padding: 8px 18px; border-radius: 999px; font-size: clamp(13px, 1.8vh, 16px); font-weight: bold; box-shadow: var(--shadow-sm); }
+        .badge.room   { background: linear-gradient(135deg, #fdeef5, #ffffff); color: var(--pink-dark); border: 2px solid var(--pink); }
+        .badge.format { background: linear-gradient(135deg, #f3e9ff, #ffffff); color: #5e35b1; border: 2px solid #7c4dff; }
+
+        .top-right-actions { position: fixed; top: 24px; right: 24px; display: flex; gap: 10px; z-index: 5; }
+        .rules-btn, .pause-btn {
+            padding: 9px 20px; font-size: clamp(13px, 1.8vh, 16px); border-radius: 10px; cursor: pointer;
+            border: 2px solid var(--pink); background: white; color: var(--pink-dark); box-shadow: var(--shadow-sm); transition: 0.3s;
+        }
+        .pause-btn { border-color: #ffa726; color: #ef6c00; }
+        .rules-btn:hover { background: #fdeef5; transform: translateY(-2px); box-shadow: var(--shadow-md); }
+        .pause-btn:hover { background: #fff3e0; transform: translateY(-2px); box-shadow: var(--shadow-md); }
+        .pause-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .scoreboard { display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 16px; flex-wrap: wrap; margin-bottom: 1.2vh; flex-shrink: 0; }
+        .round-indicator { font-size: clamp(12px, 1.6vh, 15px); color: #4a4a4a; font-weight: 700; }
+        .score-line { display: flex; align-items: center; gap: 12px; font-size: clamp(18px, 2.6vh, 26px); font-weight: 800; color: #2c2c2c; }
+        .score-you  { color: var(--pink-dark); } .score-ai { color: #6a1b9a; }
+        .score-you.negative, .score-ai.negative { color: #c62828; }
+        .score-sep  { color: #999; font-weight: 400; font-size: clamp(12px, 1.6vh, 15px); }
+        .match-clock { font-family: 'Consolas', monospace; font-size: clamp(13px, 1.8vh, 17px); font-weight: 700; color: #4a4a4a; background: rgba(255,255,255,0.75); padding: 3px 14px; border-radius: 999px; box-shadow: var(--shadow-sm); }
+
+        .match-columns { flex: 1; min-height: 0; display: flex; gap: 24px; width: 100%; max-width: 1180px; align-items: stretch; justify-content: center; }
+        .column { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.2vh; min-height: 0; }
+        .column.your-column { flex: 2 1 620px; min-width: 0; }
+        .column.opponent-column { flex: 1 1 220px; max-width: 250px; min-width: 200px; }
+        .column-title { font-size: clamp(15px, 2.1vh, 20px); font-weight: 800; color: #2c2c2c; flex-shrink: 0; }
+
+        .prompt-card {
+            width: 100%; display: flex; flex-direction: column; align-items: center; gap: 1.1vh;
+            padding: clamp(12px, 2.2vh, 26px) clamp(16px, 2.4vw, 32px); background: rgba(255,255,255,0.85); backdrop-filter: blur(10px);
+            border-radius: 20px; box-shadow: var(--shadow-md); flex-shrink: 0;
+        }
+        .prompt-flag { height: clamp(80px, 18vh, 200px); width: auto; max-width: 58vw; border-radius: 12px; box-shadow: var(--shadow-md); border: 3px solid rgba(236,64,122,0.25); }
+        .prompt-text { font-size: clamp(22px, 3.8vh, 38px); font-weight: 800; color: #2c2c2c; text-align: center; }
+        .prompt-label { font-size: clamp(11px, 1.4vh, 14px); color: #888; text-transform: uppercase; letter-spacing: 1.5px; font-weight: 700; }
+        .answer-timer { font-size: clamp(12px, 1.6vh, 15px); color: #ef6c00; font-weight: 700; }
+
+        .options-grid { width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: clamp(10px, 1.8vh, 20px); flex-shrink: 0; }
+        @media (max-width: 560px) { .options-grid { grid-template-columns: 1fr; } }
+
+        .option-btn {
+            display: flex; align-items: center; justify-content: center; gap: 12px;
+            padding: clamp(14px, 2.6vh, 26px) clamp(14px, 2vw, 22px); font-size: clamp(16px, 2.6vh, 23px); font-weight: 700; color: #2c2c2c;
+            background: rgba(255,255,255,0.9); border: 2px solid rgba(236,64,122,0.25); border-radius: 14px;
+            cursor: pointer; box-shadow: var(--shadow-sm); transition: 0.2s;
+        }
+        .option-btn:hover:not(:disabled) { transform: translateY(-3px); box-shadow: var(--shadow-md); border-color: var(--pink); }
+        .option-btn:disabled { cursor: not-allowed; opacity: 0.7; }
+        .option-btn img { width: clamp(30px, 4.2vh, 42px); height: clamp(20px, 2.8vh, 28px); object-fit: cover; border-radius: 4px; border: 1px solid rgba(0,0,0,0.15); }
+        .option-btn.correct { background: #e8f5e9; border-color: #4CAF50; color: #2e7d32; }
+        .option-btn.wrong   { background: #fdeaea; border-color: #ef5350; color: #c62828; }
+
+        .feedback-banner {
+            width: 100%; text-align: center; padding: clamp(8px, 1.2vh, 14px) 18px; border-radius: 12px;
+            font-size: clamp(13px, 1.9vh, 18px); font-weight: 800; box-shadow: var(--shadow-sm); display: none; flex-shrink: 0;
+        }
+        .feedback-banner.shown { display: block; }
+        .feedback-banner.correct { background: #e8f5e9; color: #2e7d32; }
+        .feedback-banner.wrong   { background: #fdeaea; color: #c62828; }
+
+        .opponent-panel {
+            width: 100%; display: flex; flex-direction: column; align-items: center; gap: 0.8vh;
+            padding: clamp(12px, 2vh, 24px) clamp(12px, 1.6vw, 20px); background: rgba(255,255,255,0.85); backdrop-filter: blur(10px);
+            border-radius: 20px; box-shadow: var(--shadow-md);
+        }
+        .opponent-score { font-family: 'Consolas', monospace; font-size: clamp(28px, 5vh, 44px); font-weight: 800; color: #2c2c2c; }
+        .opponent-score.negative { color: #c62828; }
+        .opponent-score-label { margin-top: -6px; font-size: clamp(10px, 1.2vh, 13px); font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 0.5px; }
+        .progress-track { width: 100%; height: clamp(9px, 1.5vh, 14px); border-radius: 999px; background: #eee; overflow: hidden; box-shadow: inset 0 2px 6px rgba(0,0,0,0.1); }
+        .progress-fill { height: 100%; width: 0%; border-radius: 999px; background: linear-gradient(135deg, #6a1b9a, #4a148c); transition: width 0.5s ease; }
+        .opponent-status { font-size: clamp(12px, 1.6vh, 15px); font-weight: 700; color: #4a4a4a; text-align: center; }
+
+        .overlay-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 200; }
+        .overlay-backdrop.active { display: flex; }
+        .overlay-panel { background: white; border-radius: 22px; padding: 40px 44px; max-width: 500px; width: 92%; max-height: 92vh; overflow-y: auto; text-align: center; box-shadow: var(--shadow-lg); }
+        .overlay-panel h2 { font-size: clamp(24px, 3.6vh, 32px); color: var(--pink-dark); margin-bottom: 14px; }
+        .overlay-panel.lost h2 { color: #6a1b9a; }
+        .overlay-panel.wide { max-width: 880px; }
+
+        .match-recap { display: flex; flex-direction: column; gap: 10px; width: 100%; margin: 20px 0; text-align: left; max-height: 440px; overflow-y: auto; }
+        .recap-row { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 13px 22px; border-radius: 14px; background: #f5f5f5; font-size: 16px; font-weight: 700; color: #555; }
+        .recap-flag { width: 38px; height: 25px; object-fit: cover; border-radius: 4px; border: 1px solid rgba(0,0,0,0.15); flex-shrink: 0; }
+        .recap-round-num { color: #999; font-weight: 700; min-width: 46px; }
+        .recap-prompt   { flex: 1; text-align: center; }
+        .recap-side { min-width: 110px; text-align: right; }
+        .recap-side.correct { color: #2e7d32; }
+        .recap-side.wrong { color: #c62828; }
+
+        .overlay-sub { font-size: clamp(13px, 1.8vh, 17px); color: #444; margin-bottom: 4px; }
+        .overlay-note { font-size: 13px; color: #888; margin-top: 8px; }
+        .overlay-actions { display: flex; gap: 12px; justify-content: center; margin-top: 16px; flex-wrap: wrap; }
+        .overlay-btn { padding: 10px 22px; font-size: clamp(12px, 1.6vh, 15px); font-weight: bold; border-radius: 999px; }
+        .overlay-btn.primary { background: linear-gradient(135deg, var(--pink), var(--pink-dark)); color: white; box-shadow: 0 8px 18px rgba(0,0,0,0.25); text-decoration: none; }
+        .overlay-btn.secondary { background: white; color: var(--pink-dark); border: 2px solid var(--pink); text-decoration: none; }
+        .overlay-btn.primary:hover, .overlay-btn.secondary:hover { transform: translateY(-2px); }
+
+        .rules-panel {
+            height: 100%; width: 380px; max-width: 85vw; position: fixed; z-index: 101; top: 0; right: 0; background: white;
+            overflow-y: auto; transform: translateX(100%); transition: transform 0.4s ease; padding: 30px 25px; box-shadow: -10px 0 30px rgba(0,0,0,0.25);
+        }
+        .rules-panel.open { transform: translateX(0); }
+        .rules-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.35); opacity: 0; pointer-events: none; transition: opacity 0.4s ease; z-index: 100; }
+        .rules-backdrop.active { opacity: 1; pointer-events: auto; }
+        .rules-panel h2 { color: var(--pink-dark); margin-bottom: 15px; }
+        .rules-panel p { margin: 10px 0; color: #333; }
+        .close-rules { position: absolute; top: 15px; right: 25px; font-size: 32px; cursor: pointer; color: var(--pink-dark); }
+    </style>
+</head>
+
+<body th:attr="data-mode=${mode},data-room-code=${roomCode},data-player-token=${playerToken}">
+
+<div class="badge-stack">
+    <div class="badge room"><span th:text="'🔑 ROOM: ' + ${roomCode}">ROOM: ABC123</span></div>
+    <div class="badge format"><span th:text="'🎯 FIRST TO ' + ${pointsToWin}">FIRST TO 2</span></div>
+</div>
+
+<div class="top-right-actions">
+    <button class="pause-btn" id="pauseBtn">⏸ PAUSE</button>
+    <button class="rules-btn" onclick="openRules()">RULES</button>
+</div>
+
+<h1><span th:text="${modeLabel}">Flag → Capital</span> - 1v1 vs Friend</h1>
+
+<div class="scoreboard">
+    <div class="round-indicator" id="roundIndicator" th:text="'Round 1 of ' + ${bestOf} + ' (first to ' + ${pointsToWin} + ')'">Round 1 of 3 (first to 2)</div>
+    <div class="score-line">
+        <span class="score-you" id="humanScoreText">0</span>
+        <span class="score-sep">YOU - OPPONENT</span>
+        <span class="score-ai" id="aiScoreText">0</span>
+    </div>
+    <div class="match-clock" id="matchClock">00:00</div>
+</div>
+
+<div class="match-columns">
+
+    <div class="column your-column">
+
+        <div class="prompt-card">
+            <span class="prompt-label" id="promptLabel">Which is the capital of...</span>
+            <img class="prompt-flag" id="promptFlag" style="display:none" alt="flag">
+            <div class="prompt-text" id="promptText">Loading...</div>
+            <div class="answer-timer" id="answerTimer"></div>
+        </div>
+
+        <div class="feedback-banner" id="feedbackBanner"></div>
+
+        <div class="options-grid" id="optionsGrid"></div>
+
+    </div>
+
+    <div class="column opponent-column">
+        <div class="column-title">👤 OPPONENT</div>
+        <div class="opponent-panel">
+            <div class="opponent-score" id="opponentScore">0</div>
+            <div class="opponent-score-label">net correct</div>
+            <div class="progress-track"><div class="progress-fill" id="opponentProgressFill"></div></div>
+            <div class="opponent-status" id="opponentStatusText">🤔 Thinking...</div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Pause overlay -->
+<div class="overlay-backdrop" id="pauseOverlay">
+    <div class="overlay-panel" id="pauseOverlayPanel">
+        <h2>⏸ Match Paused</h2>
+        <div class="overlay-sub" id="pauseOverlaySub">The clock is frozen for both of you. Pick up whenever you're ready.</div>
+        <div class="overlay-note" id="pauseCountdownText">Auto-resumes in 60s if nobody resumes first.</div>
+        <div class="overlay-actions">
+            <a class="overlay-btn secondary" href="/">🏠 HOME</a>
+            <button class="overlay-btn primary" id="resumeBtn">▶ RESUME</button>
+        </div>
+    </div>
+</div>
+
+<!-- Match-over overlay -->
+<div class="overlay-backdrop" id="matchOverlay">
+    <div class="overlay-panel wide" id="matchOverlayPanel">
+        <h2 id="matchOverlayTitle">🏆 You Win the Match!</h2>
+        <div class="overlay-sub" id="matchOverlaySub">Final score: 2 - 1</div>
+        <div class="match-recap" id="matchRecap"></div>
+        <div class="overlay-actions">
+            <a class="overlay-btn secondary" href="/">HOME</a>
+            <a class="overlay-btn secondary" th:href="@{'/Capital/' + ${mode} + '/format'}">CAPITAL</a>
+            <a class="overlay-btn primary" th:href="@{'/Capital/' + ${mode} + '/pvp/lobby'}">NEW GAME</a>
+        </div>
+    </div>
+</div>
+
+<!-- Rules -->
+<div id="rulesBackdrop" class="rules-backdrop" onclick="closeRules()"></div>
+<div id="rulesPanel" class="rules-panel">
+    <span class="close-rules" onclick="closeRules()">&times;</span>
+    <h2>1v1 vs Friend Rules</h2>
+    <p>Every round, you and your friend both answer the SAME question independently - it's not a race, both of you always get a shot. Your pick stays hidden until you've both answered.</p>
+    <p>A correct answer is <strong>+1</strong>, a wrong answer is <strong>-1</strong>, your score can go negative.</p>
+    <p th:text="'First to reach ' + ${pointsToWin} + ' net correct wins the match.'">First to reach 2 net correct wins the match.</p>
+    <p>If your friend takes too long to answer, the round resolves anyway after a short window, treating their silence as a wrong answer - so nobody can stall the match forever.</p>
+    <p>Either of you can hit <strong>PAUSE</strong> to freeze the match for up to 60 seconds - each player gets one pause for the whole match, and it auto-resumes if nobody hits resume first.</p>
+</div>
+
+<script th:inline="none">
+    const MODE = document.body.getAttribute('data-mode');
+    const ROOM_CODE = document.body.getAttribute('data-room-code');
+    const PLAYER_TOKEN = document.body.getAttribute('data-player-token');
+
+    const promptLabel = document.getElementById('promptLabel');
+    const promptFlag  = document.getElementById('promptFlag');
+    const promptText  = document.getElementById('promptText');
+    const answerTimer = document.getElementById('answerTimer');
+    const optionsGrid = document.getElementById('optionsGrid');
+    const feedbackBanner = document.getElementById('feedbackBanner');
+    const pauseBtn    = document.getElementById('pauseBtn');
+    const resumeBtn   = document.getElementById('resumeBtn');
+    const pauseOverlay = document.getElementById('pauseOverlay');
+    const pauseOverlaySub = document.getElementById('pauseOverlaySub');
+    const pauseCountdownText = document.getElementById('pauseCountdownText');
+    const opponentScore = document.getElementById('opponentScore');
+    const opponentProgressFill = document.getElementById('opponentProgressFill');
+    const opponentStatusText = document.getElementById('opponentStatusText');
+
+    const roundIndicator = document.getElementById('roundIndicator');
+    const humanScoreText = document.getElementById('humanScoreText');
+    const aiScoreText    = document.getElementById('aiScoreText');
+    const matchClock     = document.getElementById('matchClock');
+
+    const matchOverlay      = document.getElementById('matchOverlay');
+    const matchOverlayPanel = document.getElementById('matchOverlayPanel');
+    const matchOverlayTitle = document.getElementById('matchOverlayTitle');
+    const matchOverlaySub   = document.getElementById('matchOverlaySub');
+    const matchRecap        = document.getElementById('matchRecap');
+
+    let pointsToWin = 2;
+    let currentRoundNumber = 0;
+    let busy = false;
+    let matchIsOver = false;
+    let isPaused = false;
+    let statusPollTimer = null;
+    let answered = false;
+
+    function flagSrc(flagPath) {
+        if (!flagPath) return '';
+        let fileName = flagPath;
+        if (fileName.includes('/') || fileName.includes('\\')) fileName = fileName.split(/[/\\]/).pop();
+        return `/DB/FlagsImages/${fileName}`;
+    }
+
+    function formatClock(totalSeconds) {
+        const s = Math.max(0, Math.floor(totalSeconds));
+        const mm = String(Math.floor(s / 60)).padStart(2, '0');
+        const ss = String(s % 60).padStart(2, '0');
+        return mm + ':' + ss;
+    }
+
+    function roomParams() {
+        return 'roomCode=' + encodeURIComponent(ROOM_CODE) + '&playerToken=' + encodeURIComponent(PLAYER_TOKEN);
+    }
+
+    async function postForm(url, params) {
+        const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: params });
+        return response.json();
+    }
+
+    function renderPrompt(data) {
+        if (data.mode === 'FLAG_TO_CAPITAL') {
+            promptLabel.textContent = 'Which is the capital of...';
+            promptFlag.src = flagSrc(data.promptFlagPath);
+            promptFlag.style.display = 'block';
+        } else {
+            promptLabel.textContent = 'Which country has this capital...';
+            promptFlag.style.display = 'none';
+        }
+        promptText.textContent = data.promptText;
+    }
+
+    function renderOptions(data) {
+        // Only rebuild the DOM when the round actually changed - rebuilding every poll would
+        // wipe out a click that's still in flight.
+        if (data.roundNumber === currentRoundNumber && optionsGrid.children.length > 0) {
+            updateOptionStyling(data);
+            return;
+        }
+        currentRoundNumber = data.roundNumber;
+        answered = false;
+        optionsGrid.innerHTML = '';
+        (data.options || []).forEach(function (opt, i) {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.disabled = matchIsOver || isPaused;
+            if (opt.flagPath) {
+                const img = document.createElement('img');
+                img.src = flagSrc(opt.flagPath);
+                img.alt = opt.text;
+                img.onerror = function () { this.style.display = 'none'; };
+                btn.appendChild(img);
+            }
+            const span = document.createElement('span');
+            span.textContent = opt.text;
+            btn.appendChild(span);
+            btn.addEventListener('click', function () { submitAnswer(i); });
+            optionsGrid.appendChild(btn);
+        });
+        feedbackBanner.classList.remove('shown', 'correct', 'wrong');
+    }
+
+    function updateOptionStyling(data) {
+        Array.from(optionsGrid.children).forEach(function (btn, i) {
+            btn.classList.remove('correct', 'wrong');
+            if (data.roundOver) {
+                btn.disabled = true;
+                if (i === data.correctOptionIndex) btn.classList.add('correct');
+                else if (i === data.humanPickedIndex) btn.classList.add('wrong');
+            } else {
+                btn.disabled = answered || matchIsOver || isPaused;
+            }
+        });
+    }
+
+    function updateFeedback(data) {
+        if (!data.roundOver) {
+            feedbackBanner.classList.remove('shown', 'correct', 'wrong');
+            return;
+        }
+        const humanCorrect = data.humanCorrectThisRound === true;
+        feedbackBanner.textContent = humanCorrect ? '✅ Correct! (+1)' : '❌ Wrong (-1)';
+        feedbackBanner.classList.add('shown');
+        feedbackBanner.classList.toggle('correct', humanCorrect);
+        feedbackBanner.classList.toggle('wrong', !humanCorrect);
+    }
+
+    function updateAnswerTimer(data) {
+        if (data.roundOver) {
+            answerTimer.textContent = '⏭ Next question in ' + data.nextRoundRemainingSeconds + 's...';
+        } else if (!answered) {
+            answerTimer.textContent = '⏱ ' + data.answerTimeoutRemainingSeconds + 's to answer';
+        } else {
+            answerTimer.textContent = '✓ Answer locked in - waiting on your opponent...';
+        }
+    }
+
+    function updateOpponentPanel(data) {
+        pointsToWin = data.pointsToWin || pointsToWin;
+        opponentScore.textContent = data.aiScore;
+        opponentScore.classList.toggle('negative', data.aiScore < 0);
+        const fillPercent = Math.max(0, Math.min(100, (data.aiScore / pointsToWin) * 100));
+        opponentProgressFill.style.width = fillPercent + '%';
+
+        if (data.roundOver) {
+            opponentStatusText.textContent = data.aiCorrectThisRound ? '✅ Correct (+1)' : '❌ Wrong (-1)';
+        } else {
+            opponentStatusText.textContent = data.aiAnswered ? '🔒 Locked in...' : '🤔 Thinking...';
+        }
+    }
+
+    function setGuessingEnabled(enabled) {
+        pauseBtn.disabled = !enabled;
+        Array.from(optionsGrid.querySelectorAll('.option-btn')).forEach(b => { b.disabled = !enabled || answered; });
+    }
+
+    function updatePauseButton(data) {
+        pauseBtn.disabled = data.pauseUsedByMe || data.paused || matchIsOver;
+        pauseBtn.textContent = data.pauseUsedByMe ? '⏸ PAUSE USED' : '⏸ PAUSE';
+    }
+
+    function applyState(data) {
+        if (!data || data.humanScore === undefined) return;
+
+        humanScoreText.textContent = data.humanScore;
+        aiScoreText.textContent = data.aiScore;
+        humanScoreText.classList.toggle('negative', data.humanScore < 0);
+        aiScoreText.classList.toggle('negative', data.aiScore < 0);
+        roundIndicator.textContent = 'Round ' + data.roundNumber + ' of ' + (data.bestOf || (pointsToWin * 2 - 1)) + ' (first to ' + data.pointsToWin + ')';
+        matchClock.textContent = formatClock(data.matchElapsedSeconds);
+
+        renderPrompt(data);
+        renderOptions(data);
+        updateFeedback(data);
+        updateAnswerTimer(data);
+        updateOpponentPanel(data);
+        handlePauseState(data);
+
+        if (data.matchOver && !matchIsOver) {
+            matchIsOver = true;
+            showMatchOverlay(data);
+            return;
+        }
+    }
+
+    function handlePauseState(data) {
+        if (data.paused && !isPaused) {
+            isPaused = true;
+            setGuessingEnabled(false);
+            pauseOverlay.classList.add('active');
+        } else if (!data.paused && isPaused) {
+            isPaused = false;
+            pauseOverlay.classList.remove('active');
+            if (!matchIsOver) setGuessingEnabled(true);
+        }
+
+        if (data.paused) {
+            pauseOverlaySub.textContent = data.pausedByMe
+                ? "You paused the match - your opponent can see this too."
+                : "Your opponent paused the match.";
+            pauseCountdownText.textContent = 'Auto-resumes in ' + data.pauseRemainingSeconds + 's if nobody resumes first.';
+        }
+
+        updatePauseButton(data);
+    }
+
+    function renderMatchRecap(history) {
+        matchRecap.innerHTML = '';
+        if (!history) return;
+        history.forEach(function (r) {
+            const row = document.createElement('div');
+            row.className = 'recap-row';
+            const youSpan = '<span class="recap-side ' + (r.humanCorrect ? 'correct' : 'wrong') + '">You ' + (r.humanCorrect ? '✓' : '✗') + '</span>';
+            const aiSpan = '<span class="recap-side ' + (r.aiCorrect ? 'correct' : 'wrong') + '">Opp ' + (r.aiCorrect ? '✓' : '✗') + '</span>';
+            const flagImg = r.targetFlagPath ? '<img class="recap-flag" src="' + flagSrc(r.targetFlagPath) + '" alt="" onerror="this.style.display=\'none\'">' : '';
+            row.innerHTML =
+                '<span class="recap-round-num">Round ' + r.roundNumber + '</span>' +
+                flagImg +
+                '<span class="recap-prompt">' + r.promptText + ' → ' + r.correctAnswerText + '</span>' +
+                youSpan + aiSpan;
+            matchRecap.appendChild(row);
+        });
+    }
+
+    function launchConfetti() {
+        const colors = ['#ec407a', '#ab47bc', '#ce93d8', '#f8bbd0', '#ffd700'];
+        confetti({ particleCount: 150, spread: 110, origin: { y: 0.55 }, colors, startVelocity: 48 });
+        confetti({ particleCount: 90, spread: 130, origin: { y: 0.4 }, colors, startVelocity: 58, scalar: 1.2 });
+        const duration = 4500;
+        const end = Date.now() + duration;
+        (function frame() {
+            confetti({ particleCount: 12, angle: 60, spread: 75, origin: { x: 0 }, colors });
+            confetti({ particleCount: 12, angle: 120, spread: 75, origin: { x: 1 }, colors });
+            if (Date.now() < end) requestAnimationFrame(frame);
+        })();
+    }
+
+    function showMatchOverlay(data) {
+        setGuessingEnabled(false);
+        clearInterval(statusPollTimer);
+
+        const won = data.matchWinner === 'HUMAN';
+        matchOverlayPanel.classList.toggle('lost', !won);
+        matchOverlayTitle.textContent = won ? '🏆 You Win the Match!' : '😬 Your Opponent Wins the Match';
+        matchOverlaySub.textContent = 'Final score: ' + data.humanScore + ' - ' + data.aiScore;
+        renderMatchRecap(data.roundHistory);
+        matchOverlay.classList.add('active');
+        if (won) launchConfetti();
+    }
+
+    async function submitAnswer(optionIndex) {
+        if (busy || answered || matchIsOver || isPaused) return;
+        busy = true;
+        answered = true;
+        Array.from(optionsGrid.children).forEach(b => { b.disabled = true; });
+        try {
+            const data = await postForm(`/Capital/${MODE}/pvp/answer/ajax`, roomParams() + '&optionIndex=' + optionIndex);
+            applyState(data);
+        } catch (err) {
+            console.error('Answer error:', err);
+        } finally {
+            busy = false;
+        }
+    }
+
+    pauseBtn.addEventListener('click', async function () {
+        if (busy || pauseBtn.disabled) return;
+        busy = true;
+        try {
+            const data = await postForm(`/Capital/${MODE}/pvp/pause/ajax`, roomParams());
+            applyState(data);
+        } catch (err) {
+            console.error('Pause error:', err);
+        } finally {
+            busy = false;
+        }
+    });
+
+    resumeBtn.addEventListener('click', async function () {
+        if (busy) return;
+        busy = true;
+        try {
+            const data = await postForm(`/Capital/${MODE}/pvp/resume/ajax`, roomParams());
+            applyState(data);
+        } catch (err) {
+            console.error('Resume error:', err);
+        } finally {
+            busy = false;
+        }
+    });
+
+    async function pollStatus() {
+        if (matchIsOver) return;
+        try {
+            const response = await fetch(`/Capital/${MODE}/pvp/status/ajax?` + roomParams());
+            const data = await response.json();
+            applyState(data);
+        } catch (err) {
+            console.error('Status poll error:', err);
+        }
+    }
+
+    function startPolling() {
+        clearInterval(statusPollTimer);
+        statusPollTimer = setInterval(pollStatus, 1000);
+    }
+
+    function openRules() {
+        document.getElementById('rulesPanel').classList.add('open');
+        document.getElementById('rulesBackdrop').classList.add('active');
+    }
+    function closeRules() {
+        document.getElementById('rulesPanel').classList.remove('open');
+        document.getElementById('rulesBackdrop').classList.remove('active');
+    }
+    window.openRules = openRules;
+    window.closeRules = closeRules;
+
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') { closeRules(); return; }
+        if (e.key === 'Enter' && pauseOverlay.classList.contains('active')) { e.preventDefault(); resumeBtn.click(); }
+    });
+
+    pollStatus();
+    startPolling();
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+</body>
+</html>

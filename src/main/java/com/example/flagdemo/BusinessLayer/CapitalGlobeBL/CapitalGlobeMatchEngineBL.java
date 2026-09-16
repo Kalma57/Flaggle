@@ -1,7 +1,6 @@
 package com.example.flagdemo.BusinessLayer.CapitalGlobeBL;
 
 import com.example.flagdemo.BusinessLayer.CapitalBL.CapitalAiOpponentPlan;
-import com.example.flagdemo.BusinessLayer.CapitalBL.CapitalAiOpponentPlanFactory;
 import com.example.flagdemo.BusinessLayer.CountryBL;
 import com.example.flagdemo.BusinessLayer.GlobeBL.GuessResultGlobeBL;
 import com.example.flagdemo.BusinessLayer.MatchBL.AiSkillLevel;
@@ -89,7 +88,7 @@ public class CapitalGlobeMatchEngineBL implements java.io.Serializable {
         lastAiCorrect = null;
         roundStartTimeMillis = System.currentTimeMillis();
         pausedMillisThisRound = 0;
-        aiPlan = CapitalAiOpponentPlanFactory.createPlan(aiLevel);
+        aiPlan = CapitalGlobeAiOpponentPlanFactory.createPlan(aiLevel);
     }
 
     // -------------------- Guessing --------------------
@@ -97,8 +96,12 @@ public class CapitalGlobeMatchEngineBL implements java.io.Serializable {
     public synchronized GuessResultGlobeBL humanGuess(String countryName) {
         if (matchOver || paused || currentRoundOver) return null;
 
-        humanAttemptsThisRound++;
+        // A click can land on a polygon from the map dataset that has no matching row in our
+        // own DB - treat that as a no-op, not a wasted attempt.
         CountryBL guessedCountry = cc.getCountryByName(countryName);
+        if (guessedCountry == null) return null;
+
+        humanAttemptsThisRound++;
         GuessResultGlobeBL result = new GuessResultGlobeBL(guessedCountry, currentTarget);
 
         if (result.isCorrect()) {

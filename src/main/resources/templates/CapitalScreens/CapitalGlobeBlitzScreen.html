@@ -271,7 +271,7 @@
 <div class="overlay-backdrop" id="pauseOverlay">
     <div class="overlay-panel" id="pauseOverlayPanel">
         <h2>⏸ Match Paused</h2>
-        <div class="overlay-sub">The clock and the AI are frozen - pick up whenever you're ready.</div>
+        <div class="overlay-sub">The clock and the AI are frozen. Pick up whenever you're ready.</div>
         <div class="overlay-actions">
             <a class="overlay-btn secondary" href="/">🏠 HOME</a>
             <button class="overlay-btn primary" id="resumeBtn">▶ RESUME</button>
@@ -298,12 +298,12 @@
 <div id="rulesPanel" class="rules-panel">
     <span class="close-rules" onclick="closeRules()">&times;</span>
     <h2>Blitz Rules</h2>
-    <p>You and the AI race through capitals independently - answer as many as you can before time runs out.</p>
-    <p>Click a country to select it, then press <strong>Enter</strong> or <strong>Confirm Guess</strong> to submit it - unlimited guesses per capital, colored by proximity. Once you find it, you move straight to the next one. Press <strong>Skip</strong> to give up on one and move on.</p>
+    <p>You and the AI race through capitals independently. Answer as many as you can before time runs out.</p>
+    <p>Click a country to select it, then press <strong>Enter</strong> or <strong>Confirm Guess</strong> to submit it. Unlimited guesses per capital, colored by proximity. Once you find it, you move straight to the next one. Press <strong>Skip</strong> to give up on one and move on.</p>
     <p>A correct answer is <strong>+1</strong>, a skip is <strong>-1</strong> - your score can go negative. No hints in this format.</p>
-    <p>The AI answers each capital independently (faster and sharper on HARD) - watch its live score in the side panel.</p>
+    <p>The AI answers each capital independently (faster and sharper on HARD). Watch its live score in the side panel.</p>
     <p th:text="'Whoever has the higher net score when the clock hits 0 wins the ' + ${durationMinutes} + '-minute Blitz. A tie is a draw.'">Whoever has the higher net score when the clock hits 0 wins the Blitz. A tie is a draw.</p>
-    <p>Pausing freezes the clock and the AI - resume whenever you're ready, no limit on how many times.</p>
+    <p>Pausing freezes the clock and the AI. Resume whenever you're ready, no limit on how many times.</p>
 </div>
 
 <script th:inline="javascript">
@@ -314,7 +314,7 @@
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
 <script type="module">
-    import { initGlobe, colorCountry, focusOnCountry, resetGlobeColors, onCountryClick, setSelectedCountry, isCountryColored } from '/js/globe.js?v=2052';
+    import { initGlobe, colorCountry, focusOnCountry, resetGlobeColors, onCountryClick, setSelectedCountry, isCountryColored } from '/js/globe.js?v=2056';
 
     const promptCapital = document.getElementById('promptCapital');
     const feedbackBanner = document.getElementById('feedbackBanner');
@@ -356,7 +356,7 @@
        press Enter, or press the Confirm button to actually submit it as your guess. */
     onCountryClick(function (countryName) {
         if (!guessingAllowed) return;
-        // A country you've already guessed/revealed (this question) is just a free look - it
+        // A country you've already guessed/revealed (this question) is just a free look: it
         // never becomes your active pick, so peeking can't accidentally change what submits.
         if (isCountryColored(countryName)) {
             selectionDisplay.textContent = '📍 ' + countryName;
@@ -364,7 +364,7 @@
         }
         selectedCountry = countryName;
         setSelectedCountry(countryName);
-        selectionDisplay.textContent = 'A country is selected - press Confirm Guess or Enter to submit';
+        selectionDisplay.textContent = 'A country is selected: press Confirm Guess or Enter to submit';
         selectionDisplay.classList.add('has-selection');
         guessBtn.disabled = false;
     });
@@ -568,7 +568,7 @@
         clearSelection();
         try {
             const data = await postForm(`/Capital/globe/blitz/skip/ajax`, matchParams());
-            if (data.skippedName) flashFeedback(false, '❌ Skipped (-1) - it was ' + data.skippedName);
+            if (data.skippedName) flashFeedback(false, '❌ Skipped (-1): it was ' + data.skippedName);
             applyState(data);
         } catch (err) {
             console.error('Skip error:', err);

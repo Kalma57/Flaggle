@@ -2,7 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Capital Locations - Choose Format</title>
+    <title>Capital Locations - 1v1 vs Computer</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -49,11 +49,11 @@
         .lobby-header { position: relative; z-index: 1; text-align: center; margin-bottom: 10px; }
 
         h1 {
-            font-size: 56px; display: flex; justify-content: center; align-items: center; gap: 14px;
+            font-size: 50px; display: flex; justify-content: center; align-items: center; gap: 14px;
             color: #7c4dff; text-shadow: 0 8px 20px rgba(124,77,255,0.35);
         }
 
-        .lobby-subtitle { font-size: 23px; color: #4a4a4a; margin-top: 10px; }
+        .lobby-subtitle { font-size: 21px; color: #4a4a4a; margin-top: 10px; }
 
         .modes-grid {
             position: relative; z-index: 1; display: grid;
@@ -83,9 +83,11 @@
 
         .mode-card:hover .mode-cta { transform: translateY(-2px); box-shadow: 0 12px 24px rgba(0,0,0,0.3); }
 
-        .mode-card.regular { --accent: #26a69a; --accent-dark: #00897b; }
-        .mode-card.com { --accent: #7c4dff; --accent-dark: #5e35b1; }
-        .mode-card.friend { --accent: #ec407a; --accent-dark: #c2185b; }
+        .mode-card.best3 { --accent: #9575cd; --accent-dark: #7e57c2; }
+        .mode-card.best5 { --accent: #7c4dff; --accent-dark: #6a3df0; }
+        .mode-card.best7 { --accent: #5e35b1; --accent-dark: #4527a0; }
+        .mode-card.blitz1 { --accent: #ab47bc; --accent-dark: #8e24aa; }
+        .mode-card.blitz2 { --accent: #8e24aa; --accent-dark: #6a1b7a; }
     </style>
 </head>
 
@@ -94,33 +96,47 @@
 <div class="glow glow1"></div>
 <div class="glow glow2"></div>
 
-<a class="back-link" href="/Capital">← Back</a>
+<a class="back-link" href="/Capital/globe/format">← Back</a>
 
 <div class="lobby-header">
-    <h1><span>🌍</span> Capital Locations</h1>
-    <p class="lobby-subtitle">Choose how you want to play</p>
+    <h1><span>🤖</span> 1v1 vs Computer</h1>
+    <p class="lobby-subtitle">Choose a format</p>
 </div>
 
 <div class="modes-grid">
 
-    <a class="mode-card regular" href="/Capital/globe/start">
-        <div class="mode-icon">🧭</div>
-        <h2 class="mode-title">REGULAR</h2>
-        <p class="mode-desc">Casual, untimed, just you. Guess as many times as you need</p>
-        <span class="mode-cta">PLAY ▶</span>
-    </a>
-
-    <a class="mode-card com" href="/Capital/globe/com/format">
-        <div class="mode-icon">🤖</div>
-        <h2 class="mode-title">1V1 vs COMPUTER</h2>
-        <p class="mode-desc">First To N or Blitz, racing against an AI opponent</p>
+    <a class="mode-card best3" th:href="@{'/Capital/globe/match/lobby'(target=3)}">
+        <div class="mode-icon">🥉</div>
+        <h2 class="mode-title">FIRST TO 3</h2>
+        <p class="mode-desc">First to reach 3 net correct wins (wrong answers set you back a point)</p>
         <span class="mode-cta">CHOOSE ▶</span>
     </a>
 
-    <a class="mode-card friend" href="/Capital/globe/match/pvp/lobby">
-        <div class="mode-icon">👥</div>
-        <h2 class="mode-title">1V1 vs FRIEND</h2>
-        <p class="mode-desc">First To N or Blitz, racing a real friend by room code</p>
+    <a class="mode-card best5" th:href="@{'/Capital/globe/match/lobby'(target=5)}">
+        <div class="mode-icon">🥈</div>
+        <h2 class="mode-title">FIRST TO 5</h2>
+        <p class="mode-desc">First to reach 5 net correct wins (wrong answers set you back a point)</p>
+        <span class="mode-cta">CHOOSE ▶</span>
+    </a>
+
+    <a class="mode-card best7" th:href="@{'/Capital/globe/match/lobby'(target=7)}">
+        <div class="mode-icon">🥇</div>
+        <h2 class="mode-title">FIRST TO 7</h2>
+        <p class="mode-desc">First to reach 7 net correct wins (wrong answers set you back a point)</p>
+        <span class="mode-cta">CHOOSE ▶</span>
+    </a>
+
+    <a class="mode-card blitz1" th:href="@{'/Capital/globe/blitz/lobby'(durationSeconds=60)}">
+        <div class="mode-icon">⏱️</div>
+        <h2 class="mode-title">1 MINUTE BLITZ</h2>
+        <p class="mode-desc">Same capitals, one shared minute. Highest net score when time's up wins</p>
+        <span class="mode-cta">CHOOSE ▶</span>
+    </a>
+
+    <a class="mode-card blitz2" th:href="@{'/Capital/globe/blitz/lobby'(durationSeconds=120)}">
+        <div class="mode-icon">⏳</div>
+        <h2 class="mode-title">2 MINUTE BLITZ</h2>
+        <p class="mode-desc">Same capitals, two shared minutes. Highest net score when time's up wins</p>
         <span class="mode-cta">CHOOSE ▶</span>
     </a>
 

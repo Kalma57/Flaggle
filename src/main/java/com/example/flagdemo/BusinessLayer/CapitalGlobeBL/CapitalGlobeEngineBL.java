@@ -33,8 +33,14 @@ public class CapitalGlobeEngineBL implements java.io.Serializable {
     public GuessResultGlobeBL guess(String countryName) {
         if (gameOver) return null;
 
-        this.attempts++;
+        // A click can land on a polygon from the map dataset that has no matching row in our
+        // own DB (the two are independent sources - odd little territories, disputed regions,
+        // etc.) - treat that exactly like a click that missed the globe entirely: a no-op,
+        // not a wasted attempt.
         CountryBL guessedCountry = cc.getCountryByName(countryName);
+        if (guessedCountry == null) return null;
+
+        this.attempts++;
         GuessResultGlobeBL result = new GuessResultGlobeBL(guessedCountry, targetCountry);
 
         if (result.isCorrect()) {

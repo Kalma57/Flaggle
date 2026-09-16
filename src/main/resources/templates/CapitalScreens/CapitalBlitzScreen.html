@@ -543,7 +543,7 @@
 <div class="overlay-backdrop" id="pauseOverlay">
     <div class="overlay-panel" id="pauseOverlayPanel">
         <h2>⏸ Match Paused</h2>
-        <div class="overlay-sub">The clock and the AI are frozen - pick up whenever you're ready.</div>
+        <div class="overlay-sub">The clock and the AI are frozen. Pick up whenever you're ready.</div>
         <div class="overlay-actions">
             <a class="overlay-btn secondary" href="/">🏠 HOME</a>
             <button class="overlay-btn primary" id="resumeBtn">▶ RESUME</button>
@@ -570,12 +570,12 @@
 <div id="rulesPanel" class="rules-panel">
     <span class="close-rules" onclick="closeRules()">&times;</span>
     <h2>Blitz Rules</h2>
-    <p>You and the AI race through the exact same shuffled sequence of questions, each at your own pace - answer as many as you can before time runs out.</p>
-    <p>Every question is a single click - right or wrong, picking an option immediately moves you to the next question. There's no going back.</p>
+    <p>You and the AI race through the exact same shuffled sequence of questions, each at your own pace. Answer as many as you can before time runs out.</p>
+    <p>Every question is a single click: right or wrong, picking an option immediately moves you to the next question. There's no going back.</p>
     <p>A correct answer is <strong>+1</strong>, a wrong answer is <strong>-1</strong> - your score can go negative.</p>
-    <p>The AI "thinks" for a random amount of time on each question (faster and sharper on HARD) before locking in its own answer, right or wrong - watch its live score in the side panel.</p>
+    <p>The AI "thinks" for a random amount of time on each question (faster and sharper on HARD) before locking in its own answer, right or wrong. Watch its live score in the side panel.</p>
     <p th:text="'Whoever has the higher net score when the clock hits 0 wins the ' + ${durationMinutes} + '-minute Blitz. A tie is a draw.'">Whoever has the higher net score when the clock hits 0 wins the Blitz. A tie is a draw.</p>
-    <p>Pausing freezes the clock and the AI - resume whenever you're ready, no limit on how many times.</p>
+    <p>Pausing freezes the clock and the AI. Resume whenever you're ready, no limit on how many times.</p>
 </div>
 
 <script th:inline="none">
@@ -663,7 +663,7 @@
 
     function flashFeedback(correct, correctText) {
         clearTimeout(feedbackHideTimer);
-        feedbackBanner.textContent = correct ? '✅ Correct! (+1)' : ('❌ Wrong (-1) - it was ' + correctText);
+        feedbackBanner.textContent = correct ? '✅ Correct! (+1)' : ('❌ Wrong (-1): it was ' + correctText);
         feedbackBanner.classList.add('shown');
         feedbackBanner.classList.toggle('correct', correct);
         feedbackBanner.classList.toggle('wrong', !correct);

@@ -188,7 +188,7 @@
 <div class="lobby-header">
     <h1><span>⏱️</span> <span th:text="${durationMinutes} + ' Minute' + (${durationMinutes} > 1 ? 's' : '') + ' Blitz'">1 Minute Blitz</span></h1>
     <p class="lobby-subtitle">
-        <span th:text="${modeLabel}">Flag → Capital</span> - <span th:text="${durationMinutes} + ' shared minute' + (${durationMinutes} > 1 ? 's' : '')">one shared minute</span> - most correct answers wins
+        <span th:text="${modeLabel}">Flag → Capital</span>, <span th:text="${durationMinutes} + ' shared minute' + (${durationMinutes} > 1 ? 's' : '')">one shared minute</span>: most correct answers wins
     </p>
 </div>
 
@@ -220,7 +220,7 @@
                 <label for="ai-hard">
                     <span class="option-icon">🔥</span>
                     <span class="option-title">HARD</span>
-                    <span class="option-desc">Fast and sharp - good luck!</span>
+                    <span class="option-desc">Fast and sharp, good luck!</span>
                 </label>
             </div>
         </div>

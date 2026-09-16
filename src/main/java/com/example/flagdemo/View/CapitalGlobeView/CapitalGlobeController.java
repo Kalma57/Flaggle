@@ -33,10 +33,16 @@ public class CapitalGlobeController {
         this.countryController = countryController;
     }
 
-    /** Choose the format: regular, First to N, or Blitz. */
+    /** Top-level hub: Regular, 1v1 vs Computer, or 1v1 vs Friend. */
     @GetMapping({"", "/format"})
     public String format() {
         return "CapitalScreens/CapitalGlobeFormatScreen";
+    }
+
+    /** The "1v1 vs Computer" bucket: First to N or Blitz, then pick an AI level. */
+    @GetMapping("/com/format")
+    public String comFormat() {
+        return "CapitalScreens/CapitalGlobeComFormatScreen";
     }
 
     @GetMapping("/start")
