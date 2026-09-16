@@ -1,4 +1,11 @@
 {
-  "generatedAt": null,
-  "days": {}
+  "generatedAt": "2026-09-16T12:05:55Z",
+  "days": {
+    "2026-09-16": {
+      "countryName": "Japan",
+      "eventTier": "HOLIDAY",
+      "eventTitle": "Test entry",
+      "infoText": "This is a test entry pushed manually to verify the agent-feed resolution path works end to end."
+    }
+  }
 }
