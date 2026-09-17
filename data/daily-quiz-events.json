@@ -1,53 +1,71 @@
 {
-  "generatedAt": "2026-09-16T13:08:22Z",
+  "generatedAt": "2026-09-17T12:48:02Z",
   "days": {
-    "2026-09-20": {
-      "countryName": "France",
+    "2026-09-17": {
+      "countryName": "Angola",
+      "eventTier": "FOUNDER_BIRTHDAY",
+      "eventTitle": "Birth of Agostinho Neto, Angola's founding president",
+      "infoText": "Agostinho Neto, the founding president of Angola, was born on September 17, 1922. He led the Popular Movement for the Liberation of Angola during the long struggle against Portuguese colonial rule and became the country's first president when it gained independence in 1975. Angola marks his birthday each year as National Heroes' Day, honoring him as the father of the modern nation."
+    },
+    "2026-09-18": {
+      "countryName": "Cuba",
       "eventTier": "ACHIEVEMENT",
-      "eventTitle": "First Cannes Film Festival opens",
-      "infoText": "The first Cannes Film Festival opened in France on September 20, 1946. It ran for about two weeks in the French Riviera town of Cannes and grew out of an effort to create a film showcase free from political interference. Today the festival is one of the most prestigious events in world cinema, drawing filmmakers and stars from every continent."
+      "eventTitle": "First Cuban travels to space",
+      "infoText": "On September 18, 1980, Arnaldo Tamayo Méndez launched into space aboard the Soviet Soyuz 38 spacecraft. He became the first Cuban, the first Latin American, and the first person of African descent to travel to space. His flight was part of the Soviet Union's Intercosmos program, which invited guest cosmonauts from allied nations to join its missions."
+    },
+    "2026-09-19": {
+      "countryName": "New Zealand",
+      "eventTier": "ACHIEVEMENT",
+      "eventTitle": "New Zealand becomes first country to give women the vote",
+      "infoText": "On September 19, 1893, New Zealand's governor signed the Electoral Act into law, making it the first self-governing country in the world where all women had the right to vote. The change followed years of campaigning by suffragists such as Kate Sheppard, who gathered a petition signed by tens of thousands of women. New Zealand women cast their first votes just two months later, in the national election of November 1893."
+    },
+    "2026-09-20": {
+      "countryName": "Italy",
+      "eventTier": "SPECIAL_DAY",
+      "eventTitle": "Capture of Rome completes Italian unification",
+      "infoText": "On September 20, 1870, Italian troops breached the walls of Rome at Porta Pia and took control of the city. This ended the centuries old temporal rule of the Papal States and completed the long process of unifying the Italian peninsula into a single kingdom. Rome went on to become the capital of Italy, and many Italian towns still have a street named Via XX Settembre in honor of the date."
     },
     "2026-09-21": {
-      "countryName": "Thailand",
-      "eventTier": "WEIRD_DAY",
-      "eventTitle": "National Fisheries Day",
-      "infoText": "Thailand marks National Fisheries Day every year on September 21. The day recognizes the government agencies set up nearly a century ago to manage and protect the country's rivers, coasts, and aquaculture. Fishing and seafood remain a major part of Thailand's economy and everyday cuisine, which is part of why the country keeps a special day just for it."
+      "countryName": "Malta",
+      "eventTier": "INDEPENDENCE_REGULAR",
+      "eventTitle": "Malta's Independence Day",
+      "infoText": "Malta became an independent country on September 21, 1964, after Britain's parliament passed the Malta Independence Act. A referendum had earlier approved the new Maltese constitution, paving the way for the small Mediterranean island nation to govern itself after centuries of foreign rule. Malta remained a constitutional monarchy for another decade before becoming a republic in 1974."
     },
     "2026-09-22": {
-      "countryName": "Ukraine",
-      "eventTier": "HOLIDAY",
-      "eventTitle": "Day of Partisan Glory",
-      "infoText": "Ukraine observes the Day of Partisan Glory on September 22 each year. It honors the roughly 220,000 Ukrainian partisan fighters who resisted Nazi German occupation during the Second World War. The holiday was established in 2001 and is marked with official ceremonies and tributes to that wartime resistance."
+      "countryName": "Bulgaria",
+      "eventTier": "INDEPENDENCE_REGULAR",
+      "eventTitle": "Bulgaria's Declaration of Independence",
+      "infoText": "On September 22, 1908, Prince Ferdinand of Bulgaria declared the country's full independence from the Ottoman Empire. The announcement was made in the old capital of Veliko Tarnovo, and it also raised Bulgaria's status from a principality to a kingdom. The date is still marked today as Bulgaria's official Independence Day."
     },
     "2026-09-23": {
-      "countryName": "Germany",
-      "eventTier": "ACHIEVEMENT",
-      "eventTitle": "Discovery of Neptune",
-      "infoText": "On September 23, 1846, German astronomer Johann Gottfried Galle observed the planet Neptune from the Berlin Observatory. French astronomer Urbain Le Verrier had calculated where an unseen planet should be, and Galle found it within hours of looking, in almost exactly the predicted spot. It was the first planet ever located through mathematical prediction rather than by scanning the sky, and it remains a landmark moment in the history of astronomy."
+      "countryName": "Saudi Arabia",
+      "eventTier": "HOLIDAY",
+      "eventTitle": "Saudi Arabia's National Day",
+      "infoText": "Saudi Arabia's National Day is celebrated every year on September 23, marking the day in 1932 when King Abdulaziz Al Saud issued a royal decree unifying the country's regions into a single kingdom. The proclamation created the modern Kingdom of Saudi Arabia after decades of effort to bring the Arabian Peninsula's territories under one rule. The day is celebrated nationwide with fireworks, concerts, and other festivities."
     },
     "2026-09-24": {
-      "countryName": "India",
-      "eventTier": "ACHIEVEMENT",
-      "eventTitle": "Mars Orbiter Mission reaches Mars",
-      "infoText": "On September 24, 2014, India's Mars Orbiter Mission, nicknamed Mangalyaan, successfully entered orbit around Mars. This made India the first country in the world to reach Mars orbit on its very first attempt, and the first Asian nation to reach the planet at all. The mission was also notable for costing far less than most other Mars missions before or since."
+      "countryName": "Guinea-Bissau",
+      "eventTier": "INDEPENDENCE_REGULAR",
+      "eventTitle": "Guinea-Bissau's Independence Day",
+      "infoText": "Guinea-Bissau declared its independence from Portugal on September 24, 1973, after a long armed struggle led by the African Party for the Independence of Guinea and Cape Verde. Portugal did not formally recognize the new country until several months later, in 1974, following a revolution in Lisbon. September 24 is now celebrated every year as Guinea-Bissau's national Independence Day."
     },
     "2026-09-25": {
-      "countryName": "United States",
-      "eventTier": "ACHIEVEMENT",
-      "eventTitle": "Oracle Team USA's America's Cup comeback",
-      "infoText": "On September 25, 2013, Oracle Team USA completed one of the greatest comebacks in sailing history. After trailing Emirates Team New Zealand 8 races to 1, the American team won eight straight races to take the series 9-8 and keep hold of the America's Cup off San Francisco Bay. It is still remembered as one of the most dramatic turnarounds in the history of the sport."
+      "countryName": "Nauru",
+      "eventTier": "FOUNDER_BIRTHDAY",
+      "eventTitle": "Birth of Nauru's first president, Hammer DeRoburt",
+      "infoText": "Hammer DeRoburt, who became Nauru's first president, was born on September 25, 1922. He led the small Pacific island nation to independence in 1968 and went on to serve as its head of state for most of its first two decades. Nauru marks his birthday each year as National Youth Day, with church services and ceremonies honoring his role in founding the country."
     },
     "2026-09-26": {
       "countryName": "Australia",
       "eventTier": "ACHIEVEMENT",
       "eventTitle": "Australia II wins the America's Cup",
-      "infoText": "On September 26, 1983, the Australian yacht Australia II defeated the American yacht Liberty to win the America's Cup. The win ended a 132-year winning streak by the New York Yacht Club, the longest winning streak in the history of sports at the time. Australia became the first country ever to take the trophy away from the United States since the race began in 1851."
+      "infoText": "On September 26, 1983, the Australian yacht Australia II defeated the American yacht Liberty to win sailing's America's Cup. The victory ended a 132 year winning streak by the United States, the longest winning streak in the history of organized sport at the time. Australia II's success was helped by an innovative winged keel design that had been kept secret during testing."
     },
     "2026-09-27": {
-      "countryName": "China",
+      "countryName": "St Lucia",
       "eventTier": "ACHIEVEMENT",
-      "eventTitle": "China's first spacewalk",
-      "infoText": "On September 27, 2008, Chinese astronaut Zhai Zhigang stepped outside the Shenzhou 7 spacecraft to carry out China's first-ever spacewalk. The excursion lasted around 20 minutes and made China only the third country, after the Soviet Union and the United States, to complete a spacewalk on its own. It was a major milestone for China's growing space program."
+      "eventTitle": "Julien Alfred wins St Lucia's first Olympic gold medal",
+      "infoText": "At the 2024 Paris Olympics, sprinter Julien Alfred won the women's 100 meters, giving St Lucia its first ever Olympic medal in any sport. She also won a silver medal in the 200 meters at the same Games. In her honor, St Lucia's parliament created a new public holiday called Julien Alfred Day, celebrated every year on September 27."
     }
   }
 }
