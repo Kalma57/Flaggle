@@ -1,5 +1,6 @@
 package com.example.flagdemo.ServiceLayer.FlaggleSL;
 
+import com.example.flagdemo.BusinessLayer.CountryBL;
 import com.example.flagdemo.BusinessLayer.FlaggleBL.DifficultyLevel;
 import com.example.flagdemo.BusinessLayer.FlaggleBL.GameEngineBL;
 import com.example.flagdemo.BusinessLayer.FlaggleBL.GuessResultBL;
@@ -61,5 +62,14 @@ public class GameService implements java.io.Serializable {
      */
     public GameEngineBL getEngine(){
         return this.geb;
+    }
+
+    /**
+     * Forces the round's target country instead of the random pick from
+     * StartNewGame - used by the Daily Quiz, which needs its Flaggle stage to
+     * target that day's chosen country rather than a random one.
+     */
+    public void setTargetCountry(CountryBL country) {
+        geb.setTargetCountry(country);
     }
 }

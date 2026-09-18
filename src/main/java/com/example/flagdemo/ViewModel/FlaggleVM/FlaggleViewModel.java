@@ -124,6 +124,15 @@ public class FlaggleViewModel {
     }
 
     /**
+     * Forces the round's target country instead of the random pick from
+     * StartNewGame - used by the Daily Quiz. Must be called after StartNewGame,
+     * which is what resets attempts/guesses/difficulty for the round.
+     */
+    public void setTargetCountry(CountryBL country) {
+        fm.setTargetCountry(country);
+    }
+
+    /**
      * Checks if the game has ended.
      *
      * @return true if the correct country was guessed, otherwise false
