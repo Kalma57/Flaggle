@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Daily Quiz</title>
+
+    <script type="importmap">
+        { "imports": {
+            "three": "/three/three.module.js?v=2",
+            "three/": "/three/",
+            "three-globe": "https://esm.sh/three-globe@2.41.11?external=three,three-conic-polygon-geometry&bundle",
+            "three-conic-polygon-geometry": "/js/conic-polygon-geometry-cache.js?v=1"
+        } }
+    </script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --orange: #e67e22;
+            --orange-dark: #cf6c15;
+            --shadow-sm: 0 4px 12px rgba(0,0,0,0.08);
+            --shadow-md: 0 10px 25px rgba(0,0,0,0.15);
+            --shadow-lg: 0 12px 28px rgba(0,0,0,0.18);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Nunito', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        h1, h2 { font-family: 'Baloo 2', 'Nunito', sans-serif; }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 0 100px;
+            background: linear-gradient(-45deg, #fff4e0, #f9f9f9, #ffe9cc, #fff8ee);
+            background-size: 400% 400%;
+            animation: gradientMove 12s ease infinite;
+        }
+        @keyframes gradientMove { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+
+        .timer-badge {
+            position: fixed; top: 24px; left: 24px;
+            background: white; border: 2px solid var(--orange); color: var(--orange-dark);
+            padding: 14px 28px; border-radius: 999px; font-weight: 800; font-size: 25px;
+            box-shadow: var(--shadow-sm); z-index: 5; transition: 0.3s;
+        }
+        .timer-badge.timer-success { border-color: #4CAF50; color: #2e7d32; }
+
+        .top-right-controls { position: fixed; top: 24px; right: 24px; display: flex; gap: 14px; z-index: 6; }
+        .control-btn {
+            background: white; border: 2px solid var(--orange); color: var(--orange-dark);
+            padding: 14px 26px; border-radius: 999px; font-weight: 800; font-size: 20px;
+            box-shadow: var(--shadow-sm); cursor: pointer; text-decoration: none; display: inline-block;
+        }
+        .control-btn:hover { background: #fff4e0; }
+
+        #pauseOverlay {
+            position: fixed; inset: 0; background: rgba(255,255,255,0.97); backdrop-filter: blur(6px);
+            display: flex; align-items: center; justify-content: center; z-index: 4; text-align: center;
+        }
+        #pauseOverlay[hidden] { display: none; }
+        .pause-overlay-icon { font-size: 70px; margin-bottom: 18px; }
+        .pause-overlay-title { font-size: 38px; font-weight: 800; color: var(--orange-dark); letter-spacing: 2px; margin-bottom: 32px; }
+
+        /* Covers the whole game - including the timer/pause/home controls -
+           until everything (the globe included) has finished loading, so
+           nothing starts, and the clock doesn't tick, before the player can
+           actually see and use the page. */
+        #appLoadingOverlay {
+            position: fixed; inset: 0; z-index: 100;
+            background: linear-gradient(-45deg, #fff4e0, #f9f9f9, #ffe9cc, #fff8ee);
+            background-size: 400% 400%; animation: gradientMove 12s ease infinite;
+            display: flex; align-items: center; justify-content: center;
+            transition: opacity 0.4s ease;
+        }
+        #appLoadingOverlay.hidden { opacity: 0; pointer-events: none; }
+        #appLoadingSpinnerWrap { display: flex; flex-direction: column; align-items: center; gap: 22px; }
+        #appLoadingSpinnerWrap[hidden] { display: none; }
+        .app-loading-spinner { width: 70px; height: 70px; border-radius: 50%; border: 7px solid #ffe3c2; border-top-color: var(--orange); animation: spin 0.9s linear infinite; }
+        .app-loading-text { font-size: 25px; font-weight: 800; color: var(--orange-dark); }
+
+        /* Shown after loading finishes, before the clock starts - so the
+           player has a clear, deliberate moment to get ready instead of the
+           timer silently ticking a few seconds ahead of them. */
+        #appCountdownWrap { display: flex; flex-direction: column; align-items: center; gap: 14px; }
+        #appCountdownWrap[hidden] { display: none; }
+        .app-countdown-label { font-size: 26px; font-weight: 800; color: var(--orange-dark); letter-spacing: 2px; text-align: center; }
+        .app-countdown-number { font-size: 130px; font-weight: 800; color: var(--orange); text-shadow: 0 8px 20px rgba(230,126,34,0.3); text-align: center; line-height: 1; }
+
+        h1 { font-size: 68px; color: var(--orange); text-shadow: 0 8px 20px rgba(230,126,34,0.3); margin-bottom: 8px; }
+
+        section.stage { width: 100%; max-width: 1080px; display: flex; flex-direction: column; align-items: center; margin-bottom: 70px; }
+        section.stage[hidden] { display: none; }
+        .reveal-card[hidden] { display: none; }
+
+        .stage-label { font-size: 22px; font-weight: 800; color: #ad6118; letter-spacing: 1px; margin-bottom: 28px; text-align: center; }
+
+        .guess-form { display: flex; flex-wrap: wrap; justify-content: center; gap: 18px; margin-bottom: 18px; padding: 0 20px; width: 100%; max-width: 700px; }
+
+        input[type="text"] {
+            padding: 18px; font-size: 28px; width: 100%; max-width: 40ch; text-align: center;
+            border-radius: 12px; border: 2px solid var(--orange); outline: none;
+            box-shadow: var(--shadow-sm); transition: 0.3s;
+        }
+        input[type="text"]:focus { box-shadow: 0 0 10px rgba(230,126,34,0.4); }
+        input[type="text"]:disabled { background: #f2f2f2; cursor: not-allowed; }
+
+        button { padding: 16px 34px; font-size: 24px; border-radius: 12px; cursor: pointer; border: none; transition: 0.3s; }
+        button:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        .guess-btn { background: linear-gradient(135deg, var(--orange), var(--orange-dark)); color: white; box-shadow: 0 8px 18px rgba(0,0,0,0.25); }
+        .guess-btn:hover:not(:disabled) { transform: translateY(-3px) scale(1.05); box-shadow: 0 12px 22px rgba(0,0,0,0.35); }
+
+        .giveup-btn { margin-top: 10px; background: white; color: var(--orange); border: 2px solid var(--orange); box-shadow: var(--shadow-sm); }
+        .giveup-btn:hover:not(:disabled) { background: #fff4e0; transform: translateY(-2px); box-shadow: var(--shadow-md); }
+
+        .guesses { display: flex; flex-direction: column-reverse; gap: 24px; width: 100%; margin-top: 40px; }
+        @keyframes fadeSlideIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+        .guess-row {
+            display: flex; justify-content: center; align-items: center; gap: 50px; padding: 26px;
+            background: rgba(255,255,255,0.8); backdrop-filter: blur(8px); border-radius: 20px;
+            box-shadow: var(--shadow-md); animation: fadeSlideIn 0.45s ease-out;
+        }
+        .flag { display: flex; flex-direction: column; align-items: center; }
+        .guess-label { margin-bottom: 10px; font-size: 19px; font-weight: bold; color: #ad6118; }
+        .flag img { width: 310px; height: 232px; border-radius: 14px; box-shadow: var(--shadow-lg); object-fit: cover; }
+
+        .neighbor-counter { font-size: 26px; font-weight: 800; color: var(--orange-dark); margin-bottom: 20px; }
+
+        /* Preloaded off-screen during stage 1 so the globe is already
+           initialized and spinning by the time it's revealed - taken out of
+           flow entirely so it never affects stage 1's layout or is visible. */
+        #stage2.stage2-preload { position: absolute; top: 0; left: -99999px; pointer-events: none; }
+
+        #globeContainer {
+            width: 950px; max-width: 94vw; height: 650px; border: 3px solid rgba(230,126,34,0.35);
+            border-radius: 26px; background: #fff; position: relative; overflow: hidden; box-shadow: var(--shadow-lg);
+            margin-bottom: 24px;
+        }
+        #globeCanvas { width: 100%; height: 100%; display: block; outline: none; }
+        #globeLoadingOverlay {
+            position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
+            gap: 14px; background: #fff; transition: opacity 0.3s ease;
+        }
+        #globeLoadingOverlay.hidden { opacity: 0; pointer-events: none; }
+        .globe-spinner { width: 48px; height: 48px; border-radius: 50%; border: 5px solid #ffe3c2; border-top-color: var(--orange); animation: spin 0.9s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .stage2-feedback { min-height: 30px; font-weight: 700; font-size: 19px; margin-top: 8px; }
+        .stage2-feedback.neighbor { color: #2e7d32; }
+        .stage2-feedback.not-neighbor { color: #c62828; }
+
+        .options-grid { width: 100%; max-width: 820px; display: grid; grid-template-columns: 1fr 1fr; gap: 24px; padding: 0 20px; }
+        @media (max-width: 560px) { .options-grid { grid-template-columns: 1fr; } }
+
+        .option-btn {
+            padding: 32px 26px; font-size: 28px; font-weight: 700; color: #2c2c2c;
+            background: rgba(255,255,255,0.9); border: 2px solid rgba(230,126,34,0.3); border-radius: 16px;
+            cursor: pointer; box-shadow: var(--shadow-sm); transition: 0.2s;
+        }
+        .option-btn:hover:not(:disabled) { transform: translateY(-3px); box-shadow: var(--shadow-md); border-color: var(--orange); }
+        .option-btn:disabled { cursor: not-allowed; opacity: 0.8; }
+        .option-btn.correct { background: #e8f5e9; border-color: #4CAF50; color: #2e7d32; }
+        .option-btn.wrong   { background: #fdeaea; border-color: #ef5350; color: #c62828; }
+
+        .reveal-card {
+            width: 100%; max-width: 560px; display: flex; flex-direction: column; align-items: center; gap: 10px;
+            margin: 34px 0 55px; padding: 32px 36px; background: rgba(255,255,255,0.85); backdrop-filter: blur(10px);
+            border-radius: 22px; box-shadow: var(--shadow-md); text-align: center;
+        }
+        .reveal-result { font-size: 26px; font-weight: 800; }
+        .reveal-result.success { color: #2e7d32; }
+        .reveal-result.fail { color: #c62828; }
+        .reveal-country-label { font-size: 16px; color: #888; text-transform: uppercase; letter-spacing: 1.5px; font-weight: 700; margin-top: 10px; }
+        .reveal-country-name { font-size: 42px; font-weight: 800; color: #ad6118; }
+        .reveal-flag { width: 175px; border-radius: 12px; box-shadow: var(--shadow-md); margin-top: 10px; border: 3px solid rgba(230,126,34,0.25); }
+        .stage2-complete-names { font-size: 26px; font-weight: 700; color: #ad6118; margin-top: 6px; }
+
+        .stage-label-small { font-size: 19px; font-weight: 800; color: #ad6118; letter-spacing: 2px; margin-bottom: 6px; }
+        .stage-instruction { font-size: 26px; font-weight: 700; color: #2c2c2c; margin-bottom: 18px; text-align: center; }
+
+        /* Stage 2's own guess history - every guess, closest first, same
+           flag+name+distance+dot layout as the regular Globe game. */
+        #stage2Guesses { display: flex; flex-direction: column; gap: 16px; width: 100%; max-width: 820px; margin-top: 28px; }
+        .stage2-guess-row {
+            display: flex; align-items: center; background: rgba(255,255,255,0.8); backdrop-filter: blur(8px);
+            padding: 18px 24px; border-radius: 18px; box-shadow: var(--shadow-md);
+        }
+        .stage2-guess-flag { width: 78px; height: 55px; object-fit: cover; border: 1px solid #ddd; border-radius: 8px; margin-right: 22px; box-shadow: var(--shadow-sm); }
+        .stage2-guess-info { display: flex; justify-content: space-between; width: 100%; font-size: 26px; align-items: center; }
+        .stage2-guess-name { font-weight: 700; }
+        .stage2-guess-name-neighbor { color: #2e7d32; }
+        .stage2-guess-right { display: flex; align-items: center; gap: 14px; }
+        .stage2-guess-distance { color: #ad6118; font-weight: bold; font-variant-numeric: tabular-nums; }
+        .stage2-guess-dot { width: 20px; height: 20px; border-radius: 50%; flex-shrink: 0; box-shadow: 0 0 0 3px rgba(0,0,0,0.05); }
+        .next-note {
+            margin-top: 18px; padding: 18px 24px; border-radius: 14px;
+            background: rgba(255,255,255,0.6); color: #555; font-size: 17px; max-width: 560px; text-align: center;
+        }
+
+        .stage4-title { font-size: 32px; font-weight: 800; color: #ad6118; letter-spacing: 1px; margin-bottom: 28px; text-align: center; }
+
+        .stage4-country-header { display: flex; align-items: center; gap: 26px; margin-bottom: 30px; }
+        .stage4-flag { width: 135px; height: 96px; object-fit: cover; border-radius: 12px; box-shadow: var(--shadow-md); border: 3px solid rgba(230,126,34,0.25); flex-shrink: 0; }
+        .stage4-country-name { font-size: 40px; font-weight: 800; color: #2c2c2c; }
+        .stage4-capital { font-size: 26px; color: #666; margin-top: 6px; }
+        .stage4-complete { font-size: 23px; font-weight: 800; color: #2e7d32; margin-top: 12px; }
+        .stage4-complete[hidden] { display: none; }
+
+        .stage4-years-ago {
+            display: inline-block; background: linear-gradient(135deg, #e67e22, #d35400); color: #fff;
+            font-size: 21px; font-weight: 800; letter-spacing: 0.5px; padding: 10px 24px; border-radius: 999px;
+            margin-bottom: 24px; box-shadow: var(--shadow-md);
+        }
+        .stage4-years-ago[hidden] { display: none; }
+
+        .stage4-card {
+            width: 100%; max-width: 820px; background: rgba(255,255,255,0.85); backdrop-filter: blur(10px);
+            border-radius: 22px; box-shadow: var(--shadow-md); padding: 40px 48px; margin: 0 20px;
+        }
+        .stage4-card h2 { color: var(--orange-dark); font-size: 32px; margin-bottom: 22px; text-align: center; }
+        .stage4-card p { font-size: 25px; line-height: 1.8; color: #333; }
+        .daily-quiz-done { margin-top: 28px; font-size: 27px; font-weight: 700; color: #888; text-align: center; }
+    </style>
+</head>
+
+<body th:attr="data-gameid=${gameId}">
+
+<div id="appLoadingOverlay">
+    <div id="appLoadingSpinnerWrap">
+        <div class="app-loading-spinner"></div>
+        <div class="app-loading-text">Loading Daily Quiz…</div>
+    </div>
+    <div id="appCountdownWrap" hidden>
+        <div class="app-countdown-label">DAILY QUIZ STARTS IN</div>
+        <div class="app-countdown-number" id="appCountdownNumber">3</div>
+    </div>
+</div>
+
+<div class="timer-badge" id="timerBadge">⏱ <span id="timerDisplay">0:00</span></div>
+
+<div class="top-right-controls">
+    <button class="control-btn" id="pauseBtn" type="button">⏸ PAUSE</button>
+    <a class="control-btn" href="/">🏠 HOME</a>
+</div>
+
+<div id="pauseOverlay" hidden>
+    <div>
+        <div class="pause-overlay-icon">⏸</div>
+        <div class="pause-overlay-title">PAUSED</div>
+        <button class="guess-btn" id="resumeBtn" type="button">RESUME</button>
+    </div>
+</div>
+
+<h1>Daily Quiz</h1>
+
+<!-- ===================== STAGE 1 ===================== -->
+<section class="stage" id="stage1">
+    <div class="stage-label">STAGE 1 OF 4 — GUESS THE COUNTRY</div>
+
+    <form id="stage1Form" class="guess-form" onsubmit="return false;">
+        <input type="text" id="stage1Input" placeholder="Enter country name" autofocus autocomplete="off" list="countries">
+        <button type="submit" id="stage1GuessBtn" class="guess-btn">GUESS</button>
+    </form>
+    <button id="stage1GiveUpBtn" class="giveup-btn">GIVE UP</button>
+
+    <div class="guesses" id="stage1Guesses"></div>
+</section>
+
+<datalist id="countries">
+    <option th:each="c : ${viewModel.allCountries}" th:value="${c.name}"/>
+</datalist>
+
+<!-- ===================== REVEAL (Flaggle result) ===================== -->
+<div class="reveal-card" id="revealCard" hidden>
+    <div class="reveal-result" id="revealResult"></div>
+    <div class="reveal-country-label">The country is</div>
+    <div class="reveal-country-name" id="revealCountryName"></div>
+    <img class="reveal-flag" id="revealFlag" alt="Country flag">
+</div>
+
+<!-- ===================== STAGE 2 ===================== -->
+<section class="stage stage2-preload" id="stage2">
+    <div class="stage-label-small">GLOBE</div>
+    <div class="stage-instruction" id="stage2Instruction"></div>
+    <div class="neighbor-counter"><span id="neighborFound">0</span> of <span id="neighborTotal">0</span> found</div>
+
+    <form id="stage2Form" class="guess-form" onsubmit="return false;">
+        <input type="text" id="stage2Input" placeholder="Name a neighbor" autocomplete="off" list="countries">
+        <button type="submit" id="stage2GuessBtn" class="guess-btn">GUESS</button>
+    </form>
+    <button id="stage2GiveUpBtn" class="giveup-btn">GIVE UP</button>
+    <div class="stage2-feedback" id="stage2Feedback"></div>
+
+    <div id="globeContainer">
+        <canvas id="globeCanvas"></canvas>
+        <div id="globeLoadingOverlay">
+            <div class="globe-spinner"></div>
+        </div>
+    </div>
+
+    <!-- Every guess so far, closest first - neighbors found stand out via the
+         same dark-red proximity dot as the globe itself, no separate list needed. -->
+    <div class="guesses" id="stage2Guesses"></div>
+
+    <!-- Mini end-screen, same visual pattern as stage 1's reveal card. -->
+    <div class="reveal-card" id="stage2CompleteCard" hidden>
+        <div class="reveal-result" id="stage2CompleteResult"></div>
+        <div class="reveal-country-label" id="stage2CompleteLabel"></div>
+        <div class="stage2-complete-names" id="stage2CompleteNames"></div>
+    </div>
+</section>
+
+<!-- ===================== STAGE 3 ===================== -->
+<section class="stage" id="stage3" hidden>
+    <div class="stage-label">STAGE 3 OF 4 — NAME ITS CAPITAL</div>
+    <div class="options-grid" id="stage3Options"></div>
+</section>
+
+<!-- ===================== STAGE 4 ===================== -->
+<section class="stage" id="stage4" hidden>
+    <div class="stage4-title" id="stage4Title">WHY THIS COUNTRY WAS CHOSEN</div>
+
+    <div class="stage4-country-header">
+        <img class="stage4-flag" id="stage4Flag" alt="Country flag">
+        <div>
+            <div class="stage4-country-name" id="stage4CountryName"></div>
+            <div class="stage4-capital" id="stage4Capital"></div>
+            <div class="stage4-complete" id="stage4Complete" hidden></div>
+        </div>
+    </div>
+
+    <div class="stage4-card">
+        <div class="stage4-years-ago" id="stage4YearsAgo" hidden></div>
+        <h2 id="stage4EventTitle"></h2>
+        <p id="stage4InfoText"></p>
+    </div>
+    <div class="daily-quiz-done">That's today's Daily Quiz — come back tomorrow for a new country.</div>
+</section>
+
+<!-- TopoJSON — must load before globe.js -->
+<script src="/js/topojson-client.min.js?v=2"></script>
+
+<script th:inline="javascript">
+    const GAME_ID = /*[[${gameId}]]*/ 'fallback-id';
+</script>
+
+<script>
+    // Stat-only stopwatch covering stages 1-3 - no effect on play. Doesn't
+    // start until the whole game (globe included) has finished loading -
+    // see the module script's startDailyQuiz(), called once initGlobe()
+    // resolves. Can be paused via the pause button and is stopped for good
+    // once stage 3 is answered (see revealStage4). Exposed on window since
+    // this script, the pause button and the module script don't share scope
+    // otherwise.
+    window.__dailyQuizTimerStopped = false;
+    window.__dailyQuizTick = function () {
+        const elapsed = Math.floor((Date.now() - window.__dailyQuizStartTime) / 1000);
+        const m = Math.floor(elapsed / 60);
+        const s = (elapsed % 60).toString().padStart(2, '0');
+        document.getElementById('timerDisplay').textContent = m + ':' + s;
+    };
+    window.__dailyQuizStartTimer = function () {
+        window.__dailyQuizStartTime = Date.now();
+        window.__dailyQuizTimerInterval = setInterval(window.__dailyQuizTick, 1000);
+    };
+</script>
+
+<script type="module">
+    import { initGlobe, colorCountry, focusOnCountry } from '/js/globe.js?v=2056';
+
+    let globeReady = false;
+    let globeInitStarted = false;
+
+    function ensureGlobeInit() {
+        if (globeInitStarted) return;
+        globeInitStarted = true;
+        initGlobe().finally(() => {
+            globeReady = true;
+            const overlay = document.getElementById('globeLoadingOverlay');
+            if (overlay) overlay.classList.add('hidden');
+            runStartCountdown();
+        });
+    }
+
+    // Once everything (the globe included) has actually finished loading,
+    // swap the spinner for a visible 3-2-1 countdown - a deliberate "get
+    // ready" moment - rather than starting the clock the instant loading
+    // ends, which used to leave the player a few seconds behind before they
+    // even noticed the page was ready.
+    function runStartCountdown() {
+        document.getElementById('appLoadingSpinnerWrap').hidden = true;
+        const wrap = document.getElementById('appCountdownWrap');
+        const numberEl = document.getElementById('appCountdownNumber');
+        wrap.hidden = false;
+
+        let count = 3;
+        numberEl.textContent = count;
+        const countdownInterval = setInterval(() => {
+            count--;
+            if (count > 0) {
+                numberEl.textContent = count;
+            } else {
+                clearInterval(countdownInterval);
+                startDailyQuiz();
+            }
+        }, 1000);
+    }
+
+    function startDailyQuiz() {
+        document.getElementById('appLoadingOverlay').classList.add('hidden');
+        window.__dailyQuizStartTimer();
+        document.getElementById('stage1Input').focus();
+    }
+
+    // Start loading the globe off-screen right away, during stage 1, so it's
+    // already spinning and ready by the time stage 2 is revealed (see
+    // .stage2-preload) instead of the player watching it load.
+    ensureGlobeInit();
+
+    let stage1Success = false;
+    let stage2Success = false;
+
+    // ----------------------------------------------------------- Pause
+
+    let isPaused = false;
+    let pausedAt = null;
+
+    function setPaused(paused) {
+        isPaused = paused;
+        document.getElementById('pauseOverlay').hidden = !paused;
+        document.getElementById('pauseBtn').textContent = paused ? '▶ RESUME' : '⏸ PAUSE';
+
+        if (paused) {
+            pausedAt = Date.now();
+            clearInterval(window.__dailyQuizTimerInterval);
+        } else {
+            if (pausedAt !== null) {
+                window.__dailyQuizStartTime += Date.now() - pausedAt;
+                pausedAt = null;
+            }
+            // Don't resurrect the clock once it's been stopped for real (stage 3 answered).
+            if (!window.__dailyQuizTimerStopped) {
+                window.__dailyQuizTimerInterval = setInterval(window.__dailyQuizTick, 1000);
+            }
+        }
+    }
+
+    document.getElementById('pauseBtn').addEventListener('click', () => setPaused(!isPaused));
+    document.getElementById('resumeBtn').addEventListener('click', () => setPaused(false));
+
+    function flagSrc(flagPath) {
+        if (!flagPath) return '';
+        let fileName = flagPath;
+        if (fileName.includes('/') || fileName.includes('\\')) fileName = fileName.split(/[/\\]/).pop();
+        return `/DB/FlagsImages/${fileName}`;
+    }
+
+    // ----------------------------------------------------------- Stage 1
+
+    function renderStage1Guess(guess) {
+        const container = document.getElementById('stage1Guesses');
+        const row = document.createElement('div');
+        row.className = 'guess-row';
+        row.innerHTML = `
+            <div class="flag">
+                <div class="guess-label">${guess.guessedName}</div>
+                <img src="data:image/png;base64,${guess.guessedFlagBase64}" alt="Guessed flag">
+            </div>
+            <div class="flag">
+                <div class="guess-label">result</div>
+                <img src="data:image/png;base64,${guess.resultFlagBase64}" alt="Result">
+            </div>
+        `;
+        // .guesses uses column-reverse (newest-first without re-sorting on
+        // every render), so the newest row must be APPENDED, not prepended -
+        // prepending on top of column-reverse double-flips the order and
+        // sends new guesses to the bottom instead of the top.
+        container.appendChild(row);
+    }
+
+    async function submitStage1Guess() {
+        const input = document.getElementById('stage1Input');
+        const name = input.value.trim();
+        if (!name) return;
+
+        const response = await fetch('/DailyQuiz/guess', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: 'countryName=' + encodeURIComponent(name) + '&gameId=' + encodeURIComponent(GAME_ID)
+        });
+        const data = await response.json();
+        renderStage1Guess(data);
+        input.value = '';
+
+        if (data.stage1Complete) {
+            finishStage1(data, true);
+        }
+    }
+
+    document.getElementById('stage1GuessBtn').addEventListener('click', submitStage1Guess);
+    document.getElementById('stage1Input').addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') { e.preventDefault(); submitStage1Guess(); }
+    });
+
+    document.getElementById('stage1GiveUpBtn').addEventListener('click', async function () {
+        const response = await fetch('/DailyQuiz/giveup', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: 'gameId=' + encodeURIComponent(GAME_ID)
+        });
+        const data = await response.json();
+        finishStage1(data, false);
+    });
+
+    // ----------------------------------------------------------- Stage 2
+
+    let stage2GuessesArray = [];
+    let stage2UsedFallback = false;
+
+    function renderStage2Guesses() {
+        const container = document.getElementById('stage2Guesses');
+        container.innerHTML = '';
+        const sorted = [...stage2GuessesArray].sort((a, b) => a.distance - b.distance);
+        sorted.forEach(guess => {
+            const row = document.createElement('div');
+            row.className = 'stage2-guess-row';
+            row.innerHTML = `
+                <img src="${flagSrc(guess.flagPath)}" class="stage2-guess-flag" alt="${guess.name} flag" onerror="this.style.display='none'">
+                <div class="stage2-guess-info">
+                    <span class="stage2-guess-name${guess.isNeighbor ? ' stage2-guess-name-neighbor' : ''}">${guess.name}</span>
+                    <div class="stage2-guess-right">
+                        <div class="stage2-guess-dot" style="background:${guess.colorHex || '#ccc'}"></div>
+                        <span class="stage2-guess-distance">${Math.round(guess.distance).toLocaleString()} km</span>
+                    </div>
+                </div>
+            `;
+            container.appendChild(row);
+        });
+    }
+
+    function finishStage1(data, success) {
+        stage1Success = success;
+
+        document.getElementById('stage1Input').disabled = true;
+        document.getElementById('stage1GuessBtn').disabled = true;
+        document.getElementById('stage1GiveUpBtn').disabled = true;
+
+        const target = data.targetCountry;
+
+        // Reveal card: success/fail banner, country name, flag.
+        const revealResult = document.getElementById('revealResult');
+        revealResult.textContent = success ? 'You got it!' : 'You gave up';
+        revealResult.className = 'reveal-result ' + (success ? 'success' : 'fail');
+        document.getElementById('revealCountryName').textContent = target.name;
+        document.getElementById('revealFlag').src = flagSrc(target.flagPath);
+        document.getElementById('revealCard').hidden = false;
+
+        stage2UsedFallback = data.usedNearestFallback;
+        document.getElementById('stage2Instruction').textContent = stage2UsedFallback
+            ? 'Find the 3 countries closest to ' + target.name
+            : 'Find the neighbors of ' + target.name;
+
+        document.getElementById('neighborTotal').textContent = data.neighborTotalCount;
+        document.getElementById('neighborFound').textContent = 0;
+        stage2GuessesArray = [];
+        renderStage2Guesses();
+
+        // Globe has been loading off-screen since stage 1 started - just
+        // bring it into view now, already initialized.
+        document.getElementById('stage2').classList.remove('stage2-preload');
+        document.getElementById('revealCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+        const revealTarget = () => {
+            colorCountry(target.name, '#25C267');
+            focusOnCountry(target.latitude, target.longitude);
+        };
+        if (globeReady) revealTarget(); else setTimeout(revealTarget, 1200);
+
+        document.getElementById('stage2Input').focus();
+    }
+
+    async function submitStage2Guess() {
+        const input = document.getElementById('stage2Input');
+        const name = input.value.trim();
+        if (!name) return;
+        input.value = '';
+
+        const response = await fetch('/DailyQuiz/stage2/guess', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: 'countryName=' + encodeURIComponent(name) + '&gameId=' + encodeURIComponent(GAME_ID)
+        });
+        const data = await response.json();
+
+        const feedback = document.getElementById('stage2Feedback');
+
+        // Every guess is colored by its real distance to the target, exactly
+        // like the regular Globe game - a near-miss still reads as close.
+        if (data.guessedCountry && data.guessedCountry.colorHex) {
+            colorCountry(data.guessedCountry.name, data.guessedCountry.colorHex);
+
+            const already = stage2GuessesArray.find(g => g.name === data.guessedCountry.name);
+            if (!already) {
+                stage2GuessesArray.push({ ...data.guessedCountry, isNeighbor: data.isNeighbor });
+                renderStage2Guesses();
+            }
+        }
+
+        if (data.isNeighbor && !data.alreadyFound) {
+            feedback.textContent = data.guessedCountry.name + ' is a neighbor!';
+            feedback.className = 'stage2-feedback neighbor';
+            document.getElementById('neighborFound').textContent = data.totalCount - data.remainingCount;
+        } else if (data.isNeighbor && data.alreadyFound) {
+            feedback.textContent = 'Already found ' + data.guessedCountry.name + '.';
+            feedback.className = 'stage2-feedback not-neighbor';
+        } else {
+            feedback.textContent = (data.guessedCountry ? data.guessedCountry.name : name) + ' is not a neighbor.';
+            feedback.className = 'stage2-feedback not-neighbor';
+        }
+
+        if (data.stageComplete) completeStage2(true, data);
+    }
+
+    document.getElementById('stage2GuessBtn').addEventListener('click', submitStage2Guess);
+    document.getElementById('stage2Input').addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') { e.preventDefault(); submitStage2Guess(); }
+    });
+
+    document.getElementById('stage2GiveUpBtn').addEventListener('click', async function () {
+        const response = await fetch('/DailyQuiz/stage2/giveup', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: 'gameId=' + encodeURIComponent(GAME_ID)
+        });
+        const data = await response.json();
+        data.revealed.forEach(c => {
+            colorCountry(c.name, '#8B0000');
+            if (!stage2GuessesArray.find(g => g.name === c.name)) {
+                stage2GuessesArray.push({ ...c, isNeighbor: true });
+            }
+        });
+        renderStage2Guesses();
+        completeStage2(false, data);
+    });
+
+    function completeStage2(success, data) {
+        stage2Success = success;
+
+        document.getElementById('stage2Input').disabled = true;
+        document.getElementById('stage2GuessBtn').disabled = true;
+        document.getElementById('stage2GiveUpBtn').disabled = true;
+
+        const resultEl = document.getElementById('stage2CompleteResult');
+        resultEl.textContent = success ? 'You found them all!' : "Time's up — here they are";
+        resultEl.className = 'reveal-result ' + (success ? 'success' : 'fail');
+
+        document.getElementById('stage2CompleteLabel').textContent = stage2UsedFallback ? 'Closest countries' : 'Neighbors';
+        document.getElementById('stage2CompleteNames').textContent =
+            stage2GuessesArray.filter(g => g.isNeighbor).map(g => g.name).join(', ');
+
+        document.getElementById('stage2CompleteCard').hidden = false;
+
+        revealStage3(data);
+    }
+
+    // ----------------------------------------------------------- Stage 3
+
+    function revealStage3(data) {
+        const stage3 = document.getElementById('stage3');
+        const optionsGrid = document.getElementById('stage3Options');
+        optionsGrid.innerHTML = '';
+
+        data.stage3OptionTexts.forEach((text, i) => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.textContent = text;
+            btn.addEventListener('click', () => pickStage3Option(i, data));
+            optionsGrid.appendChild(btn);
+        });
+
+        stage3.hidden = false;
+        setTimeout(() => stage3.scrollIntoView({ behavior: 'smooth', block: 'start' }), 400);
+    }
+
+    function pickStage3Option(pickedIndex, data) {
+        const buttons = document.querySelectorAll('#stage3Options .option-btn');
+        buttons.forEach((btn, i) => {
+            btn.disabled = true;
+            if (i === data.stage3CorrectIndex) btn.classList.add('correct');
+            else if (i === pickedIndex) btn.classList.add('wrong');
+        });
+
+        // Stage 3 is done the instant an answer is picked - stop the clock here.
+        window.__dailyQuizTimerStopped = true;
+        clearInterval(window.__dailyQuizTimerInterval);
+
+        const stage3Success = pickedIndex === data.stage3CorrectIndex;
+        data.dailyQuizAllSuccess = stage1Success && stage2Success && stage3Success;
+        data.dailyQuizFinalTime = document.getElementById('timerDisplay').textContent;
+        if (data.dailyQuizAllSuccess) {
+            document.getElementById('timerBadge').classList.add('timer-success');
+        }
+
+        setTimeout(() => revealStage4(data), 900);
+    }
+
+    // ----------------------------------------------------------- Stage 4
+
+    function revealStage4(data) {
+        const countryName = data.stage4CountryName || '';
+        document.getElementById('stage4Title').textContent = 'WHY ' + countryName.toUpperCase() + ' WAS CHOSEN';
+        document.getElementById('stage4Flag').src = flagSrc(data.stage4CountryFlagPath);
+        document.getElementById('stage4CountryName').textContent = countryName;
+        document.getElementById('stage4Capital').textContent = data.stage4Capital || '';
+
+        const completeEl = document.getElementById('stage4Complete');
+        if (data.dailyQuizAllSuccess) {
+            completeEl.textContent = '✓ Daily Challenge Complete — ' + data.dailyQuizFinalTime;
+            completeEl.hidden = false;
+        } else {
+            completeEl.hidden = true;
+        }
+
+        document.getElementById('stage4EventTitle').textContent = data.stage4EventTitle || "Today's Pick";
+        document.getElementById('stage4InfoText').textContent = data.stage4InfoText || '';
+
+        const yearsAgoEl = document.getElementById('stage4YearsAgo');
+        if (data.stage4YearsAgo !== undefined && data.stage4YearsAgo !== null) {
+            const n = data.stage4YearsAgo;
+            yearsAgoEl.textContent = n + (n === 1 ? ' YEAR AGO TODAY' : ' YEARS AGO TODAY');
+            yearsAgoEl.hidden = false;
+        } else {
+            yearsAgoEl.hidden = true;
+        }
+
+        const stage4 = document.getElementById('stage4');
+        stage4.hidden = false;
+        stage4.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+</script>
+
+</body>
+</html>

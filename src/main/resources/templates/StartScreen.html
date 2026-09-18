@@ -375,6 +375,51 @@
 
         }
 
+        /* Daily Quiz entry point — fixed top-right, deliberately separate from
+           the games grid since it's a once-a-day pick, not another game mode */
+        .daily-quiz-badge{
+
+            position:fixed;
+            top:28px;
+            right:28px;
+            z-index:10;
+
+            display:flex;
+            align-items:center;
+            gap:8px;
+
+            padding:12px 22px;
+
+            text-decoration:none;
+
+            font-size:16px;
+            font-weight:800;
+            letter-spacing:1px;
+
+            color:white;
+
+            border-radius:999px;
+
+            background:linear-gradient(135deg, #e67e22, #cf6c15);
+
+            box-shadow:0 8px 20px rgba(230,126,34,0.35);
+
+            animation:dailyBadgeGlow 3s ease-in-out infinite;
+
+            transition:transform 0.3s, box-shadow 0.3s;
+
+        }
+
+        @keyframes dailyBadgeGlow{
+            0%, 100% { box-shadow:0 8px 20px rgba(230,126,34,0.35); }
+            50%      { box-shadow:0 8px 28px rgba(230,126,34,0.6); }
+        }
+
+        .daily-quiz-badge:hover{
+            transform:translateY(-2px);
+            box-shadow:0 12px 26px rgba(230,126,34,0.5);
+        }
+
     </style>
 </head>
 
@@ -383,6 +428,13 @@
 <!-- Decorative background glow elements -->
 <div class="glow-circle glow2"></div>
 <div class="glow-circle glow3"></div>
+
+<!-- Daily Quiz entry point — the once-a-day pick lives outside the regular
+     games grid, so it stays visible and reachable from every visit -->
+<a class="daily-quiz-badge" href="/DailyQuiz/start">
+    <span>📅</span>
+    <span>DAILY QUIZ</span>
+</a>
 
 <!-- Hub header -->
 <div class="hub-header">

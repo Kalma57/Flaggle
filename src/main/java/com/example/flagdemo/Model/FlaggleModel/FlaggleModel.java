@@ -150,4 +150,14 @@ public class FlaggleModel implements java.io.Serializable {
     public CountryBL getTargetCountry() {
         return targetCountry;
     }
+
+    /**
+     * Forces the round's target country instead of the random pick from
+     * StartNewGame - used by the Daily Quiz. Must be called after StartNewGame,
+     * which is what resets attempts/guesses/difficulty for the round.
+     */
+    public void setTargetCountry(CountryBL country) {
+        gs.setTargetCountry(country);
+        this.targetCountry = country;
+    }
 }
