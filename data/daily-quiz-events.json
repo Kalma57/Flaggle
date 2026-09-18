@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-17T12:48:02Z",
+  "generatedAt": "2026-09-18T00:00:00Z",
   "days": {
     "2026-09-17": {
       "countryName": "Angola",
@@ -17,54 +17,63 @@
     "2026-09-19": {
       "countryName": "New Zealand",
       "eventTier": "ACHIEVEMENT",
+      "eventYear": 1893,
       "eventTitle": "New Zealand becomes first country to give women the vote",
       "infoText": "On September 19, 1893, New Zealand's governor signed the Electoral Act into law, making it the first self-governing country in the world where all women had the right to vote. The change followed years of campaigning by suffragists such as Kate Sheppard, who gathered a petition signed by tens of thousands of women. New Zealand women cast their first votes just two months later, in the national election of November 1893."
     },
     "2026-09-20": {
       "countryName": "Italy",
       "eventTier": "SPECIAL_DAY",
+      "eventYear": 1870,
       "eventTitle": "Capture of Rome completes Italian unification",
       "infoText": "On September 20, 1870, Italian troops breached the walls of Rome at Porta Pia and took control of the city. This ended the centuries old temporal rule of the Papal States and completed the long process of unifying the Italian peninsula into a single kingdom. Rome went on to become the capital of Italy, and many Italian towns still have a street named Via XX Settembre in honor of the date."
     },
     "2026-09-21": {
       "countryName": "Malta",
       "eventTier": "INDEPENDENCE_REGULAR",
+      "eventYear": 1964,
       "eventTitle": "Malta's Independence Day",
       "infoText": "Malta became an independent country on September 21, 1964, after Britain's parliament passed the Malta Independence Act. A referendum had earlier approved the new Maltese constitution, paving the way for the small Mediterranean island nation to govern itself after centuries of foreign rule. Malta remained a constitutional monarchy for another decade before becoming a republic in 1974."
     },
     "2026-09-22": {
       "countryName": "Bulgaria",
       "eventTier": "INDEPENDENCE_REGULAR",
+      "eventYear": 1908,
       "eventTitle": "Bulgaria's Declaration of Independence",
       "infoText": "On September 22, 1908, Prince Ferdinand of Bulgaria declared the country's full independence from the Ottoman Empire. The announcement was made in the old capital of Veliko Tarnovo, and it also raised Bulgaria's status from a principality to a kingdom. The date is still marked today as Bulgaria's official Independence Day."
     },
     "2026-09-23": {
       "countryName": "Saudi Arabia",
       "eventTier": "HOLIDAY",
+      "eventYear": 1932,
       "eventTitle": "Saudi Arabia's National Day",
       "infoText": "Saudi Arabia's National Day is celebrated every year on September 23, marking the day in 1932 when King Abdulaziz Al Saud issued a royal decree unifying the country's regions into a single kingdom. The proclamation created the modern Kingdom of Saudi Arabia after decades of effort to bring the Arabian Peninsula's territories under one rule. The day is celebrated nationwide with fireworks, concerts, and other festivities."
     },
     "2026-09-24": {
       "countryName": "Guinea-Bissau",
       "eventTier": "INDEPENDENCE_REGULAR",
+      "eventYear": 1973,
       "eventTitle": "Guinea-Bissau's Independence Day",
       "infoText": "Guinea-Bissau declared its independence from Portugal on September 24, 1973, after a long armed struggle led by the African Party for the Independence of Guinea and Cape Verde. Portugal did not formally recognize the new country until several months later, in 1974, following a revolution in Lisbon. September 24 is now celebrated every year as Guinea-Bissau's national Independence Day."
     },
     "2026-09-25": {
       "countryName": "Nauru",
       "eventTier": "FOUNDER_BIRTHDAY",
+      "eventYear": 1922,
       "eventTitle": "Birth of Nauru's first president, Hammer DeRoburt",
       "infoText": "Hammer DeRoburt, who became Nauru's first president, was born on September 25, 1922. He led the small Pacific island nation to independence in 1968 and went on to serve as its head of state for most of its first two decades. Nauru marks his birthday each year as National Youth Day, with church services and ceremonies honoring his role in founding the country."
     },
     "2026-09-26": {
       "countryName": "Australia",
       "eventTier": "ACHIEVEMENT",
+      "eventYear": 1983,
       "eventTitle": "Australia II wins the America's Cup",
       "infoText": "On September 26, 1983, the Australian yacht Australia II defeated the American yacht Liberty to win sailing's America's Cup. The victory ended a 132 year winning streak by the United States, the longest winning streak in the history of organized sport at the time. Australia II's success was helped by an innovative winged keel design that had been kept secret during testing."
     },
     "2026-09-27": {
       "countryName": "St Lucia",
       "eventTier": "ACHIEVEMENT",
+      "eventYear": 2024,
       "eventTitle": "Julien Alfred wins St Lucia's first Olympic gold medal",
       "infoText": "At the 2024 Paris Olympics, sprinter Julien Alfred won the women's 100 meters, giving St Lucia its first ever Olympic medal in any sport. She also won a silver medal in the 200 meters at the same Games. In her honor, St Lucia's parliament created a new public holiday called Julien Alfred Day, celebrated every year on September 27."
     }
