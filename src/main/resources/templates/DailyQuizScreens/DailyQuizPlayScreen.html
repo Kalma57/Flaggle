@@ -346,6 +346,11 @@
 
 <script th:inline="javascript">
     const GAME_ID = /*[[${gameId}]]*/ 'fallback-id';
+    // True when this session already had an attempt in progress for today's
+    // gameId - see DailyQuizController#start(). Tells startDailyQuiz() to
+    // fetch /DailyQuiz/resume and replay that state instead of beginning
+    // fresh at stage 1.
+    const RESUMING = /*[[${resuming}]]*/ false;
 </script>
 
 <script>
@@ -414,6 +419,7 @@
         document.getElementById('appLoadingOverlay').classList.add('hidden');
         window.__dailyQuizStartTimer();
         document.getElementById('stage1Input').focus();
+        if (RESUMING) replayResume();
     }
 
     // Start loading the globe off-screen right away, during stage 1, so it's
@@ -705,6 +711,17 @@
             document.getElementById('timerBadge').classList.add('timer-success');
         }
 
+        // Stage 3 is graded client-side (see the controller's class doc), so
+        // this is the only signal the server ever gets that today's attempt is
+        // actually finished - without it, a revisit after this point would
+        // keep treating the attempt as still "in progress" and resume back
+        // into an already-answered stage 3.
+        fetch('/DailyQuiz/complete', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: 'gameId=' + encodeURIComponent(GAME_ID)
+        });
+
         setTimeout(() => revealStage4(data), 900);
     }
 
@@ -740,6 +757,40 @@
         const stage4 = document.getElementById('stage4');
         stage4.hidden = false;
         stage4.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    // ----------------------------------------------------------- Resume
+
+    /**
+     * Reconstructs the page for a session that already has an attempt in
+     * progress for today (see RESUMING/start()), by replaying the fetched
+     * state through the exact same rendering functions a live play-through
+     * uses - finishStage1/completeStage2 read the same field names here as
+     * they do from a real guess response, so there is nothing stage-specific
+     * to duplicate. Stage 1's guess history replays exactly; stage 2 can only
+     * show which neighbors are found so far, not the original click order
+     * (the engine only tracks a Set - see the /resume endpoint's own note).
+     */
+    async function replayResume() {
+        const response = await fetch('/DailyQuiz/resume?gameId=' + encodeURIComponent(GAME_ID));
+        const data = await response.json();
+
+        (data.stage1Guesses || []).forEach(renderStage1Guess);
+
+        if (data.resumeStage < 2) return;
+
+        finishStage1(data, data.stage1Success);
+
+        stage2GuessesArray = (data.stage2Found || []).map(c => ({ ...c, isNeighbor: true }));
+        stage2UsedFallback = data.usedNearestFallback;
+        renderStage2Guesses();
+        document.getElementById('neighborFound').textContent = stage2GuessesArray.length;
+        stage2GuessesArray.forEach(c => colorCountry(c.name, c.colorHex));
+
+        if (data.resumeStage < 3) return;
+
+        const stage2WasSuccess = stage2GuessesArray.length >= data.neighborTotalCount;
+        completeStage2(stage2WasSuccess, data);
     }
 </script>
 

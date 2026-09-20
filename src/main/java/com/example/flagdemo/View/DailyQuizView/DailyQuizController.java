@@ -27,7 +27,6 @@ import java.time.LocalDate;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 /**
  * View layer for the Daily Quiz. The whole play-through lives on one page
@@ -42,7 +41,16 @@ import java.util.UUID;
  * DailyQuizSelectorBL/DailyQuizSelection). Like Capital's own Regular mode,
  * stage 3's correct index - and stage 4's whole content - ships up front
  * alongside the stage 3 question, and grading/reveal happens client-side -
- * there's nothing at stake worth a second server round trip for.
+ * there's nothing at stake worth a second server round trip for (stage 3's
+ * pick itself is the one exception - see /complete).
+ *
+ * gameId is deterministic ("daily-" + the selection's date), not a random
+ * UUID, specifically so the session attributes below are addressable again
+ * on a later visit the same day - that is the entire resume mechanism: no
+ * database involved, just reusing whatever the session already has in
+ * memory. It naturally stops working the same way the once-per-day cookie's
+ * enforcement does - a different browser, an expired session, or the server
+ * restarting all lose it - see DailyQuizPlayedGuardBL's own note.
  */
 @Controller
 @RequestMapping("/DailyQuiz")
@@ -55,37 +63,144 @@ public class DailyQuizController {
     }
 
     /**
-     * Entry point. Blocked by the once-per-day cookie unless dev mode is on
-     * (see {@link DailyQuizDevConfig}), in which case an optional
-     * devCountryId also forces which country is today's target, or devDate
-     * pretends "today" is that date so the real agent-feed fetch/resolve
-     * path can be tested against a date the agent has already published for.
+     * Entry point. Three outcomes:
+     *  - brand new attempt today: creates fresh state, marks the cookie, renders stage 1.
+     *  - an attempt is already in progress in THIS session (resumeStage's session
+     *    key holds view/engine objects, no /complete call yet): renders the exact
+     *    same page, but with resuming=true so the client fetches /resume and jumps
+     *    back to wherever it left off instead of starting stage 1 over.
+     *  - already fully completed, or the cookie says played but this session has
+     *    no memory of it (expired session / different browser): the recap screen.
      */
     @GetMapping("/start")
     public String start(@RequestParam(required = false) Integer devCountryId,
                          @RequestParam(required = false) String devDate,
                          Model model,
                          HttpServletRequest request,
+                         HttpServletResponse response,
                          HttpSession session) throws SQLException {
-
-        if (DailyQuizPlayedGuardBL.hasPlayedToday(request)) {
-            return "DailyQuizScreens/DailyQuizAlreadyPlayedScreen";
-        }
 
         LocalDate parsedDevDate = devDate != null ? LocalDate.parse(devDate) : null;
         DailyQuizSelection selection = DailyQuizSelectorBL.getTodaysSelection(countryController, devCountryId, parsedDevDate);
+        String gameId = "daily-" + selection.getDate();
 
-        FlaggleViewModel viewModel = new FlaggleViewModel(countryController);
-        viewModel.StartNewGame(DifficultyLevel.HARD);
-        viewModel.setTargetCountry(selection.getCountry());
+        if (Boolean.TRUE.equals(session.getAttribute("dailyQuizCompleted_" + gameId))) {
+            addAlreadyPlayedModel(model, devCountryId, parsedDevDate);
+            return "DailyQuizScreens/DailyQuizAlreadyPlayedScreen";
+        }
 
-        String gameId = UUID.randomUUID().toString();
-        session.setAttribute("dailyQuizFlaggleVM_" + gameId, viewModel);
-        session.setAttribute("dailyQuizSelection_" + gameId, selection);
+        FlaggleViewModel viewModel = (FlaggleViewModel) session.getAttribute("dailyQuizFlaggleVM_" + gameId);
+        boolean resuming = viewModel != null;
+
+        if (!resuming) {
+            if (DailyQuizPlayedGuardBL.hasPlayedToday(request)) {
+                addAlreadyPlayedModel(model, devCountryId, parsedDevDate);
+                return "DailyQuizScreens/DailyQuizAlreadyPlayedScreen";
+            }
+
+            viewModel = new FlaggleViewModel(countryController);
+            viewModel.StartNewGame(DifficultyLevel.HARD);
+            viewModel.setTargetCountry(selection.getCountry());
+            session.setAttribute("dailyQuizFlaggleVM_" + gameId, viewModel);
+            session.setAttribute("dailyQuizSelection_" + gameId, selection);
+
+            // Marked the instant today's attempt begins, not once some later stage
+            // completes - so leaving mid-quiz and coming back resumes in place
+            // (or, once the session itself is gone, lands on the recap screen)
+            // rather than silently starting a second attempt over.
+            DailyQuizPlayedGuardBL.markPlayedToday(response);
+        }
 
         model.addAttribute("gameId", gameId);
         model.addAttribute("viewModel", viewModel);
+        model.addAttribute("resuming", resuming);
         return "DailyQuizScreens/DailyQuizPlayScreen";
+    }
+
+    /**
+     * Everything the client needs to jump straight back to wherever this
+     * session's attempt left off, fetched on load when start() said resuming=true.
+     * Stage 1's guess history replays exactly (FlaggleViewModel already keeps it
+     * in order); stage 2 can only report which neighbors are found so far, not
+     * the original click-by-click order, since the engine only tracks a Set -
+     * good enough to resume progress correctly, just not a frame-perfect replay.
+     * Stage 3, if reached, is shown unanswered again - it was never graded
+     * server-side in the first place (see the class doc), so there is nothing
+     * to restore there beyond the question itself.
+     */
+    @GetMapping("/resume")
+    @ResponseBody
+    public Map<String, Object> resume(@RequestParam("gameId") String gameId, HttpSession session) {
+        FlaggleViewModel viewModel = (FlaggleViewModel) session.getAttribute("dailyQuizFlaggleVM_" + gameId);
+        Map<String, Object> result = new LinkedHashMap<>();
+        if (viewModel == null) {
+            result.put("resumeStage", 0);
+            return result;
+        }
+
+        CountryBL target = viewModel.getTargetCountry();
+        result.put("targetCountry", countryPayload(target));
+        result.put("stage1Guesses", viewModel.getGuesses().stream().map(g -> {
+            Map<String, Object> guessPayload = new LinkedHashMap<>();
+            guessPayload.put("guessedName", g.getGuessedCountry().getName());
+            guessPayload.put("guessedFlagBase64", g.getGuessedFlagBase64());
+            guessPayload.put("resultFlagBase64", g.getFlagDifferencesBase64());
+            return guessPayload;
+        }).toList());
+
+        DailyQuizStage2EngineBL stage2 = (DailyQuizStage2EngineBL) session.getAttribute("dailyQuizStage2Engine_" + gameId);
+        if (stage2 == null) {
+            result.put("resumeStage", 1);
+            return result;
+        }
+
+        result.put("stage1Success", viewModel.isCorrect());
+        result.put("neighborTotalCount", stage2.getNeighborsToFind().size());
+        result.put("usedNearestFallback", stage2.isUsedNearestFallback());
+        result.put("stage2Found", stage2.getFound().stream().map(c -> {
+            Map<String, Object> foundPayload = countryPayload(c);
+            GuessResultGlobeBL proximity = new GuessResultGlobeBL(c, target);
+            foundPayload.put("colorHex", proximity.getColorHex());
+            foundPayload.put("distance", proximity.getDistance());
+            return foundPayload;
+        }).toList());
+
+        if (!stage2.isComplete()) {
+            result.put("resumeStage", 2);
+            return result;
+        }
+
+        result.put("resumeStage", 3);
+        result.putAll(beginStage3(target, gameId, session));
+        return result;
+    }
+
+    /**
+     * Marks today's attempt as fully finished - called once stage 3 is
+     * answered (right or wrong, grading is client-side either way, see the
+     * class doc). Without this, the server has no way to tell "finished" apart
+     * from "still somewhere in stage 3", since nothing about stage 3 or 4 was
+     * ever reported back before this endpoint existed.
+     */
+    @PostMapping("/complete")
+    @ResponseBody
+    public Map<String, Object> complete(@RequestParam("gameId") String gameId, HttpSession session) {
+        session.setAttribute("dailyQuizCompleted_" + gameId, true);
+        return Map.of("ok", true);
+    }
+
+    /** Populates the recap screen shown on any revisit once today's attempt has begun. */
+    private void addAlreadyPlayedModel(Model model, Integer devCountryId, LocalDate devDate) throws SQLException {
+        DailyQuizSelection selection = DailyQuizSelectorBL.getTodaysSelection(countryController, devCountryId, devDate);
+        CountryBL country = selection.getCountry();
+        model.addAttribute("countryName", country.getName());
+        model.addAttribute("countryFlagPath", country.getFlagPath());
+        model.addAttribute("countryCapital", country.getCapital());
+        model.addAttribute("eventTitle", selection.getEventTitle());
+        model.addAttribute("infoText", selection.getInfoText());
+        if (selection.getEventYear() != null) {
+            model.addAttribute("yearsAgo", selection.getDate().getYear() - selection.getEventYear());
+        }
     }
 
     // ------------------------------------------------------------- Stage 1
@@ -156,8 +271,7 @@ public class DailyQuizController {
     @ResponseBody
     public Map<String, Object> stage2Guess(@RequestParam("countryName") String countryName,
                                             @RequestParam("gameId") String gameId,
-                                            HttpSession session,
-                                            HttpServletResponse response) {
+                                            HttpSession session) {
 
         DailyQuizStage2EngineBL stage2 = (DailyQuizStage2EngineBL) session.getAttribute("dailyQuizStage2Engine_" + gameId);
         DailyQuizNeighborGuessResult guessResult = stage2.guess(countryName, countryController);
@@ -181,7 +295,6 @@ public class DailyQuizController {
         }
 
         if (guessResult.isStageComplete()) {
-            DailyQuizPlayedGuardBL.markPlayedToday(response);
             result.putAll(beginStage3(stage2.getTargetCountry(), gameId, session));
         }
         return result;
@@ -190,8 +303,7 @@ public class DailyQuizController {
     @PostMapping("/stage2/giveup")
     @ResponseBody
     public Map<String, Object> stage2GiveUp(@RequestParam("gameId") String gameId,
-                                             HttpSession session,
-                                             HttpServletResponse response) {
+                                             HttpSession session) {
 
         DailyQuizStage2EngineBL stage2 = (DailyQuizStage2EngineBL) session.getAttribute("dailyQuizStage2Engine_" + gameId);
         List<CountryBL> revealed = stage2.giveUp();
@@ -210,7 +322,6 @@ public class DailyQuizController {
         result.put("revealed", revealedPayload);
         result.put("stageComplete", true);
 
-        DailyQuizPlayedGuardBL.markPlayedToday(response);
         result.putAll(beginStage3(stage2.getTargetCountry(), gameId, session));
         return result;
     }
