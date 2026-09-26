@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-19T00:12:15Z",
+  "generatedAt": "2026-09-26T00:10:59Z",
   "days": {
     "2026-09-17": {
       "countryName": "Angola",
@@ -64,17 +64,66 @@
       "infoText": "Mozambique observes Armed Forces Day every September 25, marking the start of its armed struggle for independence from Portugal in 1964. On that date, fighters from the Mozambique Liberation Front, known as Frelimo, launched their first attack on a Portuguese administrative post in the northern Cabo Delgado region. The guerrilla war that followed lasted a decade and eventually led to Mozambique's independence in 1975."
     },
     "2026-09-26": {
-      "countryName": "Jordan",
-      "eventTier": "FALLBACK_ROTATION",
-      "eventTitle": "Spotlight on Jordan",
-      "infoText": "Jordan is a kingdom in the Middle East, with its capital and largest city, Amman, sitting on hills overlooking the Jordan River valley. The country is home to Petra, an ancient city carved into rose colored cliffs by the Nabataeans more than two thousand years ago. Jordan has been ruled as a monarchy by the Hashemite royal family since it gained independence from Britain in 1946."
+      "countryName": "South Korea",
+      "eventTier": "HOLIDAY",
+      "eventTitle": "Chuseok, Korea's harvest holiday",
+      "infoText": "Chuseok, Korea's major harvest and ancestor remembrance holiday, is officially observed from September 24 to 26 in 2026, with September 25 as the main lunar day. September 26 is the closing day of the three day public holiday, during which families gather, visit ancestral graves, and share traditional foods like songpyeon rice cakes. It is one of the most important holidays on the South Korean calendar, alongside the Lunar New Year."
     },
     "2026-09-27": {
-      "countryName": "Turkmenistan",
+      "countryName": "Belgium",
+      "eventTier": "HOLIDAY",
+      "eventYear": 1830,
+      "eventTitle": "Day of the French Community of Belgium",
+      "infoText": "September 27 is an official regional public holiday in the French speaking Community of Belgium, covering Wallonia and Brussels. It marks the moment during the 1830 Belgian Revolution when Dutch troops finally withdrew from Brussels overnight between September 26 and 27, after days of street fighting that helped secure Belgian independence. Belgium's French speaking community government chose this date in 1975 to mark its own regional identity."
+    },
+    "2026-09-28": {
+      "countryName": "Mexico",
+      "eventTier": "SPECIAL_DAY",
+      "eventYear": 1821,
+      "eventTitle": "Act of Independence of the Mexican Empire",
+      "infoText": "On September 28, 1821, Mexico's Sovereign Provisional Governing Junta formally signed the Act of Independence of the Mexican Empire, one day after the Army of the Three Guarantees marched into Mexico City. The document formally declared Mexico's independence from Spain after an eleven year war. This date is separate from Mexico's officially celebrated Independence Day on September 16, which marks the 1810 call to arms that started the war."
+    },
+    "2026-09-29": {
+      "countryName": "Canada",
+      "eventTier": "ACHIEVEMENT",
+      "eventYear": 1962,
+      "eventTitle": "Canada launches Alouette 1 satellite",
+      "infoText": "On September 29, 1962, Canada launched Alouette 1, becoming the third country in the world, after the Soviet Union and the United States, to design and build its own satellite. The satellite studied the ionosphere and was expected to last one year but kept transmitting data for a decade. It remains a landmark achievement in Canada's space history."
+    },
+    "2026-09-30": {
+      "countryName": "Botswana",
+      "eventTier": "INDEPENDENCE_ROUND_10",
+      "eventYear": 1966,
+      "eventTitle": "Botswana's Independence Day (60th anniversary)",
+      "infoText": "Botswana became independent from the United Kingdom on September 30, 1966, when the Bechuanaland Protectorate was dissolved and the Republic of Botswana was born. Sir Seretse Khama was sworn in as the country's first president that day. In 2026 this marks the 60th anniversary of Botswana's independence, a milestone celebrated nationally as Botswana Day."
+    },
+    "2026-10-01": {
+      "countryName": "Palau",
       "eventTier": "INDEPENDENCE_REGULAR",
-      "eventYear": 1991,
-      "eventTitle": "Turkmenistan's Independence Day",
-      "infoText": "Turkmenistan declared its independence from the Soviet Union on September 27, 1991, following a national referendum. The Central Asian nation, much of which is covered by the Karakum Desert, marks the date each year with large military parades and cultural celebrations in the capital, Ashgabat. Independence Day is one of the most important holidays on the Turkmen calendar."
+      "eventYear": 1994,
+      "eventTitle": "Palau's Independence Day",
+      "infoText": "Palau became a fully sovereign nation on October 1, 1994, when its Compact of Free Association with the United States took effect. It was the last of the United Nations Trust Territories in the Pacific to gain independence, following decades under a US administered trusteeship. In 2026, Palau marks 32 years of independence."
+    },
+    "2026-10-02": {
+      "countryName": "India",
+      "eventTier": "FOUNDER_BIRTHDAY",
+      "eventYear": 1869,
+      "eventTitle": "Mahatma Gandhi's birthday (Gandhi Jayanti)",
+      "infoText": "Mahatma Gandhi, the leader of India's independence movement and widely honored as the Father of the Nation, was born on October 2, 1869. India marks his birthday as Gandhi Jayanti, a national holiday observed with prayer meetings and tributes across the country. The United Nations also designated October 2 as the International Day of Non-Violence in recognition of Gandhi's philosophy of nonviolence."
+    },
+    "2026-10-03": {
+      "countryName": "Iraq",
+      "eventTier": "INDEPENDENCE_REGULAR",
+      "eventYear": 1932,
+      "eventTitle": "Iraq's National Day",
+      "infoText": "Iraq marks October 3 as its National Day, commemorating the country's admission to the League of Nations in 1932, which ended the British mandate over Iraq. This made Iraq the first Arab country to gain independence through the League of Nations mandate system. In 2026 this is the 94th anniversary of that milestone."
+    },
+    "2026-10-04": {
+      "countryName": "Lesotho",
+      "eventTier": "INDEPENDENCE_ROUND_10",
+      "eventYear": 1966,
+      "eventTitle": "Lesotho's Independence Day (60th anniversary)",
+      "infoText": "Lesotho, formerly the British territory of Basutoland, became independent on October 4, 1966, becoming a constitutional monarchy under King Moshoeshoe II. In 2026 this marks the 60th anniversary of Lesotho's independence. Lesotho is one of only three countries in the world that are completely surrounded by, and lie entirely within, a single other country, in this case South Africa."
     }
   }
 }
