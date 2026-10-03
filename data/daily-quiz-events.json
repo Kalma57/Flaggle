@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-26T00:10:59Z",
+  "generatedAt": "2026-10-03T00:09:50Z",
   "days": {
     "2026-09-17": {
       "countryName": "Angola",
@@ -124,6 +124,55 @@
       "eventYear": 1966,
       "eventTitle": "Lesotho's Independence Day (60th anniversary)",
       "infoText": "Lesotho, formerly the British territory of Basutoland, became independent on October 4, 1966, becoming a constitutional monarchy under King Moshoeshoe II. In 2026 this marks the 60th anniversary of Lesotho's independence. Lesotho is one of only three countries in the world that are completely surrounded by, and lie entirely within, a single other country, in this case South Africa."
+    },
+    "2026-10-05": {
+      "countryName": "Portugal",
+      "eventTier": "HOLIDAY",
+      "eventYear": 1910,
+      "eventTitle": "Portugal's Republic Day",
+      "infoText": "Portugal marks October 5 as Republic Day, a national holiday that commemorates the 1910 revolution which ended the country's monarchy. On that day in 1910, revolutionaries proclaimed Portugal a republic from the balcony of Lisbon's city hall, ending centuries of royal rule. The anniversary remains one of Portugal's most important national holidays, with official ceremonies held across the country."
+    },
+    "2026-10-06": {
+      "countryName": "Egypt",
+      "eventTier": "HOLIDAY",
+      "eventYear": 1973,
+      "eventTitle": "Egypt's Armed Forces Day",
+      "infoText": "Egypt observes October 6 as Armed Forces Day, a national holiday honoring the country's military. The date commemorates October 6, 1973, when Egyptian forces crossed the Suez Canal at the start of the October War, an event still remembered in Egypt as a moment of national pride. The holiday features parades and official ceremonies across the country."
+    },
+    "2026-10-07": {
+      "countryName": "Greece",
+      "eventTier": "WEIRD_DAY",
+      "eventYear": 1957,
+      "eventTitle": "Frappé Day, Greece's iced coffee holiday",
+      "infoText": "October 7 is celebrated in Greece as Frappé Day, honoring the country's favorite cold coffee drink. The frappé was invented by accident in 1957 at an international trade fair in Thessaloniki, when a coffee company representative shook instant coffee with cold water and ice because he could not find hot water. The drink became hugely popular across Greece and neighboring Cyprus, and it remains a cafe staple today."
+    },
+    "2026-10-08": {
+      "countryName": "Croatia",
+      "eventTier": "INDEPENDENCE_REGULAR",
+      "eventYear": 1991,
+      "eventTitle": "Croatia's Independence Day",
+      "infoText": "Croatia marks October 8 as Independence Day, commemorating the day in 1991 when its parliament formally cut all remaining ties with Yugoslavia. This completed the independence process that had begun earlier that year, making Croatia a fully sovereign state. The anniversary is an official public holiday observed with ceremonies across the country."
+    },
+    "2026-10-09": {
+      "countryName": "Uganda",
+      "eventTier": "INDEPENDENCE_REGULAR",
+      "eventYear": 1962,
+      "eventTitle": "Uganda's Independence Day",
+      "infoText": "Uganda became an independent nation on October 9, 1962, when the United Kingdom formally handed over power at a ceremony in the capital. Milton Obote became the country's first prime minister as the Union Jack was lowered and Uganda's new flag was raised. The anniversary is celebrated nationwide each year as Uganda's national day."
+    },
+    "2026-10-10": {
+      "countryName": "Curaçao",
+      "eventTier": "SPECIAL_DAY",
+      "eventYear": 2010,
+      "eventTitle": "Curaçao becomes an autonomous country",
+      "infoText": "October 10, 2010, nicknamed 10-10-10, marks the day Curaçao became a separate, self governing country within the Kingdom of the Netherlands. The change happened when the larger Netherlands Antilles, a group of Caribbean islands that had been governed together, was formally dissolved. Curaçao still marks the date as a commemoration of its distinct political status."
+    },
+    "2026-10-11": {
+      "countryName": "Ethiopia",
+      "eventTier": "ACHIEVEMENT",
+      "eventYear": 2019,
+      "eventTitle": "Abiy Ahmed wins the Nobel Peace Prize",
+      "infoText": "On October 11, 2019, Ethiopian Prime Minister Abiy Ahmed was announced as the winner of that year's Nobel Peace Prize. He was honored for his role in ending a long running border conflict with neighboring Eritrea, bringing two decades of hostility to a close. At just 43 years old, he was at the time the youngest head of government in Africa."
     }
   }
 }
