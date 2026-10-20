@@ -1,0 +1,8 @@
+# Not needed to build the app - keep the Docker build context small
+videos/
+.local-backups/
+.git/
+.idea/
+.claude/
+target/
+tools/**/node_modules/

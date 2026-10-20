@@ -42,3 +42,6 @@ build/
 
 ### Node deps used only by offline build tooling ###
 tools/**/node_modules/
+### Promo video workspace & local backups (raw recordings, renders, Python venv - not app source) ###
+videos/
+.local-backups/
