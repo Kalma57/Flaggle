@@ -2,6 +2,19 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Free geography games: guess countries by their flags, find them on a 3D globe, match capital cities, and take a new daily quiz. Play solo, against the computer, or 1v1 with a friend.">
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="MundoFlag">
+    <meta property="og:title" content="MundoFlag - geography games">
+    <meta property="og:description" content="Guess countries by their flags, find them on a 3D globe, match capital cities, and take a new daily quiz. Solo, vs the computer, or 1v1 with a friend.">
+    <meta property="og:image" th:if="${siteUrl}" th:content="${siteUrl} + '/img/og-image.png'">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta name="twitter:card" content="summary_large_image">
     <title>Capital Locations - 1v1 vs Friend</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -247,6 +260,7 @@
         .match-type-card.blitz1 label { --accent: #ab47bc; }
         .match-type-card.blitz2 label { --accent: #8e24aa; }
     </style>
+    <link rel="stylesheet" href="/css/mobile.css?v=3">
 </head>
 
 <body>

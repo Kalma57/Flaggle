@@ -18,8 +18,10 @@ import com.example.flagdemo.ViewModel.FlagsVM.FlagsViewModel;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.bind.annotation.*;
 
 import java.sql.SQLException;
@@ -369,7 +371,8 @@ public class DailyQuizController {
 
     // ---------------------------------------------------------------------
     // Debug surface for the selection layer - see DailyQuizSelectorBL/
-    // DailyQuizDevConfig. Stays inert once DEV_MODE_ENABLED is false.
+    // DailyQuizDevConfig. Only exists while DEV_MODE_ENABLED is true: it returns
+    // today's answer (country and capital), so in production it must 404.
     // ---------------------------------------------------------------------
 
     @GetMapping("/debug/today")
@@ -378,6 +381,9 @@ public class DailyQuizController {
                                            @RequestParam(required = false) String devDate,
                                            HttpServletRequest request,
                                            HttpServletResponse response) {
+        if (!DailyQuizDevConfig.DEV_MODE_ENABLED) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        }
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("devModeEnabled", DailyQuizDevConfig.DEV_MODE_ENABLED);
 

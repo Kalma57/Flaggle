@@ -1,0 +1,233 @@
+/*
+ * Phone layout for every page. Loaded last in each page's <head>, so it overrides the page's own
+ * desktop styles, and only on narrow screens - the desktop layout is untouched.
+ * !important is used because many pages set these properties with equally specific selectors.
+ */
+/* Laptops (e.g. 1280-1366px): rows of five 230px cards were wider than the screen; let them wrap */
+@media (min-width: 1181px) and (max-width: 1420px) {
+    .modes-grid, .options-grid {
+        grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)) !important;
+        max-width: 100% !important;
+    }
+}
+
+/* Tablets and narrow windows: the 4-5 card rows become two columns, side-by-side columns stack,
+   and the fixed 800px globe area fits the screen. (The home page's card row already wraps.) */
+@media (min-width: 701px) and (max-width: 1180px) {
+
+    html, body {
+        overflow-x: hidden !important;
+    }
+
+    .modes-grid, .options-grid {
+        display: grid !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        width: 100% !important;
+        max-width: 760px !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
+    }
+
+    .mode-card, .match-type-card {
+        min-width: 0 !important;
+    }
+
+    .top-area, .match-columns {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        max-width: 760px !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
+    }
+
+    .create-col, .join-col, .column {
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
+    }
+
+    .difficulty-block {
+        margin-top: 0 !important;
+    }
+
+    #guessSection, #guessesContainer, #globeContainer {
+        width: 100% !important;
+        max-width: 800px !important;
+    }
+
+    #globeContainer {
+        height: min(72vw, 600px) !important;
+    }
+}
+
+@media (max-width: 700px) {
+
+    /* Decorative glows sit partly off-screen on purpose; never let them widen the page */
+    html, body {
+        overflow-x: hidden !important;
+        max-width: 100%;
+    }
+
+    /* Room at the top for the corner buttons (Back, badges, Rules...), which scroll with the page here */
+    body {
+        padding-top: 76px !important;
+        padding-left: 16px !important;
+        padding-right: 16px !important;
+    }
+
+    /* ---------- Headings ---------- */
+    h1 {
+        font-size: clamp(30px, 9vw, 40px) !important;
+        letter-spacing: 0.5px !important;
+        line-height: 1.15 !important;
+        flex-wrap: wrap;
+        justify-content: center;
+        text-align: center;
+        gap: 8px !important;
+    }
+
+    .hub-header h1 {
+        font-size: clamp(38px, 13vw, 54px) !important;
+        letter-spacing: 1px !important;
+    }
+
+    h2 {
+        font-size: clamp(20px, 6vw, 26px) !important;
+    }
+
+    /* ---------- Corner buttons: pinned to the screen on desktop, part of the page top here ---------- */
+    .back-link, .difficulty-badge, .timer-badge, .daily-quiz-badge {
+        position: absolute !important;
+        top: 16px !important;
+        left: 16px !important;
+        right: auto !important;
+    }
+
+    .daily-quiz-badge {
+        left: auto !important;
+        right: 16px !important;
+    }
+
+    .rules-btn, .top-actions, .top-right-controls {
+        position: absolute !important;
+        top: 16px !important;
+        right: 16px !important;
+        left: auto !important;
+    }
+
+    .back-link, .difficulty-badge, .rules-btn, .daily-quiz-badge, .timer-badge,
+    .top-actions > *, .top-right-actions > *, .top-right-controls > *, .badge-stack > * {
+        font-size: 13px !important;
+        padding: 7px 12px !important;
+    }
+
+    /* Match screens: the badge stack (difficulty / AI / format) and the Pause+Rules group are the
+       first things in the page, right before the heading - so here they simply flow above it as
+       centered rows instead of being pinned over it */
+    body:has(> .badge-stack) {
+        padding-top: 14px !important;
+    }
+
+    .badge-stack, .top-right-actions {
+        position: static !important;
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 6px !important;
+        max-width: 100%;
+        margin: 0 auto 8px !important;
+    }
+
+    .top-actions, .top-right-controls {
+        gap: 6px !important;
+    }
+
+    /* A Rules button inside one of those groups stays in its group */
+    .top-actions .rules-btn, .top-right-actions .rules-btn, .top-right-controls .rules-btn {
+        position: static !important;
+    }
+
+    /* Globe: Rules / Hint / Give up sit in a column pinned beside the guess box on desktop;
+       a row under the guess box here */
+    .right-buttons {
+        position: static !important;
+        flex-direction: row !important;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 8px !important;
+        width: 100%;
+        margin-top: 10px;
+    }
+
+    #guessSection {
+        flex-direction: column !important;
+        align-items: stretch !important;
+    }
+
+    /* Friend lobby: on desktop this block is pulled up between the two columns; stacked here */
+    .difficulty-block {
+        margin-top: 0 !important;
+    }
+
+    /* ---------- Card grids (difficulty, mode, format and game cards) ---------- */
+    .modes-grid, .options-grid, .games-grid {
+        grid-template-columns: 1fr !important;
+        display: grid !important;
+        gap: 16px !important;
+        width: 100% !important;
+    }
+
+    .mode-card, .match-type-card, .game-card {
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
+        padding: 22px 18px !important;
+    }
+
+    /* ---------- Two-column layouts become one column ---------- */
+    .top-area, .match-columns {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 20px !important;
+    }
+
+    .create-col, .join-col, .column {
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
+        flex: none !important;
+    }
+
+    /* ---------- Guess forms ---------- */
+    .guess-form, .controls-row {
+        flex-wrap: wrap !important;
+        justify-content: center;
+        width: 100% !important;
+        max-width: 100% !important;
+        gap: 10px !important;
+    }
+
+    .guess-form input[type="text"], .controls-row input[type="text"], input[type="text"] {
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
+        flex: 1 1 100% !important;
+        box-sizing: border-box;
+    }
+
+    /* ---------- Globe ---------- */
+    #guessSection, #guessesContainer {
+        width: 100% !important;
+    }
+
+    #globeContainer {
+        width: 100% !important;
+        height: min(92vw, 440px) !important;
+    }
+
+    /* ---------- Anything image-like never wider than the screen ---------- */
+    img, video {
+        max-width: 100%;
+    }
+}
