@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version='1.0' encoding='UTF-8'?>
 <mxfile host="app.diagrams.net" agent="Claude Code">
   <diagram id="MundoFlagArchitectureDiagram" name="MundoFlag Architecture">
     <mxGraphModel dx="1374" dy="554" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
@@ -6,7 +6,7 @@
         <mxCell id="root0" style="" value="" />
         <mxCell id="layer0" parent="root0" style="" value="" />
         <mxCell id="n1" parent="layer0" style="swimlane;whiteSpace=wrap;html=1;fontStyle=1;fontSize=20;align=center;verticalAlign=top;startSize=40;fillColor=#ffffff;strokeColor=#000000;strokeWidth=3;" value="View" vertex="1">
-          <mxGeometry height="8010" width="760" x="40" y="40" as="geometry" />
+          <mxGeometry height="8150" width="760" x="40" y="40" as="geometry" />
         </mxCell>
         <mxCell id="n2" parent="n1" style="swimlane;whiteSpace=wrap;html=1;fontStyle=1;fontSize=14;align=center;verticalAlign=top;startSize=30;fillColor=#ffffff;strokeColor=#666666;strokeWidth=1.5;" value="App" vertex="1">
           <mxGeometry height="155" width="720" x="20" y="50" as="geometry" />
@@ -36,7 +36,7 @@
           <mxGeometry height="57" width="335" y="48" as="geometry" />
         </mxCell>
         <mxCell id="n11" parent="n1" style="swimlane;whiteSpace=wrap;html=1;fontStyle=1;fontSize=14;align=center;verticalAlign=top;startSize=30;fillColor=#ffffff;strokeColor=#666666;strokeWidth=1.5;" value="FlagsView" vertex="1">
-          <mxGeometry height="306" width="720" x="20" y="235" as="geometry" />
+          <mxGeometry height="446" width="720" x="20" y="235" as="geometry" />
         </mxCell>
         <mxCell id="n12" parent="n11" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;" value="FlagsController" vertex="1">
           <mxGeometry height="165" width="680" x="20" y="40" as="geometry" />
@@ -51,7 +51,7 @@
           <mxGeometry height="108" width="680" y="57" as="geometry" />
         </mxCell>
         <mxCell id="n16" parent="n11" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;" value="HomeController" vertex="1">
-          <mxGeometry height="71" width="680" x="20" y="225" as="geometry" />
+          <mxGeometry height="94" width="680" x="20" y="225" as="geometry" />
         </mxCell>
         <mxCell id="n17" parent="n16" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="" vertex="1">
           <mxGeometry height="14" width="680" y="26" as="geometry" />
@@ -59,11 +59,23 @@
         <mxCell id="n18" parent="n16" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=inherit;" value="" vertex="1">
           <mxGeometry height="8" width="680" y="40" as="geometry" />
         </mxCell>
-        <mxCell id="n19" parent="n16" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="+ @GetMapping(&quot;/&quot;) home(): String" vertex="1">
-          <mxGeometry height="23" width="680" y="48" as="geometry" />
+        <mxCell id="n19" parent="n16" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="+ @GetMapping(&quot;/&quot;) home(): String&lt;br&gt;+ @GetMapping(&quot;/credits&quot;) credits(): String" vertex="1">
+          <mxGeometry height="46" width="680" y="48" as="geometry" />
+        </mxCell>
+        <mxCell id="legacy0" parent="n11" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;" value="LegacyUrlRedirectController" vertex="1">
+          <mxGeometry height="97" width="680" x="20" y="339" as="geometry" />
+        </mxCell>
+        <mxCell id="legacy1" parent="legacy0" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="- {static final} OLD_PREFIX: String&lt;br&gt;- {static final} NEW_PREFIX: String" vertex="1">
+          <mxGeometry height="40" width="680" y="26" as="geometry" />
+        </mxCell>
+        <mxCell id="legacy2" parent="legacy0" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=inherit;" value="" vertex="1">
+          <mxGeometry height="8" width="680" y="66" as="geometry" />
+        </mxCell>
+        <mxCell id="legacy3" parent="legacy0" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="+ @GetMapping({&quot;/Flaggle&quot;, &quot;/Flaggle/**&quot;}) redirectOldFlagGameUrl(HttpServletRequest request): ResponseEntity&amp;lt;Void&amp;gt;" vertex="1">
+          <mxGeometry height="23" width="680" y="74" as="geometry" />
         </mxCell>
         <mxCell id="n20" parent="n1" style="swimlane;whiteSpace=wrap;html=1;fontStyle=1;fontSize=14;align=center;verticalAlign=top;startSize=30;fillColor=#ffffff;strokeColor=#666666;strokeWidth=1.5;" value="GlobeView" vertex="1">
-          <mxGeometry height="249" width="720" x="20" y="571" as="geometry" />
+          <mxGeometry height="249" width="720" x="20" y="711" as="geometry" />
         </mxCell>
         <mxCell id="n21" parent="n20" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;" value="GlobeController" vertex="1">
           <mxGeometry height="199" width="680" x="20" y="40" as="geometry" />
@@ -78,7 +90,7 @@
           <mxGeometry height="142" width="680" y="57" as="geometry" />
         </mxCell>
         <mxCell id="n25" parent="n1" style="swimlane;whiteSpace=wrap;html=1;fontStyle=1;fontSize=14;align=center;verticalAlign=top;startSize=30;fillColor=#ffffff;strokeColor=#666666;strokeWidth=1.5;" value="MatchView" vertex="1">
-          <mxGeometry height="1370" width="720" x="20" y="830" as="geometry" />
+          <mxGeometry height="1370" width="720" x="20" y="970" as="geometry" />
         </mxCell>
         <mxCell id="n26" parent="n25" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;" value="FlagsBlitzController" vertex="1">
           <mxGeometry height="250" width="680" x="20" y="40" as="geometry" />
@@ -117,7 +129,7 @@
           <mxGeometry height="261" width="680" y="74" as="geometry" />
         </mxCell>
         <mxCell id="n38" parent="n1" style="swimlane;whiteSpace=wrap;html=1;fontStyle=1;fontSize=14;align=center;verticalAlign=top;startSize=30;fillColor=#ffffff;strokeColor=#666666;strokeWidth=1.5;" value="GlobeMatchView" vertex="1">
-          <mxGeometry height="1411" width="720" x="20" y="2310" as="geometry" />
+          <mxGeometry height="1411" width="720" x="20" y="2450" as="geometry" />
         </mxCell>
         <mxCell id="n39" parent="n38" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;" value="GlobeBlitzController" vertex="1">
           <mxGeometry height="267" width="680" x="20" y="40" as="geometry" />
@@ -156,7 +168,7 @@
           <mxGeometry height="499" width="680" y="108" as="geometry" />
         </mxCell>
         <mxCell id="n51" parent="n1" style="swimlane;whiteSpace=wrap;html=1;fontStyle=1;fontSize=14;align=center;verticalAlign=top;startSize=30;fillColor=#ffffff;strokeColor=#666666;strokeWidth=1.5;" value="CapitalView" vertex="1">
-          <mxGeometry height="1850" width="720" x="20" y="3750" as="geometry" />
+          <mxGeometry height="1850" width="720" x="20" y="3890" as="geometry" />
         </mxCell>
         <mxCell id="n52" parent="n51" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;" value="CapitalController" vertex="1">
           <mxGeometry height="380" width="680" x="20" y="40" as="geometry" />
@@ -207,7 +219,7 @@
           <mxGeometry height="442" width="680" y="108" as="geometry" />
         </mxCell>
         <mxCell id="n68" parent="n1" style="swimlane;whiteSpace=wrap;html=1;fontStyle=1;fontSize=14;align=center;verticalAlign=top;startSize=30;fillColor=#ffffff;strokeColor=#666666;strokeWidth=1.5;" value="CapitalGlobeView" vertex="1">
-          <mxGeometry height="1710" width="720" x="20" y="5850" as="geometry" />
+          <mxGeometry height="1710" width="720" x="20" y="5990" as="geometry" />
         </mxCell>
         <mxCell id="n69" parent="n68" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;" value="CapitalGlobeController" vertex="1">
           <mxGeometry height="182" width="680" x="20" y="40" as="geometry" />
@@ -258,7 +270,7 @@
           <mxGeometry height="412" width="680" y="108" as="geometry" />
         </mxCell>
         <mxCell id="n85" parent="n1" style="swimlane;whiteSpace=wrap;html=1;fontStyle=1;fontSize=14;align=center;verticalAlign=top;startSize=30;fillColor=#ffffff;strokeColor=#666666;strokeWidth=1.5;" value="DailyQuizView" vertex="1">
-          <mxGeometry height="368" width="720" x="20" y="7610" as="geometry" />
+          <mxGeometry height="368" width="720" x="20" y="7750" as="geometry" />
         </mxCell>
         <mxCell id="n86" parent="n85" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;" value="DailyQuizController" vertex="1">
           <mxGeometry height="318" width="680" x="20" y="40" as="geometry" />
@@ -273,7 +285,7 @@
           <mxGeometry height="261" width="680" y="57" as="geometry" />
         </mxCell>
         <mxCell id="n90" parent="layer0" style="swimlane;whiteSpace=wrap;html=1;fontStyle=1;fontSize=20;align=center;verticalAlign=top;startSize=40;fillColor=#ffffff;strokeColor=#000000;strokeWidth=3;" value="ViewModel" vertex="1">
-          <mxGeometry height="3793" width="760" x="40" y="8200" as="geometry" />
+          <mxGeometry height="3793" width="760" x="40" y="8340" as="geometry" />
         </mxCell>
         <mxCell id="n91" parent="n90" style="swimlane;whiteSpace=wrap;html=1;fontStyle=1;fontSize=14;align=center;verticalAlign=top;startSize=30;fillColor=#ffffff;strokeColor=#666666;strokeWidth=1.5;" value="FlagsVM" vertex="1">
           <mxGeometry height="283" width="720" x="20" y="50" as="geometry" />
@@ -522,7 +534,7 @@
           <mxGeometry height="108" width="680" y="74" as="geometry" />
         </mxCell>
         <mxCell id="n173" parent="layer0" style="swimlane;whiteSpace=wrap;html=1;fontStyle=1;fontSize=20;align=center;verticalAlign=top;startSize=40;fillColor=#ffffff;strokeColor=#000000;strokeWidth=3;" value="Model" vertex="1">
-          <mxGeometry height="2800" width="760" x="40" y="12880" as="geometry" />
+          <mxGeometry height="2800" width="760" x="40" y="13020" as="geometry" />
         </mxCell>
         <mxCell id="n174" parent="n173" style="swimlane;whiteSpace=wrap;html=1;fontStyle=1;fontSize=14;align=center;verticalAlign=top;startSize=30;fillColor=#ffffff;strokeColor=#666666;strokeWidth=1.5;" value="FlagsModel" vertex="1">
           <mxGeometry height="283" width="720" x="20" y="50" as="geometry" />
@@ -675,7 +687,7 @@
           <mxGeometry height="142" width="680" y="57" as="geometry" />
         </mxCell>
         <mxCell id="n224" parent="layer0" style="swimlane;whiteSpace=wrap;html=1;fontStyle=1;fontSize=20;align=center;verticalAlign=top;startSize=40;fillColor=#ffffff;strokeColor=#000000;strokeWidth=3;" value="Service Layer" vertex="1">
-          <mxGeometry height="2477" width="760" x="40" y="15863" as="geometry" />
+          <mxGeometry height="2477" width="760" x="40" y="16003" as="geometry" />
         </mxCell>
         <mxCell id="n225" parent="n224" style="swimlane;whiteSpace=wrap;html=1;fontStyle=1;fontSize=14;align=center;verticalAlign=top;startSize=30;fillColor=#ffffff;strokeColor=#666666;strokeWidth=1.5;" value="FlagsSL" vertex="1">
           <mxGeometry height="215" width="720" x="20" y="50" as="geometry" />
@@ -828,7 +840,7 @@
           <mxGeometry height="142" width="680" y="57" as="geometry" />
         </mxCell>
         <mxCell id="n275" parent="layer0" style="swimlane;whiteSpace=wrap;html=1;fontStyle=1;fontSize=20;align=center;verticalAlign=top;startSize=40;fillColor=#ffffff;strokeColor=#000000;strokeWidth=3;" value="Business Layer" vertex="1">
-          <mxGeometry height="29170" width="760" x="40" y="18730" as="geometry" />
+          <mxGeometry height="29170" width="760" x="40" y="18870" as="geometry" />
         </mxCell>
         <mxCell id="n281" parent="n275" style="swimlane;whiteSpace=wrap;html=1;fontStyle=1;fontSize=14;align=center;verticalAlign=top;startSize=30;fillColor=#ffffff;strokeColor=#666666;strokeWidth=1.5;" value="FlagsBL" vertex="1">
           <mxGeometry height="1207" width="720" x="20" y="510" as="geometry" />
@@ -1632,7 +1644,7 @@
           <mxGeometry height="234" width="680" y="176" as="geometry" />
         </mxCell>
         <mxCell id="n548" parent="layer0" style="swimlane;whiteSpace=wrap;html=1;fontStyle=1;fontSize=20;align=center;verticalAlign=top;startSize=40;fillColor=#ffffff;strokeColor=#000000;strokeWidth=3;" value="Data Access Layer" vertex="1">
-          <mxGeometry height="958" width="760" x="34" y="48010" as="geometry" />
+          <mxGeometry height="958" width="760" x="34" y="48150" as="geometry" />
         </mxCell>
         <mxCell id="n549" parent="n548" style="swimlane;whiteSpace=wrap;html=1;fontStyle=1;fontSize=14;align=center;verticalAlign=top;startSize=30;fillColor=#ffffff;strokeColor=#666666;strokeWidth=1.5;" value="DAL" vertex="1">
           <mxGeometry height="891" width="720" x="20" y="57" as="geometry" />
@@ -1674,13 +1686,13 @@
           <mxGeometry height="193" width="680" y="193" as="geometry" />
         </mxCell>
         <mxCell id="n562" parent="layer0" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;" value="Countries (table)" vertex="1">
-          <mxGeometry height="185" width="335" x="246" y="49200" as="geometry" />
+          <mxGeometry height="185" width="335" x="246" y="49340" as="geometry" />
         </mxCell>
         <mxCell id="n563" parent="n562" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="PK ID: INTEGER&lt;div&gt;Code: TEXT&lt;/div&gt;&lt;div&gt;ISO3: TEXT&lt;/div&gt;&lt;div&gt;CountryName: TEXT&lt;/div&gt;&lt;div&gt;FlagPath: TEXT&lt;/div&gt;&lt;div&gt;Latitude: REAL&lt;/div&gt;&lt;div&gt;Longitude: REAL&lt;/div&gt;&lt;div&gt;neighborList: TEXT&lt;/div&gt;&lt;div&gt;Capital: TEXT&lt;/div&gt;" vertex="1">
           <mxGeometry height="159" width="335" y="26" as="geometry" />
         </mxCell>
         <mxCell id="n434" parent="layer0" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;" value="PvpGlobeBlitzEngineBL" vertex="1">
-          <mxGeometry height="690" width="680" x="80" y="32023" as="geometry" />
+          <mxGeometry height="690" width="680" x="80" y="32163" as="geometry" />
         </mxCell>
         <mxCell id="n435" parent="n434" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="- CountryController {final}: cc&lt;div&gt;- double {final}: durationSeconds&lt;/div&gt;&lt;div&gt;- List: queue&lt;/div&gt;&lt;div&gt;- long: matchStartTimeMillis&lt;/div&gt;&lt;div&gt;- boolean: matchOver&lt;/div&gt;&lt;div&gt;- long {static final}: PAUSE_MAX_MILLIS&lt;/div&gt;&lt;div&gt;- boolean: paused&lt;/div&gt;&lt;div&gt;- int: pausedBySlot&lt;/div&gt;&lt;div&gt;- long: pauseStartedAtMillis&lt;/div&gt;&lt;div&gt;- long: pausedMillisTotal&lt;/div&gt;&lt;div&gt;- boolean: pause1Used&lt;/div&gt;&lt;div&gt;- boolean: pause2Used&lt;/div&gt;&lt;div&gt;- int {static final}: NONE_ORDINAL&lt;/div&gt;&lt;div&gt;- int: queueIndex1&lt;/div&gt;&lt;div&gt;- int: attemptsThisFlag1&lt;/div&gt;&lt;div&gt;- double: currentFlagStartElapsed1&lt;/div&gt;&lt;div&gt;- int: bestOrdinal1&lt;/div&gt;&lt;div&gt;- int: correctCount1&lt;/div&gt;&lt;div&gt;- List {final}: history1&lt;/div&gt;&lt;div&gt;- int: queueIndex2&lt;/div&gt;&lt;div&gt;- int: attemptsThisFlag2&lt;/div&gt;&lt;div&gt;- double: currentFlagStartElapsed2&lt;/div&gt;&lt;div&gt;- int: bestOrdinal2&lt;/div&gt;&lt;div&gt;- int: correctCount2&lt;/div&gt;&lt;div&gt;- List {final}: history2&lt;/div&gt;" vertex="1">
           <mxGeometry height="371" width="680" y="26" as="geometry" />

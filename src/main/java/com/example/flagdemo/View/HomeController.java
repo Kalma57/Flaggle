@@ -10,4 +10,9 @@ public class HomeController {
     public String home() {
         return "StartScreen"; // maps to templates/StartScreen.html
     }
+
+    @GetMapping("/credits")
+    public String credits() {
+        return "CreditsScreen"; // music, flag images and libraries the site uses, as their licenses require
+    }
 }

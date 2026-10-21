@@ -168,7 +168,7 @@ NER: Niamey
 NFK: Kingston
 NGA: Abuja
 NIC: Managua
-NIR:
+NIR: Belfast
 NIU: Alofi
 NLD: Amsterdam
 NOR: Oslo
