@@ -5,10 +5,14 @@ import com.example.flagdemo.BusinessLayer.CountryBL;
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.awt.image.DataBufferByte;
+import java.awt.image.IndexColorModel;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.Base64;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Represents the result of a user's guess in the Flaggle game.
@@ -72,12 +76,13 @@ public class GuessResultBL implements java.io.Serializable {
     // Image showing the visual differences between the two flags
     private final BufferedImage flagDifferences;
 
-    // Base64-encoded PNG of the guessed flag, computed once and cached so repeated
-    // renders of the guess history don't re-decode/re-encode the same image every request
-    private final String guessedFlagBase64;
+    // Base64-encoded PNG of the guessed flag, computed on first use (the AI opponent builds
+    // dozens of these results only to read a percentage and never needs the image) and
+    // shared per flag across every guess, since a flag's PNG never changes
+    private String guessedFlagBase64;
 
-    // Base64-encoded PNG of the difference image, computed once and cached for the same reason
-    private final String flagDifferencesBase64;
+    // Base64-encoded PNG of the difference image, computed on first use for the same reason
+    private String flagDifferencesBase64;
 
     // ----------------- Constructor -----------------
 
@@ -130,19 +135,13 @@ public class GuessResultBL implements java.io.Serializable {
         if (difficulty == DifficultyLevel.EASY) {
             this.flagDifferences = calculateAccumulatedEasyReveal(
                     previousEasyReveal,
-                    guessedCountry.getFlagImage(),
-                    targetCountry.getFlagImage()
+                    gridFor(guessedCountry),
+                    targetCountry.getFlagImage(),
+                    gridFor(targetCountry)
             );
         } else {
-            this.flagDifferences = calculateFlagDifferences(
-                    guessedCountry.getFlagImage(),
-                    targetCountry.getFlagImage()
-            );
+            this.flagDifferences = diffFromGrids(gridFor(guessedCountry), gridFor(targetCountry));
         }
-
-        // Encode both images to base64 once, up front, instead of on every subsequent render
-        this.guessedFlagBase64 = encodeToBase64(guessedCountry.getFlagImage());
-        this.flagDifferencesBase64 = encodeToBase64(this.flagDifferences);
     }
 
     // ----------------- Public Methods -----------------
@@ -185,16 +184,23 @@ public class GuessResultBL implements java.io.Serializable {
     }
 
     /**
-     * Returns the base64-encoded PNG of the guessed flag (pre-computed in the constructor).
+     * Returns the base64-encoded PNG of the guessed flag (computed on first use).
      */
     public String getGuessedFlagBase64() {
+        if (guessedFlagBase64 == null) {
+            guessedFlagBase64 = FLAG_BASE64_CACHE.computeIfAbsent(
+                    guessedCountry.getFlagPath(), k -> encodeToBase64(guessedCountry.getFlagImage()));
+        }
         return guessedFlagBase64;
     }
 
     /**
-     * Returns the base64-encoded PNG of the flag difference image (pre-computed in the constructor).
+     * Returns the base64-encoded PNG of the flag difference image (computed on first use).
      */
     public String getFlagDifferencesBase64() {
+        if (flagDifferencesBase64 == null) {
+            flagDifferencesBase64 = encodeToBase64(flagDifferences);
+        }
         return flagDifferencesBase64;
     }
 
@@ -224,6 +230,83 @@ public class GuessResultBL implements java.io.Serializable {
         }
     }
 
+    // ----------------- Pixel grids -----------------
+
+    // The comparison only ever looks at which "base color" each pixel is closest to, never at
+    // the raw pixel, so each flag is reduced to that grid once and reused for every later guess.
+    // This used to be redone from scratch (8 square roots per pixel, two objects per pixel) on
+    // every guess, which on a slow host turned a guess into seconds.
+    private static final Color[] PALETTE = {RED, BLUE, YELLOW, GREEN, ORANGE, PURPLE, BLACK, WHITE, GRAY};
+
+    // Index of GRAY in PALETTE: transparent pixels, i.e. the frame/background that is ignored
+    private static final int GRAY_INDEX = 8;
+
+    private static final boolean[][] SIMILAR = new boolean[PALETTE.length][PALETTE.length];
+    static {
+        for (int i = 0; i < PALETTE.length; i++) {
+            for (int j = 0; j < PALETTE.length; j++) {
+                SIMILAR[i][j] = areColorsSimilar(PALETTE[i], PALETTE[j]);
+            }
+        }
+    }
+
+    private record FlagGrid(int width, int height, byte[] colorIndex) {}
+
+    private static final Map<String, FlagGrid> GRID_CACHE = new ConcurrentHashMap<>();
+    private static final Map<String, String> FLAG_BASE64_CACHE = new ConcurrentHashMap<>();
+
+    private static FlagGrid gridFor(CountryBL country) {
+        return GRID_CACHE.computeIfAbsent(country.getFlagPath(), k -> buildGrid(country.getFlagImage()));
+    }
+
+    private static FlagGrid buildGrid(BufferedImage image) {
+        int width = image.getWidth();
+        int height = image.getHeight();
+        int[] pixels = image.getRGB(0, 0, width, height, null, 0, width);
+        byte[] indexes = new byte[pixels.length];
+        for (int i = 0; i < pixels.length; i++) {
+            indexes[i] = (byte) nearestBaseColorIndex(pixels[i]);
+        }
+        return new FlagGrid(width, height, indexes);
+    }
+
+    /** Index of the closest base color (ties go to the earlier one), or GRAY_INDEX if the pixel is not fully opaque. */
+    private static int nearestBaseColorIndex(int argb) {
+        if ((argb >>> 24) < 255) return GRAY_INDEX;
+
+        int r = (argb >> 16) & 0xFF;
+        int g = (argb >> 8) & 0xFF;
+        int b = argb & 0xFF;
+
+        int best = 0;
+        int bestDist = Integer.MAX_VALUE;
+        for (int i = 0; i < GRAY_INDEX; i++) {
+            Color base = PALETTE[i];
+            int dr = r - base.getRed();
+            int dg = g - base.getGreen();
+            int db = b - base.getBlue();
+            int dist = dr * dr + dg * dg + db * db;
+            if (dist < bestDist) {
+                bestDist = dist;
+                best = i;
+            }
+        }
+        return best;
+    }
+
+    // ----------------- Comparison -----------------
+
+    // Palette of the HARD result image: only ever white, green or plain black, so it is stored
+    // indexed (a third of the pixel data, and a far smaller PNG to build and send)
+    private static final int OUT_WHITE = 0;
+    private static final int OUT_GREEN = 1;
+    private static final int OUT_BLACK = 2;
+    private static final IndexColorModel HARD_RESULT_PALETTE = new IndexColorModel(
+            8, 3,
+            new byte[]{(byte) 255, (byte) 0x4C, 0},
+            new byte[]{(byte) 255, (byte) 0xAF, 0},
+            new byte[]{(byte) 255, (byte) 0x50, 0});
+
     /**
      * Generates an image that highlights the differences between two flags,
      * using {@link DifficultyLevel#HARD} rules (the original behavior).
@@ -241,37 +324,69 @@ public class GuessResultBL implements java.io.Serializable {
      * @return image representing the differences between the two flags
      */
     public static BufferedImage calculateFlagDifferences(BufferedImage guessed, BufferedImage target) {
+        return diffFromGrids(buildGrid(guessed), buildGrid(target));
+    }
 
-        int width = Math.min(guessed.getWidth(), target.getWidth());
-        int height = Math.min(guessed.getHeight(), target.getHeight());
+    private static BufferedImage diffFromGrids(FlagGrid guessed, FlagGrid target) {
+        int width = Math.min(guessed.width(), target.width());
+        int height = Math.min(guessed.height(), target.height());
 
-        BufferedImage result = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+        BufferedImage result = new BufferedImage(width, height, BufferedImage.TYPE_BYTE_INDEXED, HARD_RESULT_PALETTE);
+        byte[] out = ((DataBufferByte) result.getRaster().getDataBuffer()).getData();
 
-        // Compare pixels one by one
+        byte[] g = guessed.colorIndex();
+        byte[] t = target.colorIndex();
         for (int y = 0; y < height; y++) {
+            int gi = y * guessed.width();
+            int ti = y * target.width();
+            int oi = y * width;
             for (int x = 0; x < width; x++) {
-
-                // Normalize colors to one of the base colors
-                Color guessedColor = normalizeColor(new Color(guessed.getRGB(x, y), true));
-                Color targetColor = normalizeColor(new Color(target.getRGB(x, y), true));
-
-                // Ignore frame or background pixels
-                if (isFrameOrBackground(guessedColor) || isFrameOrBackground(targetColor)) {
-                    result.setRGB(x, y, BACKGROUND_COLOR.getRGB());
-                    continue;
-                }
-
-                if (areColorsSimilar(guessedColor, targetColor)) {
-                    // Colors match -> green
-                    result.setRGB(x, y, new Color(0x4CAF50).getRGB());
+                int gc = g[gi + x];
+                int tc = t[ti + x];
+                if (gc == GRAY_INDEX || tc == GRAY_INDEX) {
+                    out[oi + x] = OUT_WHITE;
+                } else if (SIMILAR[gc][tc]) {
+                    out[oi + x] = OUT_GREEN;
                 } else {
-                    // No match -> plain black, no color information leaked
-                    result.setRGB(x, y, BLACK.getRGB());
+                    out[oi + x] = OUT_BLACK;
                 }
             }
         }
-
         return result;
+    }
+
+    /**
+     * The match percentage a HARD-mode guess of {@code guessed} against {@code target}
+     * would show, computed straight from the cached pixel grids. The 1v1 AI opponent
+     * needs dozens of these to plan a round, so this deliberately builds no image and
+     * encodes no PNG; it returns exactly what
+     * {@code calculateMatchPercentage(new GuessResultBL(guessed, target).getFlagDifferences(), false)}
+     * would.
+     */
+    public static int hardMatchPercent(CountryBL guessed, CountryBL target) {
+        FlagGrid guessedGrid = gridFor(guessed);
+        FlagGrid targetGrid = gridFor(target);
+        int width = Math.min(guessedGrid.width(), targetGrid.width());
+        int height = Math.min(guessedGrid.height(), targetGrid.height());
+
+        byte[] g = guessedGrid.colorIndex();
+        byte[] t = targetGrid.colorIndex();
+        long relevant = 0;
+        long matched = 0;
+        for (int y = 0; y < height; y++) {
+            int gi = y * guessedGrid.width();
+            int ti = y * targetGrid.width();
+            for (int x = 0; x < width; x++) {
+                int gc = g[gi + x];
+                int tc = t[ti + x];
+                if (gc == GRAY_INDEX || tc == GRAY_INDEX) continue;
+                relevant++;
+                if (SIMILAR[gc][tc]) matched++;
+            }
+        }
+
+        if (relevant == 0) return 0;
+        return (int) Math.round((matched * 100.0) / relevant);
     }
 
     /**
@@ -291,53 +406,68 @@ public class GuessResultBL implements java.io.Serializable {
      *
      * @param previousReveal the accumulated reveal image from the previous guess this round,
      *                        or null if this is the first guess of the round
-     * @param guessed the guessed flag image
-     * @param target the target flag image
+     * @param guessed the guessed flag's pixel grid
+     * @param target the target flag image (raw colors are read from it when revealing)
+     * @param targetGrid the target flag's pixel grid
      * @return the updated accumulated reveal image
      */
-    private static BufferedImage calculateAccumulatedEasyReveal(BufferedImage previousReveal, BufferedImage guessed, BufferedImage target) {
+    private static BufferedImage calculateAccumulatedEasyReveal(BufferedImage previousReveal, FlagGrid guessed,
+                                                                 BufferedImage target, FlagGrid targetGrid) {
 
-        int width = Math.min(guessed.getWidth(), target.getWidth());
-        int height = Math.min(guessed.getHeight(), target.getHeight());
+        int width = Math.min(guessed.width(), targetGrid.width());
+        int height = Math.min(guessed.height(), targetGrid.height());
 
-        BufferedImage result = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+        int whiteRgb = BACKGROUND_COLOR.getRGB();
+        int blackRgb = BLACK.getRGB();
+
+        int targetStride = target.getWidth();
+        int[] targetPixels = target.getRGB(0, 0, targetStride, target.getHeight(), null, 0, targetStride);
+
+        int[] previousPixels = null;
+        int previousWidth = 0;
+        int previousHeight = 0;
+        if (previousReveal != null) {
+            previousWidth = previousReveal.getWidth();
+            previousHeight = previousReveal.getHeight();
+            previousPixels = previousReveal.getRGB(0, 0, previousWidth, previousHeight, null, 0, previousWidth);
+        }
+
+        byte[] g = guessed.colorIndex();
+        byte[] t = targetGrid.colorIndex();
+        int[] out = new int[width * height];
 
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
-
-                // Raw (non-normalized) target color — used when actually revealing a pixel
-                Color rawTargetColor = new Color(target.getRGB(x, y), true);
-
-                // Normalized colors — used only to decide background/frame and match/no-match
-                Color normalizedTargetColor = normalizeColor(rawTargetColor);
+                int o = y * width + x;
+                int tc = t[y * targetGrid.width() + x];
 
                 // Background/frame areas are always white, regardless of any previous reveal
-                if (isFrameOrBackground(normalizedTargetColor)) {
-                    result.setRGB(x, y, BACKGROUND_COLOR.getRGB());
+                if (tc == GRAY_INDEX) {
+                    out[o] = whiteRgb;
                     continue;
                 }
 
                 // If this pixel was already revealed by an earlier guess, keep it revealed
-                if (previousReveal != null
-                        && x < previousReveal.getWidth() && y < previousReveal.getHeight()
-                        && previousReveal.getRGB(x, y) != BLACK.getRGB()) {
-                    result.setRGB(x, y, previousReveal.getRGB(x, y));
+                if (previousPixels != null && x < previousWidth && y < previousHeight
+                        && previousPixels[y * previousWidth + x] != blackRgb) {
+                    out[o] = previousPixels[y * previousWidth + x];
                     continue;
                 }
 
                 // Not yet revealed -> check if this guess reveals it now
-                Color normalizedGuessedColor = normalizeColor(new Color(guessed.getRGB(x, y), true));
-
-                if (areColorsSimilar(normalizedGuessedColor, normalizedTargetColor)) {
+                int gc = g[y * guessed.width() + x];
+                if (SIMILAR[gc][tc]) {
                     // Match -> permanently reveal the target's true (raw) color
-                    result.setRGB(x, y, rawTargetColor.getRGB());
+                    out[o] = targetPixels[y * targetStride + x];
                 } else {
                     // Still no match -> stays hidden behind black
-                    result.setRGB(x, y, BLACK.getRGB());
+                    out[o] = blackRgb;
                 }
             }
         }
 
+        BufferedImage result = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+        result.setRGB(0, 0, width, height, out, 0, width);
         return result;
     }
 
@@ -357,6 +487,7 @@ public class GuessResultBL implements java.io.Serializable {
     public static int calculateMatchPercentage(BufferedImage diffImage, boolean easyMode) {
         int width = diffImage.getWidth();
         int height = diffImage.getHeight();
+        int[] pixels = diffImage.getRGB(0, 0, width, height, null, 0, width);
 
         int whiteRgb = BACKGROUND_COLOR.getRGB();
         int blackRgb = BLACK.getRGB();
@@ -365,67 +496,21 @@ public class GuessResultBL implements java.io.Serializable {
         long relevant = 0;
         long matched = 0;
 
-        for (int y = 0; y < height; y++) {
-            for (int x = 0; x < width; x++) {
-                int rgb = diffImage.getRGB(x, y) | 0xFF000000;
+        for (int pixel : pixels) {
+            int rgb = pixel | 0xFF000000;
 
-                if (rgb == whiteRgb) continue; // background/frame, ignore
+            if (rgb == whiteRgb) continue; // background/frame, ignore
 
-                relevant++;
-                if (easyMode) {
-                    if (rgb != blackRgb) matched++;
-                } else {
-                    if (rgb == greenRgb) matched++;
-                }
+            relevant++;
+            if (easyMode) {
+                if (rgb != blackRgb) matched++;
+            } else {
+                if (rgb == greenRgb) matched++;
             }
         }
 
         if (relevant == 0) return 0;
         return (int) Math.round((matched * 100.0) / relevant);
-    }
-
-    /**
-     * Maps a given color to the closest predefined base color.
-     *
-     * This helps reduce noise when comparing pixels between two flags.
-     *
-     * @param c the original color
-     * @return the closest base color
-     */
-    private static Color normalizeColor(Color c) {
-
-        Color[] baseColors = {RED, BLUE, YELLOW, GREEN, ORANGE, PURPLE, BLACK, WHITE};
-
-        // Treat transparent pixels as undefined
-        if (c.getAlpha() < 255) return GRAY;
-
-        Color closest = baseColors[0];
-        double minDist = colorDistance(c, closest);
-
-        // Find the base color with the minimal distance
-        for (Color base : baseColors) {
-            double dist = colorDistance(c, base);
-            if (dist < minDist) {
-                minDist = dist;
-                closest = base;
-            }
-        }
-
-        return closest;
-    }
-
-    /**
-     * Computes the Euclidean distance between two colors in RGB space.
-     *
-     * @param c1 first color
-     * @param c2 second color
-     * @return distance between the colors
-     */
-    private static double colorDistance(Color c1, Color c2) {
-        int dr = c1.getRed() - c2.getRed();
-        int dg = c1.getGreen() - c2.getGreen();
-        int db = c1.getBlue() - c2.getBlue();
-        return Math.sqrt(dr * dr + dg * dg + db * db);
     }
 
     /**
@@ -439,15 +524,5 @@ public class GuessResultBL implements java.io.Serializable {
         return Math.abs(c1.getRed() - c2.getRed()) <= TOLERANCE &&
                 Math.abs(c1.getGreen() - c2.getGreen()) <= TOLERANCE &&
                 Math.abs(c1.getBlue() - c2.getBlue()) <= TOLERANCE;
-    }
-
-    /**
-     * Determines whether a pixel belongs to the flag frame or background.
-     *
-     * @param c pixel color
-     * @return true if the pixel is part of the frame/background
-     */
-    private static boolean isFrameOrBackground(Color c) {
-        return c.equals(FRAME_COLOR);
     }
 }

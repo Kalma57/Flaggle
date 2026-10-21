@@ -2,12 +2,10 @@ package com.example.flagdemo.DataAccessLayer;
 
 import com.example.flagdemo.BusinessLayer.CountryBL;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.InputStream;
 import java.nio.file.Paths;
-import java.sql.*;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import org.springframework.stereotype.Service;
 
 /**
@@ -31,23 +29,6 @@ public class CountryController implements java.io.Serializable {
     }
 
     /**
-     * Creates a connection to the SQLite database.
-     * Loads the DB from the classpath (inside the JAR) and copies it to a temp file.
-     */
-    private Connection getConnection() throws Exception {
-        InputStream is = getClass().getResourceAsStream("/static/DB/Flaggle.db");
-        if (is == null) {
-            throw new Exception("Database not found in classpath at /static/DB/Flaggle.db");
-        }
-        File tempDb = File.createTempFile("Flaggle", ".db");
-        tempDb.deleteOnExit();
-        try (FileOutputStream fos = new FileOutputStream(tempDb)) {
-            is.transferTo(fos);
-        }
-        return DriverManager.getConnection("jdbc:sqlite:" + tempDb.getAbsolutePath());
-    }
-
-    /**
      * Fixes the image path to work from the classpath (inside the JAR).
      * Extracts just the file name and returns a classpath-relative path.
      */
@@ -60,91 +41,57 @@ public class CountryController implements java.io.Serializable {
     }
 
     /**
-     * Retrieves a country from the database using its ID.
+     * Every country, built once from the repository's already-loaded rows and
+     * then reused. Looking a country up used to copy the whole SQLite file to a
+     * fresh temp file and open a new connection on every single call (several
+     * per guess), which dominated the cost of a guess on a slow host.
      */
-    public CountryBL getCountryById(int id) {
-        String query = "SELECT ID, CountryName, Code, FlagPath, Latitude, Longitude, neighborList, ISO3, Capital FROM Countries WHERE ID = ?";
+    private transient volatile List<CountryBL> allCountriesCache;
+    private transient volatile Map<String, CountryBL> byNameCache;
+    private transient volatile Map<Integer, CountryBL> byIdCache;
 
-        try (Connection conn = getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(query)) {
-
-            pstmt.setInt(1, id);
-
-            try (ResultSet rs = pstmt.executeQuery()) {
-                if (rs.next()) {
-                    String correctImagePath = fixImagePath(rs.getString("FlagPath"));
-                    return new CountryBL(
-                            rs.getString("CountryName"),
-                            rs.getInt("ID"),
-                            correctImagePath,
-                            rs.getDouble("Latitude"),
-                            rs.getDouble("Longitude"),
-                            rs.getString("neighborList"),
-                            rs.getString("ISO3"),
-                            rs.getString("Capital")
-                    );
-                }
+    private void ensureCaches() {
+        if (allCountriesCache != null) return;
+        synchronized (this) {
+            if (allCountriesCache != null) return;
+            Map<String, CountryBL> byName = new HashMap<>();
+            Map<Integer, CountryBL> byId = new HashMap<>();
+            for (CountryDAL d : cr.getAllCountries()) {
+                CountryBL c = new CountryBL(
+                        d.getCountryName(), d.getID(), fixImagePath(d.getFlagPath()),
+                        d.getLatitude(), d.getLongitude(), d.getNeighborsList(), d.getIso3(), d.getCapital());
+                byName.put(d.getCountryName().toLowerCase(), c);
+                byId.putIfAbsent(d.getID(), c);
             }
-
-        } catch (Exception e) {
-            e.printStackTrace();
+            byNameCache = byName;
+            byIdCache = byId;
+            allCountriesCache = cr.getAllCountries().stream().map(CountryBL::new).toList();
         }
-        return null;
     }
 
     /**
-     * Retrieves a country from the database using its name.
+     * Retrieves a country using its ID.
+     */
+    public CountryBL getCountryById(int id) {
+        ensureCaches();
+        return byIdCache.get(id);
+    }
+
+    /**
+     * Retrieves a country using its name (case-insensitive).
      */
     public CountryBL getCountryByName(String countryName) {
-        String countryCode = cr.getCodeByName(countryName);
-
-        String query = "SELECT ID, CountryName, Code, FlagPath, Latitude, Longitude, neighborList, ISO3, Capital FROM Countries WHERE Code = ?";
-
-        try (Connection conn = getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(query)) {
-
-            pstmt.setString(1, countryCode);
-            ResultSet rs = pstmt.executeQuery();
-
-            if (rs.next()) {
-                String correctImagePath = fixImagePath(rs.getString("FlagPath"));
-                return new CountryBL(
-                        rs.getString("CountryName"),
-                        rs.getInt("ID"),
-                        correctImagePath,
-                        rs.getDouble("Latitude"),
-                        rs.getDouble("Longitude"),
-                        rs.getString("neighborList"),
-                        rs.getString("ISO3"),
-                        rs.getString("Capital")
-                );
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
+        if (countryName == null) return null;
+        ensureCaches();
+        return byNameCache.get(countryName.toLowerCase());
     }
 
     public List<CountryBL> getAllCountries() {
-        List<CountryDAL> listDAL = cr.getAllCountries();
-        return listDAL.stream().map(CountryBL::new).toList();
+        ensureCaches();
+        return allCountriesCache;
     }
 
     public int getNumberOfAllCountries() {
-        List<CountryDAL> listDAL = cr.getAllCountries();
-        return listDAL.size();
-    }
-
-    private boolean CheckCountryNameExists(String countryName) {
-        String query = "SELECT 1 FROM Countries WHERE CountryName = ? LIMIT 1";
-        try (Connection conn = getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(query)) {
-            pstmt.setString(1, countryName);
-            ResultSet rs = pstmt.executeQuery();
-            return rs.next();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return false;
+        return cr.getAllCountries().size();
     }
 }

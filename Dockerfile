@@ -12,4 +12,11 @@ COPY --from=build /target/*.jar app.jar
 EXPOSE 8080
 
 # Run the application
-ENTRYPOINT ["java", "-jar", "app.jar"]
+# Tuned for Render's small, shared-CPU instances:
+#  - SerialGC: one lightweight collector instead of several GC threads fighting over a tiny CPU
+#  - MaxRAMPercentage=60: let the heap use ~60% of the container's RAM instead of Java's default 25%,
+#    leaving room for the per-flag pixel-grid cache (up to ~40MB once every flag has been used)
+#  - TieredStopAtLevel=1: only the fast JIT compiler, so the CPU isn't burned on heavy optimization
+#  - thymeleaf.cache=true: parse each page template once, not on every request (local dev keeps it off
+#    via application.properties, which this flag overrides only here)
+ENTRYPOINT ["java", "-XX:+UseSerialGC", "-XX:TieredStopAtLevel=1", "-Xss512k", "-XX:MaxRAMPercentage=60", "-Dspring.thymeleaf.cache=true", "-jar", "app.jar"]
