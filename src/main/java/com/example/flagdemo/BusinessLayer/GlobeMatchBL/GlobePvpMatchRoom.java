@@ -8,8 +8,8 @@ import com.example.flagdemo.DataAccessLayer.CountryController;
  * A single real 1v1 "vs Friend" Globe game room, kept alive in memory by
  * {@link GlobeRoomRegistryBL} for as long as it's active - mirrors
  * {@link com.example.flagdemo.BusinessLayer.MatchBL.PvpMatchRoom} exactly, just wired to the
- * Globe engines instead of the Flaggle ones. Kept as a separate parallel class (rather than
- * generalizing the existing Flaggle room/registry) so the working Flaggle PvP code is never
+ * Globe engines instead of the Flags ones. Kept as a separate parallel class (rather than
+ * generalizing the existing Flags room/registry) so the working Flags PvP code is never
  * touched.
  */
 public class GlobePvpMatchRoom implements java.io.Serializable {

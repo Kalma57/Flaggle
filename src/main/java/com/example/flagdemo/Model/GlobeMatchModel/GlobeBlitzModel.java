@@ -12,7 +12,7 @@ import java.util.List;
 /**
  * Model layer for the Blitz (1/2-minute time-attack) 1v1 Globe mode. Wraps the Service
  * layer and holds whatever extra state the ViewModel/View needs (here: the country list
- * for autocomplete) - mirrors {@link com.example.flagdemo.Model.MatchModel.FlaggleBlitzModel}
+ * for autocomplete) - mirrors {@link com.example.flagdemo.Model.MatchModel.FlagsBlitzModel}
  * exactly, minus the difficulty level (Globe has none).
  */
 public class GlobeBlitzModel implements java.io.Serializable {

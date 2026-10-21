@@ -9,7 +9,7 @@ import com.example.flagdemo.DataAccessLayer.CountryController;
  * {@link CapitalGlobeRoomRegistryBL} for as long as it's active - mirrors
  * {@link com.example.flagdemo.BusinessLayer.GlobeMatchBL.GlobePvpMatchRoom} exactly, just wired
  * to the Capital Globe PvP engines instead of the plain Globe ones. Kept as a fully separate
- * parallel class (rather than generalizing the existing Globe/Flaggle room classes) so none of
+ * parallel class (rather than generalizing the existing Globe/Flags room classes) so none of
  * the working PvP code for those games is ever touched.
  */
 public class CapitalGlobePvpMatchRoom implements java.io.Serializable {

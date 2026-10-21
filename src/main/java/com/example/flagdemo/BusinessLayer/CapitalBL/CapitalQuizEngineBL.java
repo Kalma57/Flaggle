@@ -14,7 +14,7 @@ import java.util.Set;
 /**
  * Core engine for a 1v1 "race to N correct" capital-city quiz vs an AI opponent.
  *
- * Unlike Flaggle/Globe's Best-of-N (where a round is won by whichever side answers first),
+ * Unlike Flags/Globe's Best-of-N (where a round is won by whichever side answers first),
  * here BOTH sides always answer every round independently: a correct answer is +1, a wrong
  * answer is -1 (scores can go negative), and the first side whose net score reaches
  * {@link #pointsToWin} wins the match. The AI's "thinking" delay ({@link CapitalAiOpponentPlan})
@@ -24,7 +24,7 @@ import java.util.Set;
  *
  * One engine serves both quiz directions ({@link CapitalQuizMode}) since they're the same
  * state machine with the prompt/options swapped - avoids maintaining two near-identical
- * copies of this class the way Flaggle/Globe's otherwise-unrelated engines are kept separate.
+ * copies of this class the way Flags/Globe's otherwise-unrelated engines are kept separate.
  *
  * Catch-up: a match can in principle run long if the human keeps missing questions (there's no
  * cap on rounds). Rather than secretly buffing the AI to force an ending, once the round count

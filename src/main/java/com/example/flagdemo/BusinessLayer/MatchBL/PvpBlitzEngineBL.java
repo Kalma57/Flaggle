@@ -1,8 +1,8 @@
 package com.example.flagdemo.BusinessLayer.MatchBL;
 
 import com.example.flagdemo.BusinessLayer.CountryBL;
-import com.example.flagdemo.BusinessLayer.FlaggleBL.DifficultyLevel;
-import com.example.flagdemo.BusinessLayer.FlaggleBL.GuessResultBL;
+import com.example.flagdemo.BusinessLayer.FlagsBL.DifficultyLevel;
+import com.example.flagdemo.BusinessLayer.FlagsBL.GuessResultBL;
 import com.example.flagdemo.DataAccessLayer.CountryController;
 
 import java.awt.image.BufferedImage;
@@ -13,7 +13,7 @@ import java.util.List;
 /**
  * Core engine for a real 1v1 "vs Friend" Blitz match: a fixed-length (1 or 2 minute)
  * time-attack race between TWO real players, modeled closely on
- * {@link FlaggleBlitzEngineBL} but symmetric - there is no AI timeline, both slots work
+ * {@link FlagsBlitzEngineBL} but symmetric - there is no AI timeline, both slots work
  * through the exact SAME shuffled sequence of flags, each at their own pace, purely
  * driven by {@link #submitGuess(int, String)} / {@link #giveUpFlag(int)} calls made by
  * the two players' browsers.

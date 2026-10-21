@@ -12,7 +12,7 @@ import java.util.List;
 /**
  * Model layer for the 1v1 Globe Match mode. Wraps the Service layer and holds whatever
  * extra state the ViewModel/View needs (here: the country list for autocomplete) -
- * mirrors {@link com.example.flagdemo.Model.MatchModel.FlaggleMatchModel} exactly, minus
+ * mirrors {@link com.example.flagdemo.Model.MatchModel.FlagsMatchModel} exactly, minus
  * the difficulty level (Globe has none) and without a checked SQLException, since neither
  * {@link GlobeMatchEngineBL} nor the {@link CountryController} calls it relies on throw one.
  */

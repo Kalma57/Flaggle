@@ -1,6 +1,6 @@
 package com.example.flagdemo.ViewModel.MatchVM;
 
-import com.example.flagdemo.BusinessLayer.FlaggleBL.GuessResultBL;
+import com.example.flagdemo.BusinessLayer.FlagsBL.GuessResultBL;
 import com.example.flagdemo.BusinessLayer.MatchBL.PvpMatchEngineBL;
 import com.example.flagdemo.BusinessLayer.MatchBL.PvpMatchRoom;
 
@@ -9,9 +9,9 @@ import java.sql.SQLException;
 /**
  * ViewModel for one player's perspective on a live "vs Friend" PvP match room.
  *
- * Bridges the View (FlaggleMultiplayerController + Thymeleaf/JS) with the shared
+ * Bridges the View (FlagsMultiplayerController + Thymeleaf/JS) with the shared
  * {@link PvpMatchRoom}/{@link PvpMatchEngineBL} that both players' browsers act on
- * concurrently, the same way {@link FlaggleMatchViewModel} bridges the vs-Computer
+ * concurrently, the same way {@link FlagsMatchViewModel} bridges the vs-Computer
  * controller to its engine - just parameterized by which of the two real players
  * ("slots") this particular request/browser belongs to.
  */

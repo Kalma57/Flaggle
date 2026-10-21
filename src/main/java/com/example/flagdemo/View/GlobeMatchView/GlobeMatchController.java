@@ -19,7 +19,7 @@ import java.util.*;
  * View layer for the 1v1 Globe Match mode.
  *
  * "Best of N" (3, 5, or 7) vs an AI opponent, guessing countries by location instead of by
- * flag - mirrors {@link com.example.flagdemo.View.MatchView.FlaggleMatchController} exactly,
+ * flag - mirrors {@link com.example.flagdemo.View.MatchView.FlagsMatchController} exactly,
  * substituting the flag-image-based JSON fields (base64 PNGs) for Globe's location-based
  * ones (colorHex/distance/proximityLevel/lat-lon), dropping the difficulty level (Globe has
  * none).

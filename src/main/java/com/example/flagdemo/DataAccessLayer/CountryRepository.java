@@ -35,11 +35,11 @@ public class CountryRepository implements java.io.Serializable {
      * Loads the DB from the classpath (inside the JAR) and copies it to a temp file.
      */
     private Connection getConnection() throws Exception {
-        InputStream is = getClass().getResourceAsStream("/static/DB/Flaggle.db");
+        InputStream is = getClass().getResourceAsStream("/static/DB/MundoFlag.db");
         if (is == null) {
-            throw new Exception("Database not found in classpath at /static/DB/Flaggle.db");
+            throw new Exception("Database not found in classpath at /static/DB/MundoFlag.db");
         }
-        File tempDb = File.createTempFile("Flaggle", ".db");
+        File tempDb = File.createTempFile("Flags", ".db");
         tempDb.deleteOnExit();
         try (FileOutputStream fos = new FileOutputStream(tempDb)) {
             is.transferTo(fos);

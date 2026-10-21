@@ -1,8 +1,8 @@
 package com.example.flagdemo.BusinessLayer.MatchBL;
 
 import com.example.flagdemo.BusinessLayer.CountryBL;
-import com.example.flagdemo.BusinessLayer.FlaggleBL.DifficultyLevel;
-import com.example.flagdemo.BusinessLayer.FlaggleBL.GuessResultBL;
+import com.example.flagdemo.BusinessLayer.FlagsBL.DifficultyLevel;
+import com.example.flagdemo.BusinessLayer.FlagsBL.GuessResultBL;
 import com.example.flagdemo.DataAccessLayer.CountryController;
 
 import java.awt.image.BufferedImage;
@@ -134,8 +134,7 @@ public class AiOpponentPlanFactory {
         } else {
             int runningMax = 0;
             for (CountryBL candidate : candidates) {
-                GuessResultBL result = new GuessResultBL(candidate, target, DifficultyLevel.HARD);
-                int percent = GuessResultBL.calculateMatchPercentage(result.getFlagDifferences(), false);
+                int percent = GuessResultBL.hardMatchPercent(candidate, target);
                 runningMax = Math.max(runningMax, percent);
                 percents.add(runningMax);
             }
@@ -146,8 +145,7 @@ public class AiOpponentPlanFactory {
     }
 
     private static int hardMatchPercent(CountryBL guessed, CountryBL target) {
-        GuessResultBL result = new GuessResultBL(guessed, target, DifficultyLevel.HARD);
-        return GuessResultBL.calculateMatchPercentage(result.getFlagDifferences(), false);
+        return GuessResultBL.hardMatchPercent(guessed, target);
     }
 
     private record ScoredCandidate(CountryBL country, int percent) {}

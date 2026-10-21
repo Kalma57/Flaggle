@@ -18,7 +18,7 @@ import java.util.Set;
 
 /**
  * Core engine for a 1v1 Globe Match ("Best of N" format — N is 3, 5, or 7), vs an AI
- * opponent — mirrors {@link com.example.flagdemo.BusinessLayer.MatchBL.FlaggleMatchEngineBL}
+ * opponent — mirrors {@link com.example.flagdemo.BusinessLayer.MatchBL.FlagsMatchEngineBL}
  * exactly, just guessing countries by location (via {@link GuessResultGlobeBL}) instead of
  * by flag, and exposing the opponent's live progress as a best-{@link ProximityLevel}
  * reached so far (a colored badge) rather than a match percentage.

@@ -25,7 +25,7 @@ import java.util.*;
 /**
  * View layer for the real 1v1 "vs Friend" Globe Match modes ("Best of N" and Blitz).
  *
- * Mirrors {@link com.example.flagdemo.View.MatchView.FlaggleMultiplayerController} exactly:
+ * Mirrors {@link com.example.flagdemo.View.MatchView.FlagsMultiplayerController} exactly:
  * TWO real browsers act on the SAME shared {@link GlobePvpMatchRoom} held by
  * {@link GlobeRoomRegistryBL} - each browser only stores its own opaque player token in its
  * own session, never the match state itself. A room hosts EITHER a "Best of N" match or a

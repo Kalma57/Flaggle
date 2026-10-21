@@ -11,7 +11,7 @@ import com.example.flagdemo.BusinessLayer.GlobeMatchBL.PvpGlobeMatchEngineBL;
  * {@link GlobePvpMatchRoom}/{@link PvpGlobeMatchEngineBL} that both players' browsers act
  * on concurrently - mirrors {@link com.example.flagdemo.ViewModel.MatchVM.PvpMatchViewModel}
  * exactly, just parameterized by which of the two real players ("slots") this particular
- * request/browser belongs to. Unlike its Flaggle counterpart, {@link #advanceToNextRound()}
+ * request/browser belongs to. Unlike its Flags counterpart, {@link #advanceToNextRound()}
  * declares no checked exception, since neither {@link PvpGlobeMatchEngineBL} nor the
  * underlying {@link com.example.flagdemo.DataAccessLayer.CountryController} calls it relies
  * on throw one.

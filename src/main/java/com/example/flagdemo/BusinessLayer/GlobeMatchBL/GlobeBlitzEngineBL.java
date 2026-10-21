@@ -15,7 +15,7 @@ import java.util.List;
 /**
  * Core engine for the "Blitz" Globe mode: a fixed-length (1 or 2 minute) time-attack race
  * against an AI opponent — mirrors
- * {@link com.example.flagdemo.BusinessLayer.MatchBL.FlaggleBlitzEngineBL} exactly, just
+ * {@link com.example.flagdemo.BusinessLayer.MatchBL.FlagsBlitzEngineBL} exactly, just
  * guessing countries by location instead of by flag, and exposing the AI's live progress as
  * a best-{@link ProximityLevel} reached on its current country rather than a match
  * percentage. Hints are not available in this mode.

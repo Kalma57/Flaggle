@@ -10,11 +10,11 @@ import com.example.flagdemo.BusinessLayer.DailyQuizBL.DailyQuizPlayedGuardBL;
 import com.example.flagdemo.BusinessLayer.DailyQuizBL.DailyQuizSelection;
 import com.example.flagdemo.BusinessLayer.DailyQuizBL.DailyQuizSelectorBL;
 import com.example.flagdemo.BusinessLayer.DailyQuizBL.DailyQuizStage2EngineBL;
-import com.example.flagdemo.BusinessLayer.FlaggleBL.DifficultyLevel;
+import com.example.flagdemo.BusinessLayer.FlagsBL.DifficultyLevel;
 import com.example.flagdemo.BusinessLayer.GlobeBL.GuessResultGlobeBL;
-import com.example.flagdemo.BusinessLayer.FlaggleBL.GuessResultBL;
+import com.example.flagdemo.BusinessLayer.FlagsBL.GuessResultBL;
 import com.example.flagdemo.DataAccessLayer.CountryController;
-import com.example.flagdemo.ViewModel.FlaggleVM.FlaggleViewModel;
+import com.example.flagdemo.ViewModel.FlagsVM.FlagsViewModel;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
@@ -31,7 +31,7 @@ import java.util.Map;
 /**
  * View layer for the Daily Quiz. The whole play-through lives on one page
  * (see DailyQuizPlayScreen.html) that reveals each stage in place rather than
- * navigating - stage 1 reuses the Flaggle guess/diff mechanic pinned to
+ * navigating - stage 1 reuses the Flags guess/diff mechanic pinned to
  * today's country (see DailyQuizSelectorBL), stage 2 shows that country
  * highlighted on the globe and has the player name every neighbor (see
  * DailyQuizStage2EngineBL), stage 3 is a 4-option capital pick reusing
@@ -89,7 +89,7 @@ public class DailyQuizController {
             return "DailyQuizScreens/DailyQuizAlreadyPlayedScreen";
         }
 
-        FlaggleViewModel viewModel = (FlaggleViewModel) session.getAttribute("dailyQuizFlaggleVM_" + gameId);
+        FlagsViewModel viewModel = (FlagsViewModel) session.getAttribute("dailyQuizFlagsVM_" + gameId);
         boolean resuming = viewModel != null;
 
         if (!resuming) {
@@ -98,10 +98,10 @@ public class DailyQuizController {
                 return "DailyQuizScreens/DailyQuizAlreadyPlayedScreen";
             }
 
-            viewModel = new FlaggleViewModel(countryController);
+            viewModel = new FlagsViewModel(countryController);
             viewModel.StartNewGame(DifficultyLevel.HARD);
             viewModel.setTargetCountry(selection.getCountry());
-            session.setAttribute("dailyQuizFlaggleVM_" + gameId, viewModel);
+            session.setAttribute("dailyQuizFlagsVM_" + gameId, viewModel);
             session.setAttribute("dailyQuizSelection_" + gameId, selection);
 
             // Marked the instant today's attempt begins, not once some later stage
@@ -120,7 +120,7 @@ public class DailyQuizController {
     /**
      * Everything the client needs to jump straight back to wherever this
      * session's attempt left off, fetched on load when start() said resuming=true.
-     * Stage 1's guess history replays exactly (FlaggleViewModel already keeps it
+     * Stage 1's guess history replays exactly (FlagsViewModel already keeps it
      * in order); stage 2 can only report which neighbors are found so far, not
      * the original click-by-click order, since the engine only tracks a Set -
      * good enough to resume progress correctly, just not a frame-perfect replay.
@@ -131,7 +131,7 @@ public class DailyQuizController {
     @GetMapping("/resume")
     @ResponseBody
     public Map<String, Object> resume(@RequestParam("gameId") String gameId, HttpSession session) {
-        FlaggleViewModel viewModel = (FlaggleViewModel) session.getAttribute("dailyQuizFlaggleVM_" + gameId);
+        FlagsViewModel viewModel = (FlagsViewModel) session.getAttribute("dailyQuizFlagsVM_" + gameId);
         Map<String, Object> result = new LinkedHashMap<>();
         if (viewModel == null) {
             result.put("resumeStage", 0);
@@ -211,7 +211,7 @@ public class DailyQuizController {
                                       @RequestParam("gameId") String gameId,
                                       HttpSession session) throws SQLException {
 
-        FlaggleViewModel viewModel = (FlaggleViewModel) session.getAttribute("dailyQuizFlaggleVM_" + gameId);
+        FlagsViewModel viewModel = (FlagsViewModel) session.getAttribute("dailyQuizFlagsVM_" + gameId);
         viewModel.Guess(countryName);
 
         List<GuessResultBL> guesses = viewModel.getGuesses();
@@ -238,7 +238,7 @@ public class DailyQuizController {
     public Map<String, Object> giveUp(@RequestParam("gameId") String gameId,
                                        HttpSession session) {
 
-        FlaggleViewModel viewModel = (FlaggleViewModel) session.getAttribute("dailyQuizFlaggleVM_" + gameId);
+        FlagsViewModel viewModel = (FlagsViewModel) session.getAttribute("dailyQuizFlagsVM_" + gameId);
         CountryBL target = viewModel.getTargetCountry();
 
         Map<String, Object> result = new LinkedHashMap<>();

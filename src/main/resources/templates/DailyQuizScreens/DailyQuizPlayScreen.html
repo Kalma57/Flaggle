@@ -262,7 +262,11 @@
     <div class="stage-label">STAGE 1 OF 4 — GUESS THE COUNTRY</div>
 
     <form id="stage1Form" class="guess-form" onsubmit="return false;">
-        <input type="text" id="stage1Input" placeholder="Enter country name" autofocus autocomplete="off" list="countries">
+        <!-- No autofocus on purpose: the browser's native country-suggestions
+             dropdown (the datalist) is drawn above the whole page, so an
+             autofocused input would show it on top of the loading screen.
+             startDailyQuiz() focuses this field once loading is finished. -->
+        <input type="text" id="stage1Input" placeholder="Enter country name" autocomplete="off" list="countries">
         <button type="submit" id="stage1GuessBtn" class="guess-btn">GUESS</button>
     </form>
     <button id="stage1GiveUpBtn" class="giveup-btn">GIVE UP</button>
@@ -274,7 +278,7 @@
     <option th:each="c : ${viewModel.allCountries}" th:value="${c.name}"/>
 </datalist>
 
-<!-- ===================== REVEAL (Flaggle result) ===================== -->
+<!-- ===================== REVEAL (Flags result) ===================== -->
 <div class="reveal-card" id="revealCard" hidden>
     <div class="reveal-result" id="revealResult"></div>
     <div class="reveal-country-label">The country is</div>
