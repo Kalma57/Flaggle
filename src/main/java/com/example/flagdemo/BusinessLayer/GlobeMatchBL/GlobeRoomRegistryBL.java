@@ -12,8 +12,8 @@ import java.util.concurrent.ConcurrentHashMap;
  * Spring-managed singleton registry of every live {@link GlobePvpMatchRoom}, keyed by a
  * short human-typeable room code - mirrors
  * {@link com.example.flagdemo.BusinessLayer.MatchBL.GameRoomRegistryBL} exactly, just kept
- * as a separate registry/map so Globe rooms never collide with Flaggle rooms and the
- * working Flaggle registry is never touched.
+ * as a separate registry/map so Globe rooms never collide with Flags rooms and the
+ * working Flags registry is never touched.
  */
 @Service
 public class GlobeRoomRegistryBL {

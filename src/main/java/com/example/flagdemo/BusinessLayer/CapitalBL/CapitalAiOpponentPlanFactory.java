@@ -6,7 +6,7 @@ import java.util.Random;
 
 /**
  * Builds the AI's plan for one quiz round, tiered by {@link AiSkillLevel} - reuses the same
- * skill-level enum as Flaggle/Globe's match modes rather than inventing a parallel one.
+ * skill-level enum as Flags/Globe's match modes rather than inventing a parallel one.
  *
  * A harder AI answers both faster and more accurately - a quiz bot doesn't need the
  * candidate-sampling machinery the flag/globe factories use (there's no "closer guess" to

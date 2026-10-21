@@ -13,7 +13,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * short human-typeable room code - mirrors
  * {@link com.example.flagdemo.BusinessLayer.GlobeMatchBL.GlobeRoomRegistryBL} exactly, just
  * kept as a separate registry/map so Capital Globe rooms never collide with plain Globe or
- * Flaggle rooms and none of those working registries are ever touched.
+ * Flags rooms and none of those working registries are ever touched.
  */
 @Service
 public class CapitalGlobeRoomRegistryBL {

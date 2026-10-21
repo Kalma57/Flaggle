@@ -20,7 +20,7 @@ import java.util.*;
  *
  * Both the human and the AI race through the exact same shuffled sequence of countries;
  * whoever has correctly guessed more when the clock runs out wins - mirrors
- * {@link com.example.flagdemo.View.MatchView.FlaggleBlitzController} exactly, substituting
+ * {@link com.example.flagdemo.View.MatchView.FlagsBlitzController} exactly, substituting
  * the flag-image-based JSON fields for Globe's location-based ones.
  *
  * Uses the same per-window session-isolation pattern as the "Best of N" match mode (a

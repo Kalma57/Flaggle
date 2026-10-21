@@ -9,7 +9,7 @@ import com.example.flagdemo.DataAccessLayer.CountryController;
  * Service layer for the 1v1 Globe Match mode.
  *
  * Acts as a bridge between the ViewModel and the GlobeMatchEngineBL, mirroring the
- * existing FlaggleMatchService pattern.
+ * existing FlagsMatchService pattern.
  */
 public class GlobeMatchService implements java.io.Serializable {
 

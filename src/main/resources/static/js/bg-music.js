@@ -4,8 +4,8 @@
 (function () {
     const TRACKS = ['/audio/track1.mp3', '/audio/track2.mp3'];
     const VOLUME = 0.35;
-    const STATE_KEY = 'flaggle.music.state';   // {track, time} - per tab, cleared when the tab closes
-    const MUTED_KEY = 'flaggle.music.muted';   // "1" / "0" - remembered across visits
+    const STATE_KEY = 'mundoflag.music.state';   // {track, time} - per tab, cleared when the tab closes
+    const MUTED_KEY = 'mundoflag.music.muted';   // "1" / "0" - remembered across visits
 
     function read(storage, key) { try { return storage.getItem(key); } catch (e) { return null; } }
     function write(storage, key, value) { try { storage.setItem(key, value); } catch (e) { /* storage blocked */ } }

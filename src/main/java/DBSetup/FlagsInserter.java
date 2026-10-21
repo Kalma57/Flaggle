@@ -50,7 +50,7 @@ public class FlagsInserter {
     public static void main(String[] args) {
         // Absolute relative paths - based on the project root folder
         String baseDir = "src/main/resources/static/DB";
-        String dbPath = baseDir + "/Flaggle.db";
+        String dbPath = baseDir + "/MundoFlag.db";
         String flagsFolder = baseDir + "/FlagsImages";
         String longLatFilePath = baseDir + "/countriesBorders/CountriesLongLat.txt";
         String neighborsFilePath = baseDir + "/countriesBorders/CountriesNeighbors.txt";
@@ -236,7 +236,7 @@ public class FlagsInserter {
 
             System.out.println("Capitals update complete!");
 
-            String targetPath = "target/classes/static/DB/Flaggle.db";
+            String targetPath = "target/classes/static/DB/MundoFlag.db";
             File originalDb = new File(dbPath);
             File targetDb = new File(targetPath);
 

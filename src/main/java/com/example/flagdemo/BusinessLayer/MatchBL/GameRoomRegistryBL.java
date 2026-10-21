@@ -1,6 +1,6 @@
 package com.example.flagdemo.BusinessLayer.MatchBL;
 
-import com.example.flagdemo.BusinessLayer.FlaggleBL.DifficultyLevel;
+import com.example.flagdemo.BusinessLayer.FlagsBL.DifficultyLevel;
 import com.example.flagdemo.DataAccessLayer.CountryController;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;

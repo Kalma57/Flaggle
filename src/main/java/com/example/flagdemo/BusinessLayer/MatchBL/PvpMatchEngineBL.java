@@ -1,8 +1,8 @@
 package com.example.flagdemo.BusinessLayer.MatchBL;
 
 import com.example.flagdemo.BusinessLayer.CountryBL;
-import com.example.flagdemo.BusinessLayer.FlaggleBL.DifficultyLevel;
-import com.example.flagdemo.BusinessLayer.FlaggleBL.GuessResultBL;
+import com.example.flagdemo.BusinessLayer.FlagsBL.DifficultyLevel;
+import com.example.flagdemo.BusinessLayer.FlagsBL.GuessResultBL;
 import com.example.flagdemo.DataAccessLayer.CountryController;
 
 import java.awt.image.BufferedImage;
@@ -13,7 +13,7 @@ import java.util.Random;
 
 /**
  * Core engine for a real 1v1 "vs Friend" Match ("Best of N" format - N is 3, 5, or 7),
- * modeled closely on {@link FlaggleMatchEngineBL} but symmetric: BOTH sides are real
+ * modeled closely on {@link FlagsMatchEngineBL} but symmetric: BOTH sides are real
  * players (slot 1 and slot 2), so there is no precomputed AI timeline - every attempt,
  * reveal, and round outcome comes from an actual {@link #submitGuess(int, String)} call
  * made by one of the two players' browsers.
@@ -147,7 +147,7 @@ public class PvpMatchEngineBL implements java.io.Serializable {
 
     private CountryBL selectRandomCountry() throws SQLException {
         // Pick directly from the loaded country list rather than a random ID in
-        // [1, count] - see FlaggleMatchEngineBL for why (DB row IDs aren't contiguous).
+        // [1, count] - see FlagsMatchEngineBL for why (DB row IDs aren't contiguous).
         List<CountryBL> allCountries = cc.getAllCountries();
         Random rand = new Random();
         return allCountries.get(rand.nextInt(allCountries.size()));

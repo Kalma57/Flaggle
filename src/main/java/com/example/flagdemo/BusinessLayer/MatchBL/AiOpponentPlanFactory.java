@@ -1,8 +1,8 @@
 package com.example.flagdemo.BusinessLayer.MatchBL;
 
 import com.example.flagdemo.BusinessLayer.CountryBL;
-import com.example.flagdemo.BusinessLayer.FlaggleBL.DifficultyLevel;
-import com.example.flagdemo.BusinessLayer.FlaggleBL.GuessResultBL;
+import com.example.flagdemo.BusinessLayer.FlagsBL.DifficultyLevel;
+import com.example.flagdemo.BusinessLayer.FlagsBL.GuessResultBL;
 import com.example.flagdemo.DataAccessLayer.CountryController;
 
 import java.awt.image.BufferedImage;

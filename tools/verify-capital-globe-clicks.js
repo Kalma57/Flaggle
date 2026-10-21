@@ -16,7 +16,7 @@ const { execFileSync } = require('child_process');
 const vm = require('vm');
 
 const ROOT = path.resolve(__dirname, '..');
-const DB_PATH = path.join(ROOT, 'src/main/resources/static/DB/Flaggle.db');
+const DB_PATH = path.join(ROOT, 'src/main/resources/static/DB/MundoFlag.db');
 const GLOBE_JS_PATH = path.join(ROOT, 'src/main/resources/static/js/globe.js');
 const TOPOJSON_PATH = path.join(ROOT, 'src/main/resources/static/assets/countries-50m.json');
 const TOPOJSON_CLIENT_PATH = path.join(ROOT, 'src/main/resources/static/js/topojson-client.min.js');

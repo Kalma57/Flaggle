@@ -9,7 +9,7 @@ import com.example.flagdemo.DataAccessLayer.CountryController;
  * Service layer for the Blitz (1/2-minute time-attack) 1v1 Globe mode.
  *
  * Acts as a bridge between the ViewModel and the GlobeBlitzEngineBL, mirroring the
- * existing FlaggleBlitzService pattern.
+ * existing FlagsBlitzService pattern.
  */
 public class GlobeBlitzService implements java.io.Serializable {
 

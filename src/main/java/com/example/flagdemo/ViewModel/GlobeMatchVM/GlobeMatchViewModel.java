@@ -13,7 +13,7 @@ import java.util.List;
  * ViewModel for the 1v1 Globe Match mode ("Best of N", vs AI opponent).
  *
  * Bridges the View (GlobeMatchController + Thymeleaf/JS) with the Model layer, exposing
- * only what the UI needs while hiding the engine internals - mirrors FlaggleMatchViewModel.
+ * only what the UI needs while hiding the engine internals - mirrors FlagsMatchViewModel.
  */
 public class GlobeMatchViewModel implements java.io.Serializable {
 

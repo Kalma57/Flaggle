@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Flags - Game Over</title>
+
+  <!-- Custom font pairing: Baloo 2 for bold display titles, Nunito for everything else -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+
+    /* Reset browser styles */
+    *{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:'Nunito', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    h1, h3{
+    font-family:'Baloo 2', 'Nunito', sans-serif;
+    }
+
+    /* Animated gradient background */
+    body{
+
+    min-height:100vh;
+
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    gap:30px;
+    padding:40px 20px;
+
+    background:linear-gradient(-45deg,#e8f7ee,#f9f9f9,#e1f5e6,#f0fff3);
+    background-size:400% 400%;
+
+    animation:gradientMove 12s ease infinite;
+
+    overflow-x:hidden;
+
+    }
+
+    /* Background animation */
+    @keyframes gradientMove{
+
+    0%{background-position:0% 50%;}
+    50%{background-position:100% 50%;}
+    100%{background-position:0% 50%;}
+
+    }
+
+    /* Floating glow decorations — fixed so they stay put even if the page scrolls */
+    .glow{
+
+    position:fixed;
+
+    width:350px;
+    height:350px;
+
+    background:#4CAF50;
+
+    opacity:0.15;
+
+    filter:blur(120px);
+
+    border-radius:50%;
+
+    animation:float 8s infinite alternate ease-in-out;
+
+    }
+
+    .glow1{
+    top:5%;
+    left:10%;
+    }
+
+    .glow2{
+    bottom:5%;
+    right:10%;
+    }
+
+    /* Floating movement */
+    @keyframes float{
+
+    from{
+    transform:translateY(0px);
+    }
+
+    to{
+    transform:translateY(-60px);
+    }
+
+    }
+
+    /* Main glass container */
+    .container{
+
+    background:rgba(255,255,255,0.85);
+
+    backdrop-filter:blur(12px);
+
+    padding:50px 70px;
+
+    border-radius:25px;
+
+    text-align:center;
+
+    box-shadow:0 25px 60px rgba(0,0,0,0.25);
+
+    max-width:520px;
+
+    animation:fadeIn 1s ease;
+
+    }
+
+    /* Entrance animation */
+    @keyframes fadeIn{
+
+    from{
+    transform:translateY(40px);
+    opacity:0;
+    }
+
+    to{
+    transform:translateY(0);
+    opacity:1;
+    }
+
+    }
+
+    /* Title styling */
+    h1{
+
+    font-size:54px;
+
+    margin-bottom:20px;
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    gap:10px;
+
+    color:#4CAF50;
+
+    text-shadow:0 6px 18px rgba(76,175,80,0.4);
+
+    }
+
+    /* Emoji size */
+    .emoji{
+
+    font-size:54px;
+
+    animation:bounce 1.5s infinite;
+
+    }
+
+    /* Emoji bounce animation */
+    @keyframes bounce{
+
+    0%,100%{
+    transform:translateY(0);
+    }
+
+    50%{
+    transform:translateY(-8px);
+    }
+
+    }
+
+    /* Text styling */
+    p{
+
+    font-size:23px;
+
+    margin:10px 0;
+
+    color:#333;
+
+    }
+
+    /* Flag image styling */
+    img{
+
+    margin-top:15px;
+
+    width:300px;
+    height:225px;
+
+    border-radius:14px;
+
+    object-fit:cover;
+
+    box-shadow:0 10px 25px rgba(0,0,0,0.25);
+
+    animation:flagReveal 1s ease;
+
+    }
+
+    /* Flag reveal animation */
+    @keyframes flagReveal{
+
+    from{
+    transform:scale(0.8);
+    opacity:0;
+    }
+
+    to{
+    transform:scale(1);
+    opacity:1;
+    }
+
+    }
+
+    /* Buttons container */
+    .buttons-container{
+
+    margin-top:25px;
+
+    display:flex;
+    gap:15px;
+
+    justify-content:center;
+
+    flex-wrap:wrap;
+
+    }
+
+    /* Base button style */
+    button{
+
+    padding:12px 30px;
+
+    font-size:21px;
+
+    border-radius:10px;
+
+    cursor:pointer;
+
+    border:none;
+
+    transition:0.3s;
+
+    }
+
+    /* Play again button */
+    button[type="submit"]{
+
+    background:linear-gradient(135deg,#4CAF50,#3f9142);
+
+    color:white;
+
+    box-shadow:0 8px 20px rgba(0,0,0,0.25);
+
+    }
+
+    /* Play again hover */
+    button[type="submit"]:hover{
+
+    transform:translateY(-3px) scale(1.05);
+
+    box-shadow:0 12px 25px rgba(0,0,0,0.35);
+
+    }
+
+    /* Home button */
+    .home-btn{
+
+    background:white;
+
+    color:#4CAF50;
+
+    border:2px solid #4CAF50;
+
+    }
+
+    /* Home button hover */
+    .home-btn:hover{
+
+    background:#e8f7ee;
+
+    }
+
+    /* Guess history — scrollable list of every guess made during the game */
+    .guess-history{
+
+    width:100%;
+    max-width:900px;
+
+    z-index:1;
+
+    }
+
+    .guess-history h3{
+
+    text-align:center;
+    color:#4CAF50;
+    margin-bottom:15px;
+    font-size:27px;
+
+    }
+
+    .guesses-scroll{
+
+    display:flex;
+    flex-direction:column;
+    gap:20px;
+
+    max-height:420px;
+    overflow-y:auto;
+
+    padding:10px;
+
+    }
+
+    .guess-history-row{
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    gap:30px;
+
+    padding:15px;
+
+    background:rgba(255,255,255,0.8);
+    backdrop-filter:blur(8px);
+
+    border-radius:16px;
+
+    box-shadow:0 8px 20px rgba(0,0,0,0.12);
+
+    }
+
+    .guess-history-flag{
+
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+
+    }
+
+    .guess-history-label{
+
+    margin-bottom:6px;
+    font-size:17px;
+    font-weight:bold;
+    color:#2f7a34;
+
+    }
+
+    .guess-history-flag img{
+
+    width:160px;
+    height:120px;
+
+    border-radius:10px;
+
+    box-shadow:0 6px 16px rgba(0,0,0,0.15);
+
+    object-fit:cover;
+
+    }
+
+  </style>
+</head>
+
+<body>
+
+<!-- Decorative background glow -->
+<div class="glow glow1"></div>
+<div class="glow glow2"></div>
+
+<div class="container">
+
+  <h1>
+
+    <span th:text="${success} ? 'Congratulations!' : 'Game Over'">Game Over</span>
+
+    <span class="emoji"
+          th:text="${success} ? '🎉🎉🎉' : '😔😔😔'">
+🎉🎉🎉
+</span>
+
+  </h1>
+
+  <p>Attempts: <span th:text="${attempts}">0</span></p>
+
+  <p>The country was:
+    <strong th:text="${countryName}">Country Name</strong>
+  </p>
+
+  <p>Difficulty:
+    <strong th:text="${difficulty.name() eq 'EASY'} ? '🟢 Easy' : '🔴 Hard'">Hard</strong>
+  </p>
+
+  <img th:src="'data:image/png;base64,' + ${countryImage}" alt="Country Flag">
+
+  <div class="buttons-container">
+
+    <!-- Play Again replays the same difficulty this round was locked to;
+         changing difficulty requires going back to the Flags lobby instead -->
+    <form th:action="@{/Flags/start}" method="get">
+      <input type="hidden" name="difficulty" th:value="${difficulty.name()}">
+      <button type="submit" autofocus>Play Again</button>
+    </form>
+
+    <button type="button"
+            class="home-btn"
+            onclick="window.location.href='/'">
+      Return to home page
+    </button>
+
+  </div>
+
+</div>
+
+<!-- Guess history — every guess made this game, scrollable so long games stay readable -->
+<div class="guess-history" th:if="${guesses}">
+  <h3>Your Guesses</h3>
+  <div class="guesses-scroll">
+    <div th:each="guess, iterStat : ${guesses}" class="guess-history-row">
+
+      <div class="guess-history-flag">
+        <div class="guess-history-label">
+          guess [[${iterStat.index + 1}]]: [[${guess.guessedName}]]
+        </div>
+        <img th:src="'data:image/png;base64,' + ${guess.guessedImage}" alt="Guessed Flag">
+      </div>
+
+      <div class="guess-history-flag">
+        <div class="guess-history-label">result</div>
+        <img th:src="'data:image/png;base64,' + ${guess.resultImage}" alt="Result Flag">
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Confetti library -->
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+<script>
+
+  /* Function that launches a confetti celebration */
+  function launchConfetti() {
+
+  const duration = 3000;
+  const end = Date.now() + duration;
+
+  /* Colors matching the green theme */
+  const colors = ['#4CAF50','#66BB6A','#81C784','#A5D6A7'];
+
+  (function frame() {
+
+  confetti({
+  particleCount:7,
+  angle:60,
+  spread:70,
+  origin:{ x:0 },
+  colors:colors
+  });
+
+  confetti({
+  particleCount:7,
+  angle:120,
+  spread:70,
+  origin:{ x:1 },
+  colors:colors
+  });
+
+  if (Date.now() < end) {
+  requestAnimationFrame(frame);
+  }
+
+  }());
+
+  }
+
+</script>
+
+<!-- Run confetti only when the player wins -->
+<script th:if="${success}">
+  launchConfetti();
+</script>
+
+<script src="/js/bg-music.js?v=1"></script>
+</body>
+</html>
