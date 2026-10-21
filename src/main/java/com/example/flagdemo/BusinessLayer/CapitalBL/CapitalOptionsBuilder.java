@@ -40,8 +40,8 @@ public final class CapitalOptionsBuilder {
      * CAPITAL_TO_COUNTRY: options are country names (any other country is a valid distractor).
      */
     public static CapitalQuestionOptions build(CountryController cc, CapitalQuizMode mode, CountryBL target) {
-        // A country with no real capital on record (Antarctica, the EU, ENG/NIR - see
-        // FlagsInserter's specialNames - dependent territories, ...) is never selectable here,
+        // A country with no real capital on record (Antarctica, the EU, England - its
+        // capital London already belongs to the United Kingdom - dependent territories, ...) is never selectable here,
         // as either the target or a decoy: it would otherwise show up as an "Unknown" or
         // otherwise-broken option.
         List<CountryBL> distractorPool = new ArrayList<>();

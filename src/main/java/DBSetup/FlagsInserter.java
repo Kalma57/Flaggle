@@ -31,9 +31,11 @@ public class FlagsInserter {
         specialIso3.put("US", "USA"); specialNames.put("US", "United States");
         specialNames.put("TR", "Turkey");
 
-        // Fix 1: Manually adding Scotland and Wales so they don't appear as "Unknown"
+        // Fix 1: Manually adding the UK's home nations so they don't appear as "Unknown"
         specialNames.put("SCT", "Scotland");
         specialNames.put("WLS", "Wales");
+        specialNames.put("ENG", "England");
+        specialNames.put("NIR", "Northern Ireland");
 
         // Load ISO2 to ISO3 from Java Locales
         for (Locale locale : Locale.getAvailableLocales()) {

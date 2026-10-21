@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>MundoFlag - Credits</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        *{
+            margin:0;
+            padding:0;
+            box-sizing:border-box;
+            font-family:'Nunito', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        h1, h2{
+            font-family:'Baloo 2', 'Nunito', sans-serif;
+        }
+
+        /* Same animated gradient background as the home page */
+        body{
+            min-height:100vh;
+            padding:40px 16px 80px;
+            color:#24423d;
+            background: linear-gradient(-45deg,#e9f8f5,#f9f9f9,#dff6f1,#e6fffb);
+            background-size:400% 400%;
+            animation: gradientMove 12s ease infinite;
+        }
+
+        @keyframes gradientMove{
+            0%{ background-position:0% 50%; }
+            50%{ background-position:100% 50%; }
+            100%{ background-position:0% 50%; }
+        }
+
+        .back-link{
+            display:inline-block;
+            margin-bottom:24px;
+            padding:8px 16px;
+            border-radius:999px;
+            background:#fff;
+            color:#1a9e8a;
+            font-weight:700;
+            text-decoration:none;
+            box-shadow:0 2px 10px rgba(0,0,0,0.08);
+        }
+
+        .page{
+            max-width:760px;
+            margin:0 auto;
+        }
+
+        h1{
+            font-size:44px;
+            color:#1a9e8a;
+            margin-bottom:6px;
+        }
+
+        .intro{
+            margin-bottom:28px;
+            color:#55706b;
+        }
+
+        section{
+            background:#fff;
+            border-radius:18px;
+            padding:22px 24px;
+            margin-bottom:18px;
+            box-shadow:0 4px 18px rgba(0,0,0,0.06);
+        }
+
+        h2{
+            font-size:24px;
+            margin-bottom:12px;
+        }
+
+        ul{
+            list-style:none;
+        }
+
+        li{
+            padding:10px 0;
+            border-top:1px solid #eef3f2;
+            line-height:1.5;
+        }
+
+        li:first-child{
+            border-top:none;
+            padding-top:0;
+        }
+
+        .work{
+            font-weight:700;
+        }
+
+        .license{
+            display:inline-block;
+            margin-left:6px;
+            padding:1px 8px;
+            border-radius:999px;
+            background:#e6f7f4;
+            color:#13806f;
+            font-size:13px;
+            font-weight:700;
+        }
+
+        .note{
+            display:block;
+            color:#6b827e;
+            font-size:14px;
+        }
+
+        a{
+            color:#13806f;
+        }
+    </style>
+</head>
+<body>
+
+<div class="page">
+
+    <a class="back-link" href="/">← Home</a>
+
+    <h1>Credits</h1>
+    <p class="intro">MundoFlag is built with the help of these freely licensed works. Thank you to their creators.</p>
+
+    <section>
+        <h2>🎵 Music</h2>
+        <ul>
+            <li>
+                <span class="work">"Chill Jungle Ambient"</span> by Tausdei
+                <span class="license">CC BY 3.0</span>
+                <span class="note">
+                    <a href="https://opengameart.org/content/chill-jungle-ambient" target="_blank" rel="noopener">OpenGameArt</a> ·
+                    <a href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noopener">license</a> ·
+                    re-encoded as a smaller MP3 for the web
+                </span>
+            </li>
+            <li>
+                <span class="work">"Jungle Jumpin'"</span> by Scott Elliott, looped version by AntumDeluge
+                <span class="license">CC BY 4.0</span>
+                <span class="note">
+                    <a href="https://opengameart.org/node/165025" target="_blank" rel="noopener">OpenGameArt</a> ·
+                    <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">license</a> ·
+                    converted from OGG to MP3 for the web
+                </span>
+            </li>
+        </ul>
+    </section>
+
+    <section>
+        <h2>🏳️ Flags and maps</h2>
+        <ul>
+            <li>
+                <span class="work">flag-icons</span> by Panayiotis Lipiridis and contributors
+                <span class="license">MIT</span>
+                <span class="note"><a href="https://github.com/lipis/flag-icons" target="_blank" rel="noopener">github.com/lipis/flag-icons</a> · flag images used in every game</span>
+            </li>
+            <li>
+                <span class="work">Natural Earth</span>
+                <span class="license">Public domain</span>
+                <span class="note"><a href="https://www.naturalearthdata.com/" target="_blank" rel="noopener">naturalearthdata.com</a> · country borders on the globe</span>
+            </li>
+            <li>
+                <span class="work">world-atlas</span> by Mike Bostock
+                <span class="license">ISC</span>
+                <span class="note"><a href="https://github.com/topojson/world-atlas" target="_blank" rel="noopener">github.com/topojson/world-atlas</a> · Natural Earth data packaged for the web</span>
+            </li>
+        </ul>
+    </section>
+
+    <section>
+        <h2>🌍 Libraries</h2>
+        <ul>
+            <li>
+                <span class="work">three.js</span> by the three.js authors
+                <span class="license">MIT</span>
+                <span class="note"><a href="https://threejs.org/" target="_blank" rel="noopener">threejs.org</a> · 3D rendering</span>
+            </li>
+            <li>
+                <span class="work">three-globe</span> by Vasco Asturiano
+                <span class="license">MIT</span>
+                <span class="note"><a href="https://github.com/vasturiano/three-globe" target="_blank" rel="noopener">github.com/vasturiano/three-globe</a> · the interactive globe and its Earth texture</span>
+            </li>
+            <li>
+                <span class="work">topojson-client</span> by Mike Bostock
+                <span class="license">ISC</span>
+                <span class="note"><a href="https://github.com/topojson/topojson-client" target="_blank" rel="noopener">github.com/topojson/topojson-client</a></span>
+            </li>
+            <li>
+                <span class="work">canvas-confetti</span> by Kiril Vatev
+                <span class="license">ISC</span>
+                <span class="note"><a href="https://github.com/catdad/canvas-confetti" target="_blank" rel="noopener">github.com/catdad/canvas-confetti</a> · the win celebration</span>
+            </li>
+            <li>
+                <span class="work">Baloo 2</span> and <span class="work">Nunito</span> fonts
+                <span class="license">SIL OFL 1.1</span>
+                <span class="note"><a href="https://fonts.google.com/" target="_blank" rel="noopener">Google Fonts</a></span>
+            </li>
+        </ul>
+    </section>
+
+</div>
+
+<script src="/js/bg-music.js?v=1"></script>
+</body>
+</html>
