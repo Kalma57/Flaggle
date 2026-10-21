@@ -35,7 +35,7 @@ import java.util.List;
 public final class DailyQuizSelectorBL {
 
     private static final String EVENTS_URL =
-            "https://raw.githubusercontent.com/Kalma57/Flaggle/daily-quiz-data/data/daily-quiz-events.json";
+            "https://raw.githubusercontent.com/Kalma57/MundoFlag/daily-quiz-data/data/daily-quiz-events.json";
     private static final Duration FETCH_TIMEOUT = Duration.ofSeconds(5);
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
