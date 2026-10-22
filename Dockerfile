@@ -5,8 +5,12 @@ RUN mvn clean package -DskipTests
 
 # Stage 2: Run the application
 FROM amazoncorretto:23-alpine-jdk
+# Run as an unprivileged user, so a bug in the app can't touch the rest of the container
+RUN addgroup -S app && adduser -S app -G app
+WORKDIR /app
 # Copy the jar file from the build stage
-COPY --from=build /target/*.jar app.jar
+COPY --from=build --chown=app:app /target/*.jar app.jar
+USER app
 
 # Expose the port Spring Boot runs on
 EXPOSE 8080

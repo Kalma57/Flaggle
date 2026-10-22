@@ -45,3 +45,5 @@ tools/**/node_modules/
 ### Promo video workspace & local backups (raw recordings, renders, Python venv - not app source) ###
 videos/
 .local-backups/
+
+deploy/oracle/.env

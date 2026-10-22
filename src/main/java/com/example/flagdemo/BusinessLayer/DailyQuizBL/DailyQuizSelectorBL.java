@@ -20,10 +20,9 @@ import java.util.List;
  * The real source of truth is a small JSON file a weekly external research
  * agent publishes (web research + the priority/randomness rules agreed on
  * separately - see the routine's own prompt, not this codebase) to the
- * "daily-quiz-data" branch of this repo, fetched here straight from GitHub's
- * raw file host. That branch is dedicated to just this one file and the
- * agent is the only thing that ever pushes to it, so it never interacts with
- * normal app development on develop/main.
+ * private Kalma57/MundoFlag-daily-data repo, fetched here through GitHub's
+ * API. That repo holds just this one file and the agent is the only thing
+ * that ever pushes to it.
  *
  * The fetch is cached for the day (one request per day serves every player,
  * not one per request), and ANY failure - network, missing day, a country
@@ -34,8 +33,15 @@ import java.util.List;
  */
 public final class DailyQuizSelectorBL {
 
+    /**
+     * The file lives in its own PRIVATE repo, so the coming week's countries can't be
+     * read ahead of time from the public code repo. Reading it needs a read-only
+     * GitHub token, given to the server only through this environment variable -
+     * without it the fetch is skipped and the date-seeded fallback is used.
+     */
     private static final String EVENTS_URL =
-            "https://raw.githubusercontent.com/Kalma57/MundoFlag/daily-quiz-data/data/daily-quiz-events.json";
+            "https://api.github.com/repos/Kalma57/MundoFlag-daily-data/contents/data/daily-quiz-events.json";
+    private static final String TOKEN_ENV = "DAILY_QUIZ_GITHUB_TOKEN";
     private static final Duration FETCH_TIMEOUT = Duration.ofSeconds(5);
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
@@ -117,9 +123,17 @@ public final class DailyQuizSelectorBL {
             return cachedDays;
         }
 
+        String token = System.getenv(TOKEN_ENV);
+        if (token == null || token.isBlank()) {
+            return cachedDays;
+        }
+
         HttpClient client = HttpClient.newBuilder().connectTimeout(FETCH_TIMEOUT).build();
         HttpRequest request = HttpRequest.newBuilder(URI.create(EVENTS_URL))
                 .timeout(FETCH_TIMEOUT)
+                .header("Authorization", "Bearer " + token.trim())
+                .header("Accept", "application/vnd.github.raw+json")
+                .header("X-GitHub-Api-Version", "2022-11-28")
                 .GET()
                 .build();
         HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());

@@ -52,11 +52,12 @@ public class FlagsInserter {
     public static void main(String[] args) {
         // Absolute relative paths - based on the project root folder
         String baseDir = "src/main/resources/static/DB";
-        String dbPath = baseDir + "/MundoFlag.db";
+        String dataDir = "src/main/resources/data";
+        String dbPath = dataDir + "/MundoFlag.db";
         String flagsFolder = baseDir + "/FlagsImages";
-        String longLatFilePath = baseDir + "/countriesBorders/CountriesLongLat.txt";
-        String neighborsFilePath = baseDir + "/countriesBorders/CountriesNeighbors.txt";
-        String capitalsFilePath = baseDir + "/countriesBorders/CountriesCapitals.txt";
+        String longLatFilePath = dataDir + "/countriesBorders/CountriesLongLat.txt";
+        String neighborsFilePath = dataDir + "/countriesBorders/CountriesNeighbors.txt";
+        String capitalsFilePath = dataDir + "/countriesBorders/CountriesCapitals.txt";
 
         loadCountryLongLat(longLatFilePath);
 
@@ -238,7 +239,7 @@ public class FlagsInserter {
 
             System.out.println("Capitals update complete!");
 
-            String targetPath = "target/classes/static/DB/MundoFlag.db";
+            String targetPath = "target/classes/data/MundoFlag.db";
             File originalDb = new File(dbPath);
             File targetDb = new File(targetPath);
 

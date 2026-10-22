@@ -1,0 +1,36 @@
+# MundoFlag on an Oracle Cloud VM.
+# Only Caddy is reachable from the internet (ports 80/443); the app's port 8080 stays
+# inside the private Docker network, so the only way in is through the web pages.
+services:
+  app:
+    build:
+      context: ../..
+    restart: unless-stopped
+    read_only: true          # the container's files can't be changed while it runs
+    tmpfs:
+      - /tmp                 # the only writable place: SQLite's temp copy of the DB
+    environment:
+      - SERVER_FORWARD_HEADERS_STRATEGY=framework
+      # read-only token for the private daily-quiz data repo, kept only in .env on the server
+      - DAILY_QUIZ_GITHUB_TOKEN=${DAILY_QUIZ_GITHUB_TOKEN:-}
+    expose:
+      - "8080"
+
+  caddy:
+    image: caddy:2.8.4-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      - SITE_ADDRESS=${SITE_ADDRESS:-:80}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - app
+
+volumes:
+  caddy_data:
+  caddy_config:

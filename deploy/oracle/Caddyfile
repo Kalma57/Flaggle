@@ -1,0 +1,15 @@
+# SITE_ADDRESS comes from deploy/oracle/.env:
+#   ":80"            -> plain HTTP on the server's IP (before there is a domain)
+#   "mundoflag.com"  -> Caddy gets and renews a free HTTPS certificate by itself
+{$SITE_ADDRESS} {
+	encode gzip
+
+	header {
+		X-Content-Type-Options nosniff
+		X-Frame-Options SAMEORIGIN
+		Referrer-Policy strict-origin-when-cross-origin
+		-Server
+	}
+
+	reverse_proxy app:8080
+}

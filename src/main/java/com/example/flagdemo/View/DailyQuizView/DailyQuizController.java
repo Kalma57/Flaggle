@@ -411,6 +411,9 @@ public class DailyQuizController {
     @PostMapping("/debug/reset")
     @ResponseBody
     public Map<String, Object> debugReset(HttpServletResponse response) {
+        if (!DailyQuizDevConfig.DEV_MODE_ENABLED) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        }
         DailyQuizPlayedGuardBL.clearPlayed(response);
         return Map.of("reset", true);
     }
