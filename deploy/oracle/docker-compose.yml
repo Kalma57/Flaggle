@@ -11,8 +11,8 @@ services:
       - /tmp                 # the only writable place: SQLite's temp copy of the DB
     environment:
       - SERVER_FORWARD_HEADERS_STRATEGY=framework
-      # read-only token for the private daily-quiz data repo, kept only in .env on the server
-      - DAILY_QUIZ_GITHUB_TOKEN=${DAILY_QUIZ_GITHUB_TOKEN:-}
+      # key that decrypts the weekly daily-quiz file, kept only in .env on the server
+      - DAILY_QUIZ_KEY=${DAILY_QUIZ_KEY:-}
     expose:
       - "8080"
 

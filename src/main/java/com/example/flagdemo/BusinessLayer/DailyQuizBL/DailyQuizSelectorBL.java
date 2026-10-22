@@ -6,12 +6,20 @@ import com.example.flagdemo.DataAccessLayer.CountryController;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import javax.crypto.Cipher;
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.PBEKeySpec;
+import javax.crypto.spec.SecretKeySpec;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.LocalDate;
+import java.util.Arrays;
+import java.util.Base64;
 import java.util.List;
 
 /**
@@ -20,9 +28,10 @@ import java.util.List;
  * The real source of truth is a small JSON file a weekly external research
  * agent publishes (web research + the priority/randomness rules agreed on
  * separately - see the routine's own prompt, not this codebase) to the
- * private Kalma57/MundoFlag-daily-data repo, fetched here through GitHub's
- * API. That repo holds just this one file and the agent is the only thing
- * that ever pushes to it.
+ * "daily-quiz-data" branch of this repo, fetched here straight from GitHub's
+ * raw file host. The repo is public, so the file is ENCRYPTED (openssl
+ * "enc -aes-256-cbc -pbkdf2" format) and only the agent and this server hold
+ * the key - nobody can read the coming week's countries from GitHub.
  *
  * The fetch is cached for the day (one request per day serves every player,
  * not one per request), and ANY failure - network, missing day, a country
@@ -33,15 +42,11 @@ import java.util.List;
  */
 public final class DailyQuizSelectorBL {
 
-    /**
-     * The file lives in its own PRIVATE repo, so the coming week's countries can't be
-     * read ahead of time from the public code repo. Reading it needs a read-only
-     * GitHub token, given to the server only through this environment variable -
-     * without it the fetch is skipped and the date-seeded fallback is used.
-     */
     private static final String EVENTS_URL =
-            "https://api.github.com/repos/Kalma57/MundoFlag-daily-data/contents/data/daily-quiz-events.json";
-    private static final String TOKEN_ENV = "DAILY_QUIZ_GITHUB_TOKEN";
+            "https://raw.githubusercontent.com/Kalma57/MundoFlag/daily-quiz-data/data/daily-quiz-events.enc";
+    /** The decryption key reaches the server only through this environment variable. */
+    private static final String KEY_ENV = "DAILY_QUIZ_KEY";
+    private static final int PBKDF2_ITERATIONS = 200_000;
     private static final Duration FETCH_TIMEOUT = Duration.ofSeconds(5);
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
@@ -123,17 +128,14 @@ public final class DailyQuizSelectorBL {
             return cachedDays;
         }
 
-        String token = System.getenv(TOKEN_ENV);
-        if (token == null || token.isBlank()) {
+        String key = secretKey();
+        if (key == null) {
             return cachedDays;
         }
 
         HttpClient client = HttpClient.newBuilder().connectTimeout(FETCH_TIMEOUT).build();
         HttpRequest request = HttpRequest.newBuilder(URI.create(EVENTS_URL))
                 .timeout(FETCH_TIMEOUT)
-                .header("Authorization", "Bearer " + token.trim())
-                .header("Accept", "application/vnd.github.raw+json")
-                .header("X-GitHub-Api-Version", "2022-11-28")
                 .GET()
                 .build();
         HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
@@ -141,7 +143,7 @@ public final class DailyQuizSelectorBL {
             return cachedDays; // keep serving yesterday's cache rather than nothing, if any
         }
 
-        JsonNode root = MAPPER.readTree(response.body());
+        JsonNode root = MAPPER.readTree(decrypt(response.body(), key));
         JsonNode days = root.get("days");
         if (days == null || !days.isObject()) {
             return cachedDays;
@@ -152,9 +154,40 @@ public final class DailyQuizSelectorBL {
         return cachedDays;
     }
 
+    private static String secretKey() {
+        String key = System.getenv(KEY_ENV);
+        return (key == null || key.isBlank()) ? null : key.trim();
+    }
+
+    /**
+     * Decrypts what `openssl enc -aes-256-cbc -pbkdf2 -iter 200000 -md sha256 -salt -base64`
+     * produced: base64 of "Salted__" + 8-byte salt + ciphertext, with the AES key and IV
+     * both derived from the passphrase by PBKDF2-HMAC-SHA256.
+     */
+    static String decrypt(String base64, String passphrase) throws Exception {
+        byte[] data = Base64.getMimeDecoder().decode(base64.trim());
+        if (data.length < 16 || !new String(data, 0, 8, StandardCharsets.US_ASCII).equals("Salted__")) {
+            throw new IllegalArgumentException("Not an openssl salted file");
+        }
+        byte[] salt = Arrays.copyOfRange(data, 8, 16);
+        PBEKeySpec spec = new PBEKeySpec(passphrase.toCharArray(), salt, PBKDF2_ITERATIONS, 48 * 8);
+        byte[] keyAndIv = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256").generateSecret(spec).getEncoded();
+        Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+        cipher.init(Cipher.DECRYPT_MODE,
+                new SecretKeySpec(keyAndIv, 0, 32, "AES"),
+                new IvParameterSpec(keyAndIv, 32, 16));
+        return new String(cipher.doFinal(data, 16, data.length - 16), StandardCharsets.UTF_8);
+    }
+
+    /**
+     * The fallback pick is mixed with the secret key when there is one, so it can't be
+     * worked out ahead of time from the public source code either.
+     */
     private static CountryBL pickDeterministic(CountryController cc, LocalDate date) {
         List<CountryBL> pool = CapitalGlobeTargetPicker.eligibleTargets(cc);
-        int index = Math.floorMod(date.toString().hashCode(), pool.size());
+        String key = secretKey();
+        String seed = key == null ? date.toString() : key + "|" + date;
+        int index = Math.floorMod(seed.hashCode(), pool.size());
         return pool.get(index);
     }
 }
