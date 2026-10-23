@@ -93,9 +93,10 @@ public final class DailyQuizSelectorBL {
         CountryBL picked = pickDeterministic(cc, effectiveDate);
         return new DailyQuizSelection(
                 picked,
-                "Today's Pick",
+                "Mystery Country",
                 null,
-                "[PLACEHOLDER] The research agent hasn't published today's pick yet - showing a rotating placeholder instead.",
+                // Shown to players, so it must read like a normal day - never like a debug note
+                "Today's country was picked at random from all over the world. Can you track it down?",
                 effectiveDate,
                 false
         );
