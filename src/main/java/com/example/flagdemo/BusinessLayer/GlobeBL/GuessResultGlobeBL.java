@@ -1,5 +1,7 @@
 package com.example.flagdemo.BusinessLayer.GlobeBL;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import java.util.Arrays;
 import java.util.List;
 
@@ -51,6 +53,8 @@ public class GuessResultGlobeBL implements java.io.Serializable {
         return guessedCountry;
     }
 
+    // Never sent to the browser with a guess result - it is the answer
+    @JsonIgnore
     public CountryBL getTargetCountry() {
         return targetCountry;
     }

@@ -710,35 +710,33 @@
         setTimeout(() => stage3.scrollIntoView({ behavior: 'smooth', block: 'start' }), 400);
     }
 
-    function pickStage3Option(pickedIndex, data) {
+    async function pickStage3Option(pickedIndex, data) {
         const buttons = document.querySelectorAll('#stage3Options .option-btn');
-        buttons.forEach((btn, i) => {
-            btn.disabled = true;
-            if (i === data.stage3CorrectIndex) btn.classList.add('correct');
-            else if (i === pickedIndex) btn.classList.add('wrong');
-        });
+        buttons.forEach(btn => { btn.disabled = true; });
 
         // Stage 3 is done the instant an answer is picked - stop the clock here.
         window.__dailyQuizTimerStopped = true;
         clearInterval(window.__dailyQuizTimerInterval);
-
-        const stage3Success = pickedIndex === data.stage3CorrectIndex;
-        data.dailyQuizAllSuccess = stage1Success && stage2Success && stage3Success;
         data.dailyQuizFinalTime = document.getElementById('timerDisplay').textContent;
+
+        // The server keeps the correct answer until now and grades the pick
+        // (it also marks today's attempt as finished).
+        const response = await fetch('/DailyQuiz/stage3/answer', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: 'gameId=' + encodeURIComponent(GAME_ID) + '&pickedIndex=' + pickedIndex
+        });
+        Object.assign(data, await response.json());
+
+        buttons.forEach((btn, i) => {
+            if (i === data.stage3CorrectIndex) btn.classList.add('correct');
+            else if (i === pickedIndex) btn.classList.add('wrong');
+        });
+
+        data.dailyQuizAllSuccess = stage1Success && stage2Success && data.stage3Success;
         if (data.dailyQuizAllSuccess) {
             document.getElementById('timerBadge').classList.add('timer-success');
         }
-
-        // Stage 3 is graded client-side (see the controller's class doc), so
-        // this is the only signal the server ever gets that today's attempt is
-        // actually finished - without it, a revisit after this point would
-        // keep treating the attempt as still "in progress" and resume back
-        // into an already-answered stage 3.
-        fetch('/DailyQuiz/complete', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: 'gameId=' + encodeURIComponent(GAME_ID)
-        });
 
         setTimeout(() => revealStage4(data), 900);
     }
