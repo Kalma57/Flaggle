@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.springframework.stereotype.Repository;
+import org.sqlite.SQLiteConfig;
 
 /**
  * Repository responsible for loading and storing country data from the database.
@@ -21,6 +22,8 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public class CountryRepository implements java.io.Serializable {
+
+    private static final String DB_RESOURCE = "/data/MundoFlag.db";
 
     private Map<String, String> codeToName = new HashMap<>();
     private Map<String, String> nameToCode = new HashMap<>();
@@ -33,18 +36,24 @@ public class CountryRepository implements java.io.Serializable {
     /**
      * Creates a connection to the SQLite database.
      * Loads the DB from the classpath (inside the JAR) and copies it to a temp file.
+     *
+     * The DB lives under /data, not /static, so the web server never serves it to
+     * browsers (it holds every country's answer data), and the connection is opened
+     * read-only so nothing at runtime can change it.
      */
     private Connection getConnection() throws Exception {
-        InputStream is = getClass().getResourceAsStream("/static/DB/MundoFlag.db");
+        InputStream is = getClass().getResourceAsStream(DB_RESOURCE);
         if (is == null) {
-            throw new Exception("Database not found in classpath at /static/DB/MundoFlag.db");
+            throw new Exception("Database not found in classpath at " + DB_RESOURCE);
         }
         File tempDb = File.createTempFile("Flags", ".db");
         tempDb.deleteOnExit();
         try (FileOutputStream fos = new FileOutputStream(tempDb)) {
             is.transferTo(fos);
         }
-        return DriverManager.getConnection("jdbc:sqlite:" + tempDb.getAbsolutePath());
+        SQLiteConfig config = new SQLiteConfig();
+        config.setReadOnly(true);
+        return DriverManager.getConnection("jdbc:sqlite:" + tempDb.getAbsolutePath(), config.toProperties());
     }
 
     private void loadCountries() {

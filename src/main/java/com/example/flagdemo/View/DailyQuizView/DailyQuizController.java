@@ -18,6 +18,8 @@ import com.example.flagdemo.ViewModel.FlagsVM.FlagsViewModel;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -38,11 +40,10 @@ import java.util.Map;
  * {@link CapitalOptionsBuilder} exactly as-is (the target is already known
  * by this point, so no new options logic was needed), and stage 4 shows the
  * research agent's own write-up of why this country was picked (see
- * DailyQuizSelectorBL/DailyQuizSelection). Like Capital's own Regular mode,
- * stage 3's correct index - and stage 4's whole content - ships up front
- * alongside the stage 3 question, and grading/reveal happens client-side -
- * there's nothing at stake worth a second server round trip for (stage 3's
- * pick itself is the one exception - see /complete).
+ * DailyQuizSelectorBL/DailyQuizSelection). Nothing that gives an answer away
+ * reaches the client before the player has earned it: the target only after
+ * stage 1, and stage 3's correct option plus stage 4's content only once
+ * stage 3 is answered (graded here, see /stage3/answer).
  *
  * gameId is deterministic ("daily-" + the selection's date), not a random
  * UUID, specifically so the session attributes below are addressable again
@@ -124,9 +125,8 @@ public class DailyQuizController {
      * in order); stage 2 can only report which neighbors are found so far, not
      * the original click-by-click order, since the engine only tracks a Set -
      * good enough to resume progress correctly, just not a frame-perfect replay.
-     * Stage 3, if reached, is shown unanswered again - it was never graded
-     * server-side in the first place (see the class doc), so there is nothing
-     * to restore there beyond the question itself.
+     * Stage 3, if reached, is shown unanswered again with a fresh question -
+     * answering it is what ends the attempt (see /stage3/answer).
      */
     @GetMapping("/resume")
     @ResponseBody
@@ -139,7 +139,6 @@ public class DailyQuizController {
         }
 
         CountryBL target = viewModel.getTargetCountry();
-        result.put("targetCountry", countryPayload(target));
         result.put("stage1Guesses", viewModel.getGuesses().stream().map(g -> {
             Map<String, Object> guessPayload = new LinkedHashMap<>();
             guessPayload.put("guessedName", g.getGuessedCountry().getName());
@@ -150,10 +149,12 @@ public class DailyQuizController {
 
         DailyQuizStage2EngineBL stage2 = (DailyQuizStage2EngineBL) session.getAttribute("dailyQuizStage2Engine_" + gameId);
         if (stage2 == null) {
+            // Still guessing - the target must not leave the server yet
             result.put("resumeStage", 1);
             return result;
         }
 
+        result.put("targetCountry", countryPayload(target));
         result.put("stage1Success", viewModel.isCorrect());
         result.put("neighborTotalCount", stage2.getNeighborsToFind().size());
         result.put("usedNearestFallback", stage2.isUsedNearestFallback());
@@ -176,11 +177,8 @@ public class DailyQuizController {
     }
 
     /**
-     * Marks today's attempt as fully finished - called once stage 3 is
-     * answered (right or wrong, grading is client-side either way, see the
-     * class doc). Without this, the server has no way to tell "finished" apart
-     * from "still somewhere in stage 3", since nothing about stage 3 or 4 was
-     * ever reported back before this endpoint existed.
+     * Marks today's attempt as fully finished. /stage3/answer now does this
+     * itself; kept so a page loaded before that change still finishes cleanly.
      */
     @PostMapping("/complete")
     @ResponseBody
@@ -340,18 +338,42 @@ public class DailyQuizController {
     /**
      * Builds the 4-option capital question for the already-known target -
      * same option-building rules as Capital's FLAG_TO_CAPITAL mode, just
-     * skipping the flag reveal since the country is already on screen. Also
-     * attaches stage 4's content (the "why this country" info text) up
-     * front, same reasoning as stage 3 itself: nothing here needs grading or
-     * hiding, so there is no reason to make the client wait for a second
-     * round trip just to reveal it once stage 3 is answered.
+     * skipping the flag reveal since the country is already on screen.
+     *
+     * Only the option texts go to the client. Which one is correct (and the
+     * capital itself, shown in stage 4) stays in the session until the player
+     * has picked, see {@link #stage3Answer} - otherwise the answer could be read
+     * straight out of this response before choosing.
      */
     private Map<String, Object> beginStage3(CountryBL target, String gameId, HttpSession session) {
         CapitalQuestionOptions options = CapitalOptionsBuilder.build(countryController, CapitalQuizMode.FLAG_TO_CAPITAL, target);
+        session.setAttribute("dailyQuizStage3Options_" + gameId, options);
+        session.setAttribute("dailyQuizStage3Target_" + gameId, target);
 
         Map<String, Object> payload = new LinkedHashMap<>();
         payload.put("stage3OptionTexts", options.getOptionTexts());
+        return payload;
+    }
+
+    /**
+     * Grades stage 3 and returns the correct option plus stage 4's content.
+     * Also marks today's attempt as fully finished, same as {@link #complete}.
+     */
+    @PostMapping("/stage3/answer")
+    @ResponseBody
+    public Map<String, Object> stage3Answer(@RequestParam("gameId") String gameId,
+                                            @RequestParam("pickedIndex") int pickedIndex,
+                                            HttpSession session) {
+        CapitalQuestionOptions options = (CapitalQuestionOptions) session.getAttribute("dailyQuizStage3Options_" + gameId);
+        CountryBL target = (CountryBL) session.getAttribute("dailyQuizStage3Target_" + gameId);
+        if (options == null || target == null) {
+            return Map.of();
+        }
+        session.setAttribute("dailyQuizCompleted_" + gameId, true);
+
+        Map<String, Object> payload = new LinkedHashMap<>();
         payload.put("stage3CorrectIndex", options.getCorrectIndex());
+        payload.put("stage3Success", pickedIndex == options.getCorrectIndex());
         payload.put("stage4CountryName", target.getName());
         payload.put("stage4CountryFlagPath", target.getFlagPath());
         payload.put("stage4Capital", target.getCapital());
@@ -378,6 +400,10 @@ public class DailyQuizController {
                                            @RequestParam(required = false) String devDate,
                                            HttpServletRequest request,
                                            HttpServletResponse response) {
+        // Returns today's answer, so it must not exist for real visitors
+        if (!DailyQuizDevConfig.DEV_MODE_ENABLED) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        }
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("devModeEnabled", DailyQuizDevConfig.DEV_MODE_ENABLED);
 
@@ -405,6 +431,9 @@ public class DailyQuizController {
     @PostMapping("/debug/reset")
     @ResponseBody
     public Map<String, Object> debugReset(HttpServletResponse response) {
+        if (!DailyQuizDevConfig.DEV_MODE_ENABLED) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        }
         DailyQuizPlayedGuardBL.clearPlayed(response);
         return Map.of("reset", true);
     }
